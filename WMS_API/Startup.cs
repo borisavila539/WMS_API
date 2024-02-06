@@ -34,6 +34,7 @@ namespace WMS_API
 
             services.AddControllers();
             services.AddTransient<IWMSRepository, WMSRepository>();
+            services.AddTransient<IAX, AXRepository>();
 
 
             services.AddSwaggerGen(c =>
@@ -52,7 +53,7 @@ namespace WMS_API
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WMS_API v1"));
             }
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseCors(CorsOrigins);
 

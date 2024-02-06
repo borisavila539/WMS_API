@@ -12,10 +12,12 @@ namespace WMS_API.Controllers
     public class WMSController:ControllerBase
     {
         private readonly IWMSRepository _WMS;
+        private readonly IAX _AX;
 
-        public WMSController(IWMSRepository WMS)
+        public WMSController(IWMSRepository WMS, IAX AX)
         {
             _WMS = WMS;
+            _AX = AX;
         }
 
         [HttpGet("DiariosAbiertos/{user}/{filtro}")]
@@ -32,7 +34,13 @@ namespace WMS_API.Controllers
             return Ok(resp);
         }
 
-
+        [HttpGet("InsertMovimiento/{JOURNALID}/{ITEMBARCODE}")]
+        public string GetInsertMovimiento(string JOURNALID,string ITEMBARCODE)
+        {
+            var resp = _AX.InsertMovimientoLine(JOURNALID, ITEMBARCODE);
+            return resp;
+        }
+       
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)
         {

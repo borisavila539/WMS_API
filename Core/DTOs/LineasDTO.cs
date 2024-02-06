@@ -8,6 +8,7 @@ namespace Core.DTOs
 {
     public class LineasDTO
     {
+        public string ITEMBARCODE { get; set; }
         public string ITEMID { get; set; }
         public string INVENTCOLORID { get; set; }
         public string INVENTSIZEID { get; set; }

@@ -115,6 +115,7 @@ namespace WMS_API.Features.Repositories
         {
             return new LineasDTO()
             {
+                ITEMBARCODE = reader["ITEMBARCODE"].ToString(),
                 ITEMID = reader["ITEMID"].ToString(),
                 INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
                 INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
