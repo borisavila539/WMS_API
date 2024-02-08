@@ -8,6 +8,6 @@ namespace Core.Interfaces
 {
     public interface IAX
     {
-        public string InsertMovimientoLine(string JOURNALID, string ITEMBARCODE);
+        public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO);
     }
 }

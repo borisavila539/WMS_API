@@ -17,7 +17,7 @@ namespace WMS_API.Features.Repositories
 {
     public class AXRepository : IAX
     {
-        public string InsertMovimientoLine(string JOURNALID, string ITEMBARCODE)
+        public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
         {
             object obj = new object();
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
@@ -26,7 +26,7 @@ namespace WMS_API.Features.Repositories
             MOVIMIENTOLINE LINE = new MOVIMIENTOLINE();
             LINE.JOURNALID = JOURNALID;
             LINE.ITEMBARCODE = ITEMBARCODE;
-
+            LINE.PROCESO = PROCESO;
             LIST.Add(LINE);
 
             HEADER.LINES = LIST.ToArray();

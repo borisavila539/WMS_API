@@ -19,5 +19,7 @@ namespace Core.DTOs
         public string JOURNALID { get; set; }
         [XmlElement]
         public string ITEMBARCODE { get; set; }
+        [XmlElement]
+        public string PROCESO { get; set; }
     }
 }

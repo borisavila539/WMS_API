@@ -34,10 +34,10 @@ namespace WMS_API.Controllers
             return Ok(resp);
         }
 
-        [HttpGet("InsertMovimiento/{JOURNALID}/{ITEMBARCODE}")]
-        public string GetInsertMovimiento(string JOURNALID,string ITEMBARCODE)
+        [HttpGet("InsertDeleteMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
+        public string GetInsertMovimiento(string JOURNALID,string ITEMBARCODE,string PROCESO)
         {
-            var resp = _AX.InsertMovimientoLine(JOURNALID, ITEMBARCODE);
+            var resp = _AX.InsertDeleteMovimientoLine(JOURNALID, ITEMBARCODE,PROCESO);
             return resp;
         }
        
