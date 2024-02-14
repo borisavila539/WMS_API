@@ -11,16 +11,16 @@ namespace WMS_API.Features.Repositories
 {
     public class WMSRepository: IWMSRepository
     {
-        private readonly string _connectionStringAX;
+        private readonly string _connectionString;
 
         public WMSRepository(IConfiguration configuracion)
         {
-            _connectionStringAX = configuracion.GetConnectionString("MicrosoftDynamicsAX_PRO");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionStringAX))
+            using (SqlConnection sql = new SqlConnection(_connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("[IM_Login_WMS]", sql))
                 {
@@ -55,7 +55,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<List<DiariosAbiertosDTO>> GetDiariosAbiertos(string user, string filtro)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionStringAX))
+            using (SqlConnection sql = new SqlConnection(_connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("[IM_ObtenerDiariosMovimientoAbiertos]", sql))
                 {
@@ -90,7 +90,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<List<LineasDTO>> GetLineasDiario(string diario)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionStringAX))
+            using (SqlConnection sql = new SqlConnection(_connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("[IM_ObtenerLineasDiario]", sql))
                 {

@@ -1,7 +1,7 @@
 {
   "ExtendedData": {
     "inputs": [
-      "http://GIM-DEV-AOS:8101/DynamicsAx/Services/IM_WMS_MoviminetoGP"
+      "http://GIM-Pro3-AOS:8101/DynamicsAx/Services/IM_WMS_MoviminetoGP"
     ],
     "collectionTypes": [
       "System.Array",
