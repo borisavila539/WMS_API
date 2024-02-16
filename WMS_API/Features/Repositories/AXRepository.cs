@@ -17,7 +17,7 @@ namespace WMS_API.Features.Repositories
 {
     public class AXRepository : IAX
     {
-        public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
+        public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE)
         {
             object obj = new object();
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
@@ -27,6 +27,7 @@ namespace WMS_API.Features.Repositories
             LINE.JOURNALID = JOURNALID;
             LINE.ITEMBARCODE = ITEMBARCODE;
             LINE.PROCESO = PROCESO;
+            LINE.IMBOXCODE = IMBOXCODE;
             LIST.Add(LINE);
 
             HEADER.LINES = LIST.ToArray();
@@ -63,7 +64,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointAddr()
         {
 
-            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_MoviminetoGP";
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_MoviminetoGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

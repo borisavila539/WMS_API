@@ -15,7 +15,7 @@ namespace WMS_API.Features.Repositories
 
         public WMSRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("MicrosoftDynamicsAX_PRO");
         }
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
@@ -119,6 +119,7 @@ namespace WMS_API.Features.Repositories
                 ITEMID = reader["ITEMID"].ToString(),
                 INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
                 INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
+                IMBOXCODE = reader["IMBOXCODE"].ToString(),
                 QTY = Convert.ToInt32(Convert.ToDecimal(reader["QTY"].ToString())),
                
             };

@@ -21,5 +21,7 @@ namespace Core.DTOs
         public string ITEMBARCODE { get; set; }
         [XmlElement]
         public string PROCESO { get; set; }
+        [XmlElement]
+        public string IMBOXCODE { get; set; }
     }
 }
