@@ -40,7 +40,21 @@ namespace WMS_API.Controllers
             var resp = _AX.InsertDeleteMovimientoLine(JOURNALID, ITEMBARCODE,PROCESO,IMBOXCODE);
             return resp;
         }
-       
+
+        [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
+        public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
+        {
+            var resp = _WMS.GetImprimirEtiquetaMovimiento(JOURNALID,IMBOXCODE,PRINT);
+            return resp;
+        }
+
+        [HttpGet("Impresoras")]
+        public async Task<ActionResult<IEnumerable<ImpresoraDTO>>> GetImpresoras()
+        {
+            var resp = await _WMS.getImpresoras();
+            return resp;
+        }
+
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)
         {
