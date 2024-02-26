@@ -18,7 +18,7 @@ namespace WMS_API.Features.Repositories
 
         public WMSRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("MicrosoftDynamicsAX_PRO");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
@@ -354,9 +354,221 @@ namespace WMS_API.Features.Repositories
             {
                 IM_DESCRIPTION_PRINTER = reader["IM_DESCRIPTION_PRINTER"].ToString(),
                 IM_IPPRINTER = reader["IM_IPPRINTER"].ToString(),
+            };
+        }
+
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_AX>> GetIM_WMS_Despacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Detalle_AX]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM));
+                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO));
+                    cmd.Parameters.Add(new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO));
 
 
+                    var response = new List<IM_WMS_Despacho_Tela_Detalle_AX>();
+                    await sql.OpenAsync();
 
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetDespacho_Tela_Detalle_AX(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Despacho_Tela_Detalle_AX GetDespacho_Tela_Detalle_AX(SqlDataReader reader)
+        {
+            return new IM_WMS_Despacho_Tela_Detalle_AX()
+            {
+                TRANSFERID = reader["TRANSFERID"].ToString(),
+                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
+                APVENDROLL = reader["APVENDROLL"].ToString(),
+                QTYTRANSFER = Convert.ToDecimal(reader["QTYTRANSFER"].ToString()),
+                NAME = reader["NAME"].ToString(),
+                CONFIGID = reader["CONFIGID"].ToString(),
+                INVENTBATCHID = reader["INVENTBATCHID"].ToString(),
+                ITEMID = reader["ITEMID"].ToString(),
+                BFPITEMNAME = reader["BFPITEMNAME"].ToString()      
+            };
+        }
+
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> Get_Despacho_Tela_Detalle_Rollo(string INVENTSERIALID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Detalle_Rollo]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    
+                    cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
+
+
+                    var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetDespacho_Tela_Detalle_Rollo(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Despacho_Tela_Detalle_Rollo GetDespacho_Tela_Detalle_Rollo(SqlDataReader reader)
+        {
+            return new IM_WMS_Despacho_Tela_Detalle_Rollo()
+            {                
+                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
+                Picking = Convert.ToBoolean(reader["Picking"].ToString()),
+                Packing = Convert.ToBoolean(reader["Packing"].ToString()),
+                Receive = Convert.ToBoolean(reader["Receive"].ToString()),
+
+            };
+        }
+
+        public async Task<List<DespachoTelasDetalleDTO>> GetDespacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO, string tipo)
+        {
+            var response = new List<DespachoTelasDetalleDTO>();
+            var AX = await GetIM_WMS_Despacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
+
+            foreach (var element in AX) 
+            {
+                var detalle = await Get_Despacho_Tela_Detalle_Rollo(element.INVENTSERIALID);
+                if ((tipo == "PACKING" && detalle[0].Picking) || tipo == "PICKING" || tipo == "RECEIVE")
+                {                   
+              
+                    DespachoTelasDetalleDTO tmp = new DespachoTelasDetalleDTO();
+                    tmp.TRANSFERID = element.TRANSFERID;
+                    tmp.INVENTSERIALID = element.INVENTSERIALID;
+                    tmp.APVENDROLL = element.APVENDROLL;
+                    tmp.QTYTRANSFER = element.QTYTRANSFER;
+                    tmp.NAME = element.NAME;
+                    tmp.CONFIGID = element.CONFIGID;
+                    tmp.INVENTBATCHID = element.INVENTBATCHID;
+                    tmp.ITEMID = element.ITEMID;
+                    tmp.BFPITEMNAME = element.BFPITEMNAME;
+                    tmp.Picking = detalle[0].Picking;
+                    tmp.Packing = detalle[0].Packing;
+                    tmp.receive = detalle[0].Receive;
+                    response.Add(tmp);
+                }
+
+            }
+
+            //response = response.OrderBy(x => x.NAME).ThenBy(x => x.CONFIGID).ThenBy(x=> x.INVENTBATCHID).ThenBy(x=> x.ITEMID).ToList();
+
+            return response;         
+
+
+        }
+
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO,string CAMION, string CHOFER)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Picking_Packing]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
+                    cmd.Parameters.Add(new SqlParameter("@Tipo", TIPO));
+                    cmd.Parameters.Add(new SqlParameter("@Camion", CAMION));
+                    cmd.Parameters.Add(new SqlParameter("@Chofer", CHOFER));
+
+
+                    var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetDespacho_Tela_Detalle_Rollo(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public async Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
+        {
+            string etiqueta = "";
+
+            etiqueta += "^XA^CF0,22^BY3,2,100";
+            etiqueta += $"^FO200,50^BC^FD{data[0].INVENTSERIALID}^FS";
+            etiqueta += $"^FO50,220^FDProveedor: {data[0].APVENDROLL}^FS";
+            etiqueta += $"^FO500,220^FDCantidad: {data[0].QTYTRANSFER} {(data[0].ITEMID.Substring(0,2)=="45"?"lb":"yd")}^FS";
+            etiqueta += $"^FO50,250^FDTela: {data[0].ITEMID}^FS";
+            etiqueta += $"^FO500,250^FDColor: {data[0].COLOR}^FS";
+            etiqueta += $"^FO50,280^FDLote: {data[0].INVENTBATCHID}^FS";
+            etiqueta += $"^FO500,280^FDConfiguracion: {data[0].CONFIGID}^FS^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient(data[0].PRINT, 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+
+                    }
+
+                }
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+        }
+
+        public async Task<List<IM_WMS_TrasladosAbiertos>> getTrasladosAbiertos(string INVENTLOXATIONIDTO)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_TrasladosAbiertos]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new SqlParameter("@location", INVENTLOXATIONIDTO));
+                   
+
+
+                    var response = new List<IM_WMS_TrasladosAbiertos>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetTrasladosAbiertos(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_TrasladosAbiertos GetTrasladosAbiertos(SqlDataReader reader)
+        {
+            return new IM_WMS_TrasladosAbiertos()
+            {
+                TRANSFERIDFROM = reader["TRANSFERIDFROM"].ToString(),
+                TRANSFERIDTO = reader["TRANSFERIDTO"].ToString(),
+                INVENTLOCATIONIDTO = reader["INVENTLOCATIONIDTO"].ToString(),
+                DESCRIPTION = reader["DESCRIPTION"].ToString()
             };
         }
     } 

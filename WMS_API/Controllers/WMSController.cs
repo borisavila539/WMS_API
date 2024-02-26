@@ -55,12 +55,39 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("DespachotelasDetalle/{TRANSFERIDFROM}/{TRANSFERIDTO}/{INVENTLOCATIONIDTO}/{TIPO}")]
+        public async Task<ActionResult<IEnumerable<DespachoTelasDetalleDTO>>> GetDespachotelasDetalle(string TRANSFERIDFROM,string TRANSFERIDTO, string INVENTLOCATIONIDTO,string TIPO)
+        {
+            var resp = await _WMS.GetDespacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO,TIPO);
+            return resp;
+        }
+
+        [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{CAMION}/{CHOFER}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER)
+        {
+            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO,CAMION,CHOFER);
+            return resp;
+        }
+        [HttpGet("TrasladosAbiertos/{INVENTLOCATIONID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_TrasladosAbiertos>>> getTrasladosAbiertos(string INVENTLOCATIONID)
+        {
+            var resp = await _WMS.getTrasladosAbiertos(INVENTLOCATIONID);
+            return resp;
+        }
+
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)
         {
             var resp = await _WMS.PostLogin(datos);
 
             return Ok(resp);
+        }
+
+        [HttpPost("ImprimirEtiquetaRollo")]
+        public  Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
+        {
+            var resp =  _WMS.postImprimirEtiquetaRollo(data);
+            return resp;
         }
     }
 }
