@@ -399,7 +399,7 @@ namespace WMS_API.Features.Repositories
             };
         }
 
-        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> Get_Despacho_Tela_Detalle_Rollo(string INVENTSERIALID)
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> Get_Despacho_Tela_Detalle_Rollo(string INVENTSERIALID,string InventTransID)
         {
             using (SqlConnection sql = new SqlConnection(_connectionString))
             {
@@ -408,7 +408,7 @@ namespace WMS_API.Features.Repositories
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     
                     cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
-
+                    cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
 
                     var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
                     await sql.OpenAsync();
@@ -444,7 +444,7 @@ namespace WMS_API.Features.Repositories
 
             foreach (var element in AX) 
             {
-                var detalle = await Get_Despacho_Tela_Detalle_Rollo(element.INVENTSERIALID);
+                var detalle = await Get_Despacho_Tela_Detalle_Rollo(element.INVENTSERIALID,element.TRANSFERID);
                 if ((tipo == "PACKING" && detalle[0].Picking) || tipo == "PICKING" || tipo == "RECEIVE")
                 {                   
               
@@ -473,7 +473,7 @@ namespace WMS_API.Features.Repositories
 
         }
 
-        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO,string CAMION, string CHOFER)
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO,string CAMION, string CHOFER ,string InventTransID)
         {
             using (SqlConnection sql = new SqlConnection(_connectionString))
             {
@@ -485,7 +485,7 @@ namespace WMS_API.Features.Repositories
                     cmd.Parameters.Add(new SqlParameter("@Tipo", TIPO));
                     cmd.Parameters.Add(new SqlParameter("@Camion", CAMION));
                     cmd.Parameters.Add(new SqlParameter("@Chofer", CHOFER));
-
+                    cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
 
                     var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
                     await sql.OpenAsync();
