@@ -473,7 +473,7 @@ namespace WMS_API.Features.Repositories
 
         }
 
-        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO,string CAMION, string CHOFER ,string InventTransID)
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO,string CAMION, string CHOFER ,string InventTransID,string USER)
         {
             using (SqlConnection sql = new SqlConnection(_connectionString))
             {
@@ -486,6 +486,8 @@ namespace WMS_API.Features.Repositories
                     cmd.Parameters.Add(new SqlParameter("@Camion", CAMION));
                     cmd.Parameters.Add(new SqlParameter("@Chofer", CHOFER));
                     cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
+                    cmd.Parameters.Add(new SqlParameter("@User", USER));
+
 
                     var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
                     await sql.OpenAsync();
@@ -543,9 +545,7 @@ namespace WMS_API.Features.Repositories
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
-                    cmd.Parameters.Add(new SqlParameter("@location", INVENTLOXATIONIDTO));
-                   
-
+                    cmd.Parameters.Add(new SqlParameter("@location", INVENTLOXATIONIDTO));                
 
                     var response = new List<IM_WMS_TrasladosAbiertos>();
                     await sql.OpenAsync();
@@ -569,6 +569,44 @@ namespace WMS_API.Features.Repositories
                 TRANSFERIDTO = reader["TRANSFERIDTO"].ToString(),
                 INVENTLOCATIONIDTO = reader["INVENTLOCATIONIDTO"].ToString(),
                 DESCRIPTION = reader["DESCRIPTION"].ToString()
+            };
+        }
+
+        public async Task<List<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EstadoTraslados]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM));
+                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO));
+                    cmd.Parameters.Add(new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO));
+
+                    var response = new List<IM_WMS_EstadoTrasladosDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetEstadoTraslados(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_EstadoTrasladosDTO GetEstadoTraslados(SqlDataReader reader)
+        {
+            return new IM_WMS_EstadoTrasladosDTO()
+            {
+                TRANSFERID = reader["TRANSFERID"].ToString(),
+                Estado = reader["Estado"].ToString(),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                Enviado = Convert.ToInt32(reader["Enviado"].ToString()),
+                Recibido = Convert.ToInt32(reader["Recibido"].ToString()),
             };
         }
     } 
