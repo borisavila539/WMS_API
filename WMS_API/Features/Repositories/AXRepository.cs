@@ -12,11 +12,45 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.IO;
 using IM_WMS_MoviminetoWS;
+using IM_WMS_Traslado_Enviar_Recibir;
 
 namespace WMS_API.Features.Repositories
 {
     public class AXRepository : IAX
     {
+        public string EnviarRecibirTraslados(string TRANSFERID, string ESTADO)
+        {
+            TRASLADOHEADER HEADER = new TRASLADOHEADER();
+            List<TRASLADOLINE> LIST = new List<TRASLADOLINE>();
+
+            TRASLADOLINE LINE = new TRASLADOLINE();
+            LINE.TRANSFERID = TRANSFERID;
+            LINE.ESTADO = ESTADO;
+            LIST.Add(LINE);
+
+            HEADER.LINES = LIST.ToArray();
+
+            string trasladosLine = SerializationService.Serialize(HEADER);
+            IM_WMS_Traslado_Enviar_Recibir.CallContext context = new IM_WMS_Traslado_Enviar_Recibir.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_Traslados_Enviar_RecibirClient(GetBinding(), GetEndpointAddrT());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, trasladosLine);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE)
         {
             object obj = new object();
@@ -32,7 +66,7 @@ namespace WMS_API.Features.Repositories
 
             HEADER.LINES = LIST.ToArray();
             string movimientosLines = SerializationService.Serialize(HEADER);
-            CallContext context = new CallContext { Company = "IMHN" };
+            IM_WMS_MoviminetoWS.CallContext context = new IM_WMS_MoviminetoWS.CallContext { Company = "IMHN" };
             var serviceClient = new M_WMS_MovimientoClient(GetBinding(), GetEndpointAddr());
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -64,7 +98,19 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointAddr()
         {
 
-            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_MoviminetoGP";
+            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_MoviminetoGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+        private EndpointAddress GetEndpointAddrT()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

@@ -41,6 +41,13 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("EnviarRecibirtraslado/{TRANSFERID}/{ESTADO}")]
+        public string getEnviarRecibirTraslado(string TRANSFERID, string ESTADO)
+        {
+            var resp = _AX.EnviarRecibirTraslados(TRANSFERID,ESTADO);
+            return resp;
+        }
+
         [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
         public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
         {
