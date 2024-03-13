@@ -609,5 +609,86 @@ namespace WMS_API.Features.Repositories
                 Recibido = Convert.ToInt32(reader["Recibido"].ToString()),
             };
         }
+
+        public async Task<List<EstadoTrasladoTipoDTO>> gteEstadoTrasladoTipo(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
+        {
+            var response = new List<EstadoTrasladoTipoDTO>();
+            var AX = await GetIM_WMS_Despacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
+
+            bool tipo = AX[0].ITEMID.Contains("45 00 1");
+
+            
+            foreach (var element in AX)
+            {
+                var detalle = await Get_Despacho_Tela_Detalle_Rollo(element.INVENTSERIALID, element.TRANSFERID);
+                if (tipo)
+                {
+                    
+                    string tipoS = "";
+                    tipoS = response.Find(elemen => elemen.Tipo == element.ITEMID.Substring(0, 8))?.Tipo;
+
+                    if (tipoS == "" || tipoS == null)
+                    {
+                        EstadoTrasladoTipoDTO tmp = new EstadoTrasladoTipoDTO();
+                        tmp.Tipo = element.ITEMID.Substring(0, 8);
+                        response.Add(tmp);
+                    }
+                    
+                    int index = response.FindIndex(elemen => elemen.Tipo == element.ITEMID.Substring(0, 8));
+                    if (detalle[0].Picking)
+                    {
+                        response[index].picking++;
+                    }
+                    if (detalle[0].Packing)
+                    {
+                        response[index].Enviado++;
+                    }
+
+                    if (detalle[0].Receive)
+                    {
+                        response[index].Recibido++;
+                    }
+                    response[index].Total++;
+
+
+                }
+                else
+                {
+                    string tipoS = "";
+                    tipoS = response.Find(elemen => elemen.Tipo == element.BFPITEMNAME)?.Tipo;
+
+                    if (tipoS == "" || tipoS == null)
+                    {
+                        EstadoTrasladoTipoDTO tmp = new EstadoTrasladoTipoDTO();
+                        tmp.Tipo = element.BFPITEMNAME;
+                        response.Add(tmp);
+                    }
+                   
+                    int index = response.FindIndex(elemen => elemen.Tipo == element.BFPITEMNAME);
+
+                    if (detalle[0].Picking)
+                    {
+                        response[index].picking++;
+                    }
+
+                    if (detalle[0].Packing)
+                    {
+                        response[index].Enviado++;
+                    }
+
+                    if (detalle[0].Receive)
+                    {
+                        response[index].Recibido++;
+                    }
+                    response[index].Total++;
+
+
+                    
+                }
+
+            }
+
+            return response;
+        }
     } 
 }

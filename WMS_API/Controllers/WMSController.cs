@@ -87,6 +87,12 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getEstadotraslados(TRANSFERIDFROM,TRANSFERIDTO,INVENTLOCATIONIDTO);
             return resp;
         }
+        [HttpGet("EstadoTrasladoTipo/{TRANSFERIDFROM}/{TRANSFERIDTO}/{INVENTLOCATIONIDTO}")]
+        public async Task<IEnumerable<EstadoTrasladoTipoDTO>> GetEstadoTrasladoTipos(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
+        {
+            var resp = await _WMS.gteEstadoTrasladoTipo(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
+            return resp;
+        }
 
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)

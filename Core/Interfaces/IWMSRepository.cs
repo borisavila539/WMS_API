@@ -21,5 +21,6 @@ namespace Core.Interfaces
         public Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data);
         public Task<List<IM_WMS_TrasladosAbiertos>> getTrasladosAbiertos(string INVENTLOXATIONIDTO);
         public Task<List<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO);
+        public Task<List<EstadoTrasladoTipoDTO>> gteEstadoTrasladoTipo(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO);
     }
 }
