@@ -1,7 +1,7 @@
 {
   "ExtendedData": {
     "inputs": [
-      "http://GIM-DEV-AOS:8101/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP"
+      "http://GIM-PRO3-AOS:8101/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP"
     ],
     "collectionTypes": [
       "System.Array",

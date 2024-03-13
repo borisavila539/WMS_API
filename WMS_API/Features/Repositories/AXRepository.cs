@@ -110,7 +110,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointAddrT()
         {
 
-            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
+            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);
