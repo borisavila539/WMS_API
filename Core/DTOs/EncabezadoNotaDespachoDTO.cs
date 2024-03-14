@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Core.DTOs
 {
-    public class IM_WMS_TrasladosAbiertos
+    public class EncabezadoNotaDespachoDTO
     {
+        public DateTime fecha { get; set; }
+        public string Motorista { get; set; }
         public string TRANSFERIDFROM { get; set; }
         public string TRANSFERIDTO { get; set; }
-        public string INVENTLOCATIONIDTO { get; set; }
-        public string DESCRIPTION { get; set; }
-        public string RecID { get; set; }
+        public string Destino { get; set; }
     }
 }

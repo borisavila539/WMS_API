@@ -69,10 +69,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{CAMION}/{CHOFER}/{InventTransID}/{USER}")]
-        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID,string USER)
+        [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{CAMION}/{CHOFER}/{InventTransID}/{USER}/{ID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID,string USER,int ID)
         {
-            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO,CAMION,CHOFER,InventTransID,USER);
+            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO,CAMION,CHOFER,InventTransID,USER,ID);
             return resp;
         }
         [HttpGet("TrasladosAbiertos/{INVENTLOCATIONID}")]
@@ -91,6 +91,33 @@ namespace WMS_API.Controllers
         public async Task<IEnumerable<EstadoTrasladoTipoDTO>> GetEstadoTrasladoTipos(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
             var resp = await _WMS.gteEstadoTrasladoTipo(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
+            return resp;
+        }
+
+        [HttpGet("CrearDespacho/{RecIDTraslados}/{Chofer}/{camion}")]
+        public async Task<IEnumerable<CrearDespachoDTO>> GetCrearDespachos(string RecIDTraslados, string Chofer, string camion)
+        {
+            var resp = await _WMS.GetCrearDespacho(RecIDTraslados, Chofer, camion);
+            return resp;
+        }
+
+        [HttpGet("ObternerDespacho/{RecIDTraslados}")]
+        public async Task<IEnumerable<CrearDespachoDTO>> GetObtenerDespachos(string RecIDTraslados)
+        {
+            var resp = await _WMS.GetObtenerDespachos(RecIDTraslados);
+            return resp;
+        }
+        [HttpGet("CerrarDespacho/{ID}")]
+        public async Task<IEnumerable<CerrarDespachoDTO>> getCerrarDespacho(int ID)
+        {
+            var resp = await _WMS.getCerrarDespacho(ID);
+            return resp;
+        }
+
+        [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{EMPLEADO}")]
+        public async Task<string> getNotaDespacho(int DESPACHOID,string RECID, string EMPLEADO)
+        {
+            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO);
             return resp;
         }
 
