@@ -25,6 +25,6 @@ namespace Core.Interfaces
         public Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Chofer, string camion);
         public Task<List<CrearDespachoDTO>> GetObtenerDespachos(string RecIDTraslados);
         public Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id);
-        public Task<string> getNotaDespacho(int DespachoID, string recid,string empleado);
+        public Task<string> getNotaDespacho(int DespachoID, string recid,string empleado, string camio);
     }
 }

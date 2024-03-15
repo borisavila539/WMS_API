@@ -114,10 +114,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{EMPLEADO}")]
-        public async Task<string> getNotaDespacho(int DESPACHOID,string RECID, string EMPLEADO)
+        [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{EMPLEADO}/{CAMION}")]
+        public async Task<string> getNotaDespacho(int DESPACHOID,string RECID, string EMPLEADO,string CAMION)
         {
-            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO);
+            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO,CAMION);
             return resp;
         }
 

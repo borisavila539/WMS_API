@@ -796,7 +796,7 @@ namespace WMS_API.Features.Repositories
 
         }
 
-        public async Task<string> getNotaDespacho(int DespachoID, string recid, string empleado)
+        public async Task<string> getNotaDespacho(int DespachoID, string recid, string empleado, string camion)
         {
             string despacho = "";
 
@@ -835,7 +835,7 @@ namespace WMS_API.Features.Repositories
             despacho += @"
                      <p>
                         <strong>Fecha: </strong>"+encabezado[0].fecha+ @" <br>
-  	                    <strong>Motorista: </strong>" + encabezado[0].Motorista + @" <br>
+  	                    <strong>Motorista: </strong>" + encabezado[0].Motorista +" / "+camion+ @" <br>
                         <strong>Traslado Inicial: </strong>" + encabezado[0].TRANSFERIDFROM + @" <br>
                         <strong>Traslado Final: </strong>" + encabezado[0].TRANSFERIDTO + @" <br>
                         <strong>Destino: </strong>" + encabezado[0].Destino + @" <br>
@@ -844,21 +844,79 @@ namespace WMS_API.Features.Repositories
             //obtener rollos que son parte del despacho
             var rollos = await getRolloDespacho(DespachoID);
             List<RollosDespachoDTO> data = new List<RollosDespachoDTO>();
-           
-            rollos.ForEach(async(element) =>
-            {
-                var RolloAX = await getRolloDespachoAX(element.InventTransID,element.INVENTSERIALID);
-                int index = rollos.FindIndex(x => x.INVENTSERIALID == element.INVENTSERIALID);
-                rollos[index].Color = RolloAX[0].Color;
-                rollos[index].Config = RolloAX[0].Config;
-                rollos[index].LibrasYardas = RolloAX[0].LibrasYardas;
-                data.Add(rollos[index]);
-            });
 
-            data.ForEach(element =>
+            //obtener informacionn de ax de los rollos
+            foreach (var element in rollos)                
             {
-                despacho += "<p>" + element.Color + "," + element.Config + "," + element.LibrasYardas + "</p>";
-            });
+                RollosDespachoDTO tmp = new RollosDespachoDTO();
+                tmp.INVENTSERIALID = element.INVENTSERIALID;
+                tmp.InventTransID = element.InventTransID;
+
+                var RolloAX = await getRolloDespachoAX(tmp.InventTransID, tmp.INVENTSERIALID);
+
+                int index = rollos.FindIndex(x => x.INVENTSERIALID == tmp.INVENTSERIALID);
+                tmp.Config = RolloAX[0].Config;
+                tmp.Color = RolloAX[0].Color;
+                tmp.LibrasYardas = RolloAX[0].LibrasYardas;
+                data.Add(tmp);
+                
+            }
+
+            //agrupar por color y configuracion la catnidad de rollos
+            var resumen = data
+                    .GroupBy(x => new { x.Color, x.Config })
+                    .Select(g => new 
+                    {
+                        Color = g.Key.Color,
+                        Config = g.Key.Config,
+                        Cantidad = g.Sum(x => 1),
+                        Total = g.Sum(a => Convert.ToDecimal(a.LibrasYardas))
+
+                    });
+
+            //colocar encabezado de la tabla
+            despacho += @"<table style='width: 100%'>
+                               <thead> 
+                                 <tr> 
+                                   <th colspan = '4'> Detalle </th>  
+                                  </tr>  
+                                  <tr>  
+                                    <th> Color/Referencia </th>  
+                                    <th> Ancho </th>  
+                                    <th> Cantidad </th>  
+                                    <th> Libras/Yardas </th>  
+                                  </tr>  
+                                  </thead>  
+                                <tbody> ";
+            int totalRollo = 0;
+            decimal totalLY = 0;
+            foreach(var element in resumen)
+            {
+                totalRollo += element.Cantidad;
+                totalLY += element.Total;
+                despacho += @"<tr>
+                              <td>"+element.Color+@"</td>
+                              <td>"+element.Config+@"</td>
+                              <td>"+element.Cantidad+ @"</td>
+                              <td>"+element.Total + @"</td>      
+                            </tr>";
+            }
+
+            //linea que muestra el total de rollos enviados
+            despacho += @"</tbody>
+                            <tfoot>
+                                <tr>
+                                  <td></td>
+                                  <td>Total</td>
+                                  <td>" + totalRollo + @"</td>
+                                  <td>"+totalLY+ @"</td>      
+                             </tr>
+                            </tfoot>
+                        </table>";
+
+
+            //despacho += "<p>" + RolloAX[0].Color + "," + RolloAX[0].Config + "," + RolloAX[0].LibrasYardas + "</p>";
+
 
             //colocar la tabla
 
