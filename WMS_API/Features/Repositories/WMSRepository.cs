@@ -488,7 +488,7 @@ namespace WMS_API.Features.Repositories
                     cmd.Parameters.Add(new SqlParameter("@Chofer", CHOFER));
                     cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
                     cmd.Parameters.Add(new SqlParameter("@User", USER));
-                    cmd.Parameters.Add(new SqlParameter("@ID", USER));
+                    cmd.Parameters.Add(new SqlParameter("@ID", IDremision));
 
 
 
