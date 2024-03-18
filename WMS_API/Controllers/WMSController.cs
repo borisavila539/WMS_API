@@ -120,6 +120,12 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO,CAMION);
             return resp;
         }
+        [HttpGet("RollosDespacho/{DespachoID}")]
+        public async Task<IEnumerable<RolloDespachoDTO>> GetRollosDespacho(int DespachoID)
+        {
+            var resp = await _WMS.getRollosDespacho(DespachoID);
+            return resp;
+        }
 
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)

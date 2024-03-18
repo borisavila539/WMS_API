@@ -8,7 +8,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
-
+using System.Net.Mail;
+using System.Net;
 
 namespace WMS_API.Features.Repositories
 {
@@ -619,7 +620,7 @@ namespace WMS_API.Features.Repositories
             var response = new List<EstadoTrasladoTipoDTO>();
             var AX = await GetIM_WMS_Despacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
 
-            bool tipo = AX[0].ITEMID.Contains("45 00 1");
+            bool tipo = AX[0].ITEMID.Contains("45 0");
 
 
             foreach (var element in AX)
@@ -845,6 +846,26 @@ namespace WMS_API.Features.Repositories
             var rollos = await getRolloDespacho(DespachoID);
             List<RollosDespachoDTO> data = new List<RollosDespachoDTO>();
 
+            //colocar encabezado de la tabla correo
+           
+            string htmlCorreo = despacho + @"<table style='width: 100%'>
+                               <thead> 
+                                 <tr> 
+                                   <th colspan = '4'> Detalle </th>  
+                                  </tr>  
+                                  <tr>  
+                                    <th> # </th>
+                                    <th> Rollo </th> 
+                                    <th> Color / Referencia </th> 
+                                    <th> Ancho </th>  
+                                    <th> Cantidad </th>  
+                                    <th> Libras/Yardas </th>  
+                                  </tr>  
+                                  </thead>  
+                                <tbody> ";
+
+            int cont = 1;
+            decimal totalRolloLY = 0;
             //obtener informacionn de ax de los rollos
             foreach (var element in rollos)                
             {
@@ -859,8 +880,30 @@ namespace WMS_API.Features.Repositories
                 tmp.Color = RolloAX[0].Color;
                 tmp.LibrasYardas = RolloAX[0].LibrasYardas;
                 data.Add(tmp);
-                
+                htmlCorreo += @"<tr>
+                                <td>" + cont + @"</td>
+                              <td>" + tmp.INVENTSERIALID + @"</td>
+                                <td>" + RolloAX[0].Color + @"</td>
+                              <td>" + element.Config + @"</td>
+                              <td>1</td>
+                              <td>" + RolloAX[0].LibrasYardas + @"</td>      
+                            </tr>";
+                cont++;
+                totalRolloLY += Convert.ToDecimal(RolloAX[0].LibrasYardas);
+
             }
+            htmlCorreo += @"</tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>Total</td>
+                                    <td>" + totalRolloLY + @"</td>      
+                             </tr>
+                            </tfoot>
+                        </table></body></html>";
 
             //agrupar por color y configuracion la catnidad de rollos
             var resumen = data
@@ -915,7 +958,45 @@ namespace WMS_API.Features.Repositories
                         </table>";
 
 
-            //despacho += "<p>" + RolloAX[0].Color + "," + RolloAX[0].Config + "," + RolloAX[0].LibrasYardas + "</p>";
+           
+
+            try
+            {
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress("sistema@intermoda.com.hn");
+
+                var correos = await getCorreosDespacho();
+
+                foreach( IM_WMS_Correos_Despacho correo in correos)
+                {
+                    mail.To.Add(correo.Correo);
+                }
+                mail.Subject = "Despacho No."+ DespachoID.ToString().PadLeft(8, '0');
+                mail.IsBodyHtml = true;
+
+                mail.Body = htmlCorreo;
+
+                SmtpClient oSmtpClient = new SmtpClient();
+
+                oSmtpClient.Host = "smtp.office365.com";
+                oSmtpClient.Port = 587;
+                oSmtpClient.EnableSsl = true;
+                oSmtpClient.UseDefaultCredentials = false;
+
+                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "Intermod@2022#");
+
+                oSmtpClient.Credentials = userCredential;
+
+                oSmtpClient.Send(mail);
+                oSmtpClient.Dispose();
+
+
+            }
+            catch(Exception err)
+            {
+
+            }
 
 
             //colocar la tabla
@@ -1062,6 +1143,71 @@ namespace WMS_API.Features.Repositories
                 Config = reader["CONFIGID"].ToString(),
                 LibrasYardas = reader["LibrasYardas"].ToString(),
 
+            };
+
+        }
+
+        public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespacho()
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerCorreosDespachotela]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+               
+                    var response = new List<IM_WMS_Correos_Despacho>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getCorreosDespachos(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Correos_Despacho getCorreosDespachos(SqlDataReader reader)
+        {
+            return new IM_WMS_Correos_Despacho()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                Correo = reader["Correo"].ToString()
+            };
+
+        }
+
+        public async Task<List<RolloDespachoDTO>> getRollosDespacho(int despachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerRollosDespacho]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoId", despachoID));
+
+                    var response = new List<RolloDespachoDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getListaRollosDespacho(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public RolloDespachoDTO getListaRollosDespacho(SqlDataReader reader)
+        {
+            return new RolloDespachoDTO()
+            {   ID = Convert.ToInt32(reader["ID"].ToString()),
+                INVENTSERIALID = reader["INVENTSERIALID"].ToString()
             };
 
         }
