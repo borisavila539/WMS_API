@@ -13,6 +13,7 @@ using System.ServiceModel.Channels;
 using System.IO;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_Traslado_Enviar_Recibir;
+using IM_WMS_ReduccionCajas;
 
 namespace WMS_API.Features.Repositories
 {
@@ -86,6 +87,40 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        public string INsertDeleteReduccionCajas(string ITEMBARCODE, string PROCESO, string IMBOXCODE)
+        {
+            REDUCCIONHEADER HEADER = new REDUCCIONHEADER();
+            List<REDUCCIONLINE> LIST = new List<REDUCCIONLINE>();
+
+            REDUCCIONLINE LINE = new REDUCCIONLINE();
+        
+            LINE.ITEMBARCODE = ITEMBARCODE;
+            LINE.PROCESO = PROCESO;
+            LINE.IMBOXCODE = IMBOXCODE;
+            LIST.Add(LINE);
+
+            HEADER.LINES = LIST.ToArray();
+            string reduccionLines = SerializationService.Serialize(HEADER);
+            IM_WMS_ReduccionCajas.CallContext context = new IM_WMS_ReduccionCajas.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_Reduccion_CajasClient(GetBinding(), GetEndpointAddrR());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, reduccionLines);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
@@ -111,6 +146,19 @@ namespace WMS_API.Features.Repositories
         {
 
             string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+
+        private EndpointAddress GetEndpointAddrR()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Reduccion_CajasGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

@@ -14,5 +14,7 @@ namespace Core.DTOs
         public string Config { get; set; }
         public string LibrasYardas { get; set; }
 
+        public string NameAlias { get; set; }
+
     }
 }

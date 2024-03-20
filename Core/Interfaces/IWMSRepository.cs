@@ -9,6 +9,7 @@ namespace Core.Interfaces
         public Task<LoginDTO> PostLogin(LoginDTO datos);
         public Task<List<DiariosAbiertosDTO>> GetDiariosAbiertos(string user, string filtro);
         public Task<List<LineasDTO>> GetLineasDiario(string diario);
+        public Task<List<LineasDTO>> GetLineasReducionCajas(string IMBOXCODE);
         public Task<List<EtiquetaDTO>> GetDatosEtiquetaMovimiento(string diario, string IMBoxCode);
         public Task<string> GetImprimirEtiquetaMovimiento(string diario, string IMBoxCode, string PRINT);
         public Task<List<ImpresoraDTO>> getImpresoras();
@@ -27,5 +28,6 @@ namespace Core.Interfaces
         public Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id);
         public Task<string> getNotaDespacho(int DespachoID, string recid,string empleado, string camio);
         public Task<List<RolloDespachoDTO>> getRollosDespacho(int despachoID);
+        public Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string ubicacion, string empacador,string PRINT);
     }
 }

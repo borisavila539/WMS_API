@@ -47,6 +47,12 @@ namespace WMS_API.Controllers
             var resp = _AX.EnviarRecibirTraslados(TRANSFERID,ESTADO);
             return resp;
         }
+        [HttpGet("InsertDeleteRecuccionCajas/{IMBOXCODE}/{ITEMBARCODE}/{PROCESO}")]
+        public string GetinsertDeleteReduccionCajas( string IMBOXCODE, string ITEMBARCODE, string PROCESO)
+        {
+            var resp = _AX.INsertDeleteReduccionCajas( ITEMBARCODE, PROCESO, IMBOXCODE);
+            return resp;
+        }
 
         [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
         public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
@@ -124,6 +130,20 @@ namespace WMS_API.Controllers
         public async Task<IEnumerable<RolloDespachoDTO>> GetRollosDespacho(int DespachoID)
         {
             var resp = await _WMS.getRollosDespacho(DespachoID);
+            return resp;
+        }
+
+        [HttpGet("LineasReduccion/{IMBOXCODE}")]
+        public async Task<ActionResult<IEnumerable<LineasDTO>>> GetLineasReduccion(string IMBOXCODE)
+        {
+            var resp = await _WMS.GetLineasReducionCajas(IMBOXCODE);
+            return Ok(resp);
+        }
+
+        [HttpGet("ImprimirEtiquetaReduccion/{IMBOXCODE}/{UBICACION}/{USER}/{PRINT}")]
+        public  Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE,string UBICACION,string USER, string PRINT)
+        {
+            var resp = _WMS.getImprimirEtiquetaReduccion(IMBOXCODE,UBICACION,USER,PRINT);
             return resp;
         }
 

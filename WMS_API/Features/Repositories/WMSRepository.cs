@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Net.Mail;
 using System.Net;
+using Core.DTOs.Reduccion_Cajas;
 
 namespace WMS_API.Features.Repositories
 {
@@ -851,11 +852,12 @@ namespace WMS_API.Features.Repositories
             string htmlCorreo = despacho + @"<table style='width: 100%'>
                                <thead> 
                                  <tr> 
-                                   <th colspan = '4'> Detalle </th>  
+                                   <th colspan = '7'> Detalle </th>  
                                   </tr>  
                                   <tr>  
                                     <th> # </th>
                                     <th> Rollo </th> 
+                                    <th> Nombre Busqueda </th> 
                                     <th> Color / Referencia </th> 
                                     <th> Ancho </th>  
                                     <th> Cantidad </th>  
@@ -883,8 +885,9 @@ namespace WMS_API.Features.Repositories
                 htmlCorreo += @"<tr>
                                 <td>" + cont + @"</td>
                               <td>" + tmp.INVENTSERIALID + @"</td>
+                            <td>" + RolloAX[0].NameAlias + @"</td>
                                 <td>" + RolloAX[0].Color + @"</td>
-                              <td>" + element.Config + @"</td>
+                              <td>" + RolloAX[0].Config + @"</td>
                               <td>1</td>
                               <td>" + RolloAX[0].LibrasYardas + @"</td>      
                             </tr>";
@@ -895,6 +898,7 @@ namespace WMS_API.Features.Repositories
             htmlCorreo += @"</tbody>
                             <tfoot>
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -1104,8 +1108,7 @@ namespace WMS_API.Features.Repositories
             return new RollosDespachoDTO()
             {                
                 INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
-                InventTransID = reader["InventTransID"].ToString(),
-
+                InventTransID = reader["InventTransID"].ToString()
             };
 
         }
@@ -1142,6 +1145,7 @@ namespace WMS_API.Features.Repositories
                 Color = reader["Color"].ToString(),
                 Config = reader["CONFIGID"].ToString(),
                 LibrasYardas = reader["LibrasYardas"].ToString(),
+                NameAlias = reader["NameAlias"].ToString(),
 
             };
 
@@ -1210,6 +1214,241 @@ namespace WMS_API.Features.Repositories
                 INVENTSERIALID = reader["INVENTSERIALID"].ToString()
             };
 
+        }
+
+        public async Task<List<LineasDTO>> GetLineasReducionCajas(string IMBOXCODE)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerReduccionCajas]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@IMBOXCODE", IMBOXCODE));
+
+                    var response = new List<LineasDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetLineasDiario(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public async Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string ubicacion, string empacador, string PRINT)
+        {
+            DateTime hoy = DateTime.Now;
+
+            var empleado = await getNombreEmpleado(empacador);
+            var data = await GetDatosEtiquetaReduccion(IMBOXCODE);
+
+            var groupData = new Dictionary<string, List<EtiquetaReduccionDTO>>();
+            int totalUnidades = 0;
+
+            foreach (var element in data)
+            {
+                totalUnidades += element.QTY;
+                var key = $"{element.ITEMID}-{element.INVENTCOLORID}";
+
+                if (!groupData.ContainsKey(key))
+                {
+                    groupData[key] = new List<EtiquetaReduccionDTO>();
+                }
+
+                groupData[key].Add(element);
+            }
+
+            var groupArray = groupData.Select(x => new EtiquetaReduccionGroupDTO
+            {
+                key = x.Key,
+                items = x.Value
+            }).ToArray();
+
+            string encabezado = @"^XA^FO700,50^FWN^A0R,30,30^FDFecha: "+hoy+@"^FS^FO670,50^A0R,30,30^FDEmpacador: "+empleado.Nombre+@"^FS";
+
+            string pie = @"^A0R,30,30^BY3,2,100^FO50,50^BC^FD"+IMBOXCODE+ @"^FS^FO50,700^A0R,40,40^FDUbicacion: "+ubicacion+ @"^FS^XZ";
+
+            int cont = 0;
+            string etiqueta = "";
+            int position = 600;
+            int subtotal = 0;
+
+            foreach(var element in groupArray)
+            {
+                if(cont == 0)
+                {
+                    etiqueta = encabezado;
+                    subtotal = 0;
+                    position = 600;
+                }
+                if (element.items[0].NameAlias.Substring(0, 2) == "MB")
+                {
+                    etiqueta += $"^FO{position},50^A0R,60,60^FD{element.items[0].NameAlias} *{element.items[0].INVENTCOLORID}^FS";
+                    position -= 45;
+                    etiqueta += $"^FO{position},50^A0R,40,40^FD{element.items[0].ITEMID}^FS";
+                    position -= 45;
+                }
+                else
+                {
+                    etiqueta += $"^FO{position},50^A0R,60,60^FD{element.items[0].ITEMID} *{element.items[0].INVENTCOLORID}^FS";
+                    position -= 45;
+                }
+                
+                etiqueta += $"^FO{position},50^A0R,40,40^FDTalla: ";
+
+                element.items.ForEach( x=>
+                {
+                    for(int i = 1; i <= 5 - x.INVENTSIZEID.Length; i++)
+                    {
+                        etiqueta += "_";
+                        
+                    }
+                    etiqueta += x.INVENTSIZEID;
+                });
+                etiqueta += "^FS";
+                position -= 45;
+                etiqueta += $"^FO{position},50^A0R,40,40^FDQTY: ";
+                int totalLinea = 0;
+                element.items.ForEach(x =>
+                {
+                    for (int i = 1; i <= 5 - x.QTY.ToString().Length; i++)
+                    {
+                        etiqueta += "_";
+
+                    }
+                    etiqueta += x.QTY;
+                    totalLinea += x.QTY;
+                });
+                etiqueta += $"={totalLinea}^FS";
+                subtotal += totalLinea;
+                position -= 70;
+                cont++;
+                if(cont== 2)
+                {
+                    etiqueta += $"^FO100,700^A0R,40,40^FDTotal: {subtotal} / {totalUnidades}^FS";
+                    etiqueta += pie;
+                    cont = 0;
+
+                    try
+                    {
+                        using (TcpClient client = new TcpClient(PRINT, 9100))
+                        {
+                            using (NetworkStream stream = client.GetStream())
+                            {
+                                byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                                stream.Write(bytes, 0, bytes.Length);
+                            }
+                        }                        
+                    }
+                    catch (Exception err)
+                    {
+                        return err.ToString();
+                    };
+                }
+                
+                
+            }
+            if (cont != 2 && cont != 0)
+            {
+                etiqueta += $"^FO100,700^A0R,40,40^FDTotal: {subtotal} / {totalUnidades}^FS";
+                etiqueta += pie;
+                cont = 0;
+
+                try
+                {
+                    using (TcpClient client = new TcpClient(PRINT, 9100))
+                    {
+                        using (NetworkStream stream = client.GetStream())
+                        {
+                            byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                            stream.Write(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+                catch (Exception err)
+                {
+                    return err.ToString();
+                };
+            }
+
+                return "OK";
+
+
+        }
+
+        public async Task<EmpleadoDTO> getNombreEmpleado(string empleado)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerNombreEmpleado]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@empleado", empleado));
+
+                    var response = new EmpleadoDTO();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = getNombreEmpleados(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public EmpleadoDTO getNombreEmpleados(SqlDataReader reader)
+        {
+            return new EmpleadoDTO()
+            {
+                Nombre = reader["Nombre"].ToString(),
+                Cuenta = reader["Cuenta"].ToString(),
+                
+
+            };
+        }
+        public async Task<List<EtiquetaReduccionDTO>> GetDatosEtiquetaReduccion(string IMBoxCode)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Obtener_Etiqueta_Reduccion]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@IMBOXCODE", IMBoxCode));
+
+
+                    var response = new List<EtiquetaReduccionDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetEtiquetaReduccion(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public EtiquetaReduccionDTO GetEtiquetaReduccion(SqlDataReader reader)
+        {
+            return new EtiquetaReduccionDTO()
+            {
+                NameAlias = reader["NameAlias"].ToString(),
+                ITEMID = reader["ITEMID"].ToString(),
+                INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
+                INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),                
+            };
         }
     }
 }
