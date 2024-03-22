@@ -146,7 +146,7 @@ namespace WMS_API.Controllers
             var resp = _WMS.getImprimirEtiquetaReduccion(IMBOXCODE,UBICACION,USER,PRINT);
             return resp;
         }
-
+       
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)
         {

@@ -836,7 +836,7 @@ namespace WMS_API.Features.Repositories
             var encabezado = await getEncabezadoDespacho(empleado, recid);
             despacho += @"
                      <p>
-                        <strong>Fecha: </strong>"+encabezado[0].fecha+ @" <br>
+                        <strong>Fecha: </strong>"+encabezado[0].fecha.ToString("dd/MM/yyyy HH:mm:ss") + @" <br>
   	                    <strong>Motorista: </strong>" + encabezado[0].Motorista +" / "+camion+ @" <br>
                         <strong>Traslado Inicial: </strong>" + encabezado[0].TRANSFERIDFROM + @" <br>
                         <strong>Traslado Final: </strong>" + encabezado[0].TRANSFERIDTO + @" <br>
@@ -1449,6 +1449,6 @@ namespace WMS_API.Features.Repositories
                 INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
                 QTY = Convert.ToInt32(reader["QTY"].ToString()),                
             };
-        }
+        }    
     }
 }
