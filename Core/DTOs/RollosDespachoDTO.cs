@@ -15,6 +15,7 @@ namespace Core.DTOs
         public string LibrasYardas { get; set; }
 
         public string NameAlias { get; set; }
+        public string inventBatchId { get; set; }
 
     }
 }

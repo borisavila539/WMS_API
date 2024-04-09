@@ -587,7 +587,7 @@ namespace IM_WMS_ReduccionCajas
         {
             if ((endpointConfiguration == EndpointConfiguration.NetTcpBinding_IM_WMS_Reduccion_Cajas))
             {
-                return new System.ServiceModel.EndpointAddress("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_WMS_Reduccion_CajasGP");
+                return new System.ServiceModel.EndpointAddress("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IM_WMS_Reduccion_CajasGP");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }

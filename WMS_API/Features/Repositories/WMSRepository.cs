@@ -858,6 +858,7 @@ namespace WMS_API.Features.Repositories
                                     <th> # </th>
                                     <th> Rollo </th> 
                                     <th> Nombre Busqueda </th> 
+                                    <th> Importacion </th> 
                                     <th> Color / Referencia </th> 
                                     <th> Ancho </th>  
                                     <th> Cantidad </th>  
@@ -865,9 +866,9 @@ namespace WMS_API.Features.Repositories
                                   </tr>  
                                   </thead>  
                                 <tbody> ";
+           
 
-            int cont = 1;
-            decimal totalRolloLY = 0;
+            
             //obtener informacionn de ax de los rollos
             foreach (var element in rollos)                
             {
@@ -881,23 +882,46 @@ namespace WMS_API.Features.Repositories
                 tmp.Config = RolloAX[0].Config;
                 tmp.Color = RolloAX[0].Color;
                 tmp.LibrasYardas = RolloAX[0].LibrasYardas;
-                data.Add(tmp);
-                htmlCorreo += @"<tr>
-                                <td>" + cont + @"</td>
-                              <td>" + tmp.INVENTSERIALID + @"</td>
-                            <td>" + RolloAX[0].NameAlias + @"</td>
-                                <td>" + RolloAX[0].Color + @"</td>
-                              <td>" + RolloAX[0].Config + @"</td>
-                              <td>1</td>
-                              <td>" + RolloAX[0].LibrasYardas + @"</td>      
-                            </tr>";
-                cont++;
-                totalRolloLY += Convert.ToDecimal(RolloAX[0].LibrasYardas);
+                tmp.inventBatchId = RolloAX[0].inventBatchId;
+                tmp.NameAlias = RolloAX[0].NameAlias;
+                data.Add(tmp);               
 
             }
+
+            var ordenar = data.Where(x => x.NameAlias != null && x.inventBatchId != null)
+                            .OrderBy(x => x.inventBatchId).ThenBy(x=> x.NameAlias)
+                            .Select(x => new RollosDespachoDTO{
+                                Color = x.Color,
+                                Config = x.Config,
+                                inventBatchId = x.inventBatchId,
+                                INVENTSERIALID = x.INVENTSERIALID,
+                                InventTransID = x.InventTransID,
+                                LibrasYardas = x.LibrasYardas,
+                                NameAlias = x.NameAlias
+                            });
+
+            int cont = 1;
+            decimal totalRolloLY = 0;
+            foreach (var element in ordenar)
+            {
+                htmlCorreo += @"<tr>
+                                <td>" + cont + @"</td>
+                                <td>" + element.INVENTSERIALID + @"</td>
+                                <td>" + element.NameAlias + @"</td>
+                                <td>" + element.inventBatchId + @"</td>
+                                <td>" + element.Color + @"</td>
+                                <td>" + element.Config + @"</td>
+                                <td>1</td>
+                                <td>" + element.LibrasYardas + @"</td>      
+                            </tr>";
+                cont++;
+                totalRolloLY += Convert.ToDecimal(element.LibrasYardas);
+            }
+
             htmlCorreo += @"</tbody>
                             <tfoot>
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -988,7 +1012,7 @@ namespace WMS_API.Features.Repositories
                 oSmtpClient.EnableSsl = true;
                 oSmtpClient.UseDefaultCredentials = false;
 
-                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "Intermod@2022#");
+                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
 
                 oSmtpClient.Credentials = userCredential;
 
@@ -1146,6 +1170,7 @@ namespace WMS_API.Features.Repositories
                 Config = reader["CONFIGID"].ToString(),
                 LibrasYardas = reader["LibrasYardas"].ToString(),
                 NameAlias = reader["NameAlias"].ToString(),
+                inventBatchId = reader["inventBatchId"].ToString(),
 
             };
 
