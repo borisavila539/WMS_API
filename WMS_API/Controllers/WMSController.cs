@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.Despacho_PT;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -159,6 +160,29 @@ namespace WMS_API.Controllers
         public  Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
             var resp =  _WMS.postImprimirEtiquetaRollo(data);
+            return resp;
+        }
+
+        //Despacho PT
+
+        [HttpGet("InsertBoxesDespachoPT/{ProdID}/{UserCreated}/{Box}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_Insert_Boxes_Despacho_PT_DTO>>> GetInsert_Boxes_Despacho_PT(string ProdID,string UserCreated,int Box)
+        {
+            var resp = await _WMS.GetInsert_Boxes_Despacho_PT(ProdID, UserCreated, Box);
+            return resp;
+        }
+
+        [HttpGet("PickingDespachoPT/{Almacen}")]
+        public async Task<IEnumerable<IM_WMS_Picking_Despacho_PT_DTO>> GetPicking_Despacho_PT(int Almacen)
+        {
+            var resp = await _WMS.GetPicking_Despacho_PT(Almacen);
+            return resp;
+        }
+
+        [HttpGet("EstatusOP_PT/{almacen}")]
+        public async Task<IEnumerable<IM_WMS_Get_EstatusOP_PT_DTO>> Get_EstatusOP_PT(int almacen)
+        {
+            var resp = await _WMS.get_EstatusOP_PT(almacen);
             return resp;
         }
     }

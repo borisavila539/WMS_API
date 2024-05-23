@@ -1,4 +1,6 @@
 ﻿using Core.DTOs;
+using Core.DTOs.Despacho_PT;
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -29,5 +31,12 @@ namespace Core.Interfaces
         public Task<string> getNotaDespacho(int DespachoID, string recid,string empleado, string camio);
         public Task<List<RolloDespachoDTO>> getRollosDespacho(int despachoID);
         public Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string ubicacion, string empacador,string PRINT);
+
+
+        //===================================Despacho PT
+        //Picking
+        public Task<List<IM_WMS_Insert_Boxes_Despacho_PT_DTO>> GetInsert_Boxes_Despacho_PT(string ProdID,string userCreated, int Box);
+        public Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetPicking_Despacho_PT(int Almacen);
+        public Task<List<IM_WMS_Get_EstatusOP_PT_DTO>> get_EstatusOP_PT(int almacen);
     }
 }

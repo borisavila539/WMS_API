@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Net;
 using Core.DTOs.Reduccion_Cajas;
+using Core.DTOs.Despacho_PT;
 
 namespace WMS_API.Features.Repositories
 {
@@ -1474,6 +1475,128 @@ namespace WMS_API.Features.Repositories
                 INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
                 QTY = Convert.ToInt32(reader["QTY"].ToString()),                
             };
-        }    
+        }
+
+        //=============================================Despacho  PT
+        public async Task<List<IM_WMS_Insert_Boxes_Despacho_PT_DTO>> GetInsert_Boxes_Despacho_PT(string ProdID, string userCreated, int Box)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Insert_Boxes_Despacho_PT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@ProdID", ProdID));
+                    cmd.Parameters.Add(new SqlParameter("@userCreated", userCreated));
+                    cmd.Parameters.Add(new SqlParameter("@Box", Box));
+
+                    var response = new List<IM_WMS_Insert_Boxes_Despacho_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetInsert_Boxes_Despacho_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Insert_Boxes_Despacho_PT_DTO GetInsert_Boxes_Despacho_PT_Lines(SqlDataReader reader)
+        {
+            return new IM_WMS_Insert_Boxes_Despacho_PT_DTO()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                ProdID = reader["ProdID"].ToString(),
+                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),
+                Size = reader["Size"].ToString(),
+                Color = reader["Color"].ToString(),
+                UserPicking = reader["UserPicking"].ToString(),
+                ItemID = reader["ItemID"].ToString(),
+                Box = Convert.ToInt32(reader["Box"].ToString()),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+            };
+        }
+
+        public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetPicking_Despacho_PT(int Almacen)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Picking_Despacho_PT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@Almacen", Almacen));
+                   
+
+                    var response = new List<IM_WMS_Picking_Despacho_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetPickking_Despacho_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Picking_Despacho_PT_DTO GetPickking_Despacho_PT_Lines(SqlDataReader reader)
+        {
+            return new IM_WMS_Picking_Despacho_PT_DTO()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                ProdID = reader["ProdID"].ToString(),                
+                Size = reader["Size"].ToString(),
+                Color = reader["Color"].ToString(),
+                fechaPicking = Convert.ToDateTime( reader["fechaPicking"].ToString()),
+                ItemID = reader["ItemID"].ToString(),
+                Box = Convert.ToInt32(reader["Box"].ToString()),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+            };
+        }
+
+        public async Task<List<IM_WMS_Get_EstatusOP_PT_DTO>> get_EstatusOP_PT(int almacen)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Get_EstatusOP]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@inventlocationid", almacen));
+
+
+                    var response = new List<IM_WMS_Get_EstatusOP_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(get_EstatusOP_PTLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Get_EstatusOP_PT_DTO get_EstatusOP_PTLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Get_EstatusOP_PT_DTO()
+            {
+                
+                UserPicking = reader["UserPicking"].ToString(),
+                Prodcutsheetid = reader["Prodcutsheetid"].ToString(),
+                prodid = reader["prodid"].ToString(),                
+                Size = reader["Size"].ToString(),
+                Escaneado = Convert.ToInt32(reader["Escaneado"].ToString()),
+                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
+            };
+        }
     }
 }
