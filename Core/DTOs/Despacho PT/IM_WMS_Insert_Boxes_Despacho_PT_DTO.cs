@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Core.DTOs.Despacho_PT
+﻿namespace Core.DTOs.Despacho_PT
 {
     public class IM_WMS_Insert_Boxes_Despacho_PT_DTO
     {

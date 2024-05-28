@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Core.DTOs;
 using Core.Interfaces;
-using Core.DTOs;
-using Microsoft.Extensions.Configuration;
-using System.Data;
-using System.Data.SqlClient;
-using System.Xml.Serialization;
+using IM_WMS_MoviminetoWS;
+using IM_WMS_ReduccionCajas;
+using IM_WMS_Traslado_Enviar_Recibir;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.IO;
-using IM_WMS_MoviminetoWS;
-using IM_WMS_Traslado_Enviar_Recibir;
-using IM_WMS_ReduccionCajas;
+using System.Xml.Serialization;
 
 namespace WMS_API.Features.Repositories
 {

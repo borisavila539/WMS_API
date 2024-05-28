@@ -1,17 +1,17 @@
 ﻿using Core.DTOs;
+using Core.DTOs.Despacho_PT;
+using Core.DTOs.Reduccion_Cajas;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
-using System.Net.Mail;
-using System.Net;
-using Core.DTOs.Reduccion_Cajas;
-using Core.DTOs.Despacho_PT;
 
 namespace WMS_API.Features.Repositories
 {
@@ -54,7 +54,8 @@ namespace WMS_API.Features.Repositories
             {
                 user = reader["user"].ToString(),
                 pass = reader["pass"].ToString(),
-                logeado = reader["logeado"].ToString() != "0" ? true : false
+                logeado = reader["logeado"].ToString() != "0" ? true : false,
+                Almacen = Convert.ToInt32(reader["Almacen"].ToString())
 
             };
         }
@@ -1596,6 +1597,170 @@ namespace WMS_API.Features.Repositories
                 Size = reader["Size"].ToString(),
                 Escaneado = Convert.ToInt32(reader["Escaneado"].ToString()),
                 Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
+            };
+        }
+
+        public async Task<IM_WMS_Insert_Estatus_Unidades_OP_DTO> GetM_WMS_Insert_Estatus_Unidades_OPs(IM_WMS_Insert_Estatus_Unidades_OP_DTO data)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Insert_Estatus_Unidades_OP]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@prodID", data.ProdID));
+                    cmd.Parameters.Add(new SqlParameter("@size", data.size));
+                    cmd.Parameters.Add(new SqlParameter("@costura1", data.Costura1));
+                    cmd.Parameters.Add(new SqlParameter("@textil1", data.Textil1));
+                    cmd.Parameters.Add(new SqlParameter("@costura2", data.Costura2));
+                    cmd.Parameters.Add(new SqlParameter("@textil2", data.Textil2));
+                    cmd.Parameters.Add(new SqlParameter("@usuario", data.usuario));
+
+
+                    var response = new IM_WMS_Insert_Estatus_Unidades_OP_DTO();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = GetM_WMS_Insert_Estatus_Unidades_OPsLines(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Insert_Estatus_Unidades_OP_DTO GetM_WMS_Insert_Estatus_Unidades_OPsLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Insert_Estatus_Unidades_OP_DTO()
+            {
+
+                ID = Convert.ToInt32(reader["ID"].ToString()),               
+                ProdID = reader["ProdID"].ToString(),
+                size = reader["size"].ToString(),
+                Costura1 = Convert.ToInt32(reader["Costura1"].ToString()),
+                Textil1 = Convert.ToInt32(reader["Textil1"].ToString()),
+                Costura2 = Convert.ToInt32(reader["Costura2"].ToString()),
+                Textil2 = Convert.ToInt32(reader["Textil2"].ToString())            
+            };
+        }
+
+        public async Task<IM_WMS_Crear_Despacho_PT> GetCrear_Despacho_PT(string driver, string truck, string userCreated, int almacen)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Crear_Despacho_PT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@driver", driver));
+                    cmd.Parameters.Add(new SqlParameter("@truck", truck));
+                    cmd.Parameters.Add(new SqlParameter("@userCreated", userCreated));
+                    cmd.Parameters.Add(new SqlParameter("@almacen", almacen));  
+
+                    var response = new IM_WMS_Crear_Despacho_PT();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = GetCrear_Despacho_PLines(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Crear_Despacho_PT GetCrear_Despacho_PLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Crear_Despacho_PT()
+            {
+                id = Convert.ToInt32(reader["ID"].ToString()),
+                driver = reader["driver"].ToString(),
+                truck = reader["truck"].ToString(),
+                UserCreated = reader["UserCreated"].ToString(),
+                almacen = Convert.ToInt32(reader["almacen"].ToString())
+
+            };
+        }
+
+        public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_DTOs(string estado, int almacen, int DespachoId)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Get_Despachos_PT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@Estado", estado));
+                    cmd.Parameters.Add(new SqlParameter("@almacen", almacen));
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoId));
+                   
+
+                    var response = new List<IM_WMS_Get_Despachos_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(Get_Despachos_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Get_Despachos_PT_DTO Get_Despachos_PT_Lines(SqlDataReader reader)
+        {
+            return new IM_WMS_Get_Despachos_PT_DTO()
+            {
+                id = Convert.ToInt32(reader["ID"].ToString()),
+                Driver = reader["driver"].ToString(),
+                truck = reader["truck"].ToString(),
+                CreatedDateTime =Convert.ToDateTime(reader["CreatedDateTime"].ToString()),
+                
+
+            };
+        }
+
+        public async Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box,int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Packing_DespachoPT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@prodID", ProdID));
+                    cmd.Parameters.Add(new SqlParameter("@box", Box));
+                    cmd.Parameters.Add(new SqlParameter("@user", userCreated));
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
+
+
+
+                    var response = new IM_WMS_Packing_DespachoPTDTO();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = GetPacking_DespachoPTLine(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Packing_DespachoPTDTO GetPacking_DespachoPTLine(SqlDataReader reader)
+        {
+            return new IM_WMS_Packing_DespachoPTDTO()
+            {
+                BOX = Convert.ToInt32(reader["BOX"].ToString()),
+                PRODID = reader["PRODID"].ToString(),
+                Packing = Convert.ToBoolean(reader["Packing"].ToString()),
+                FechaPacking = Convert.ToDateTime(reader["FechaPacking"].ToString()),
+                UserPacking = reader["UserPacking"].ToString(),
+                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString()),
             };
         }
     }

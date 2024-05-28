@@ -185,5 +185,34 @@ namespace WMS_API.Controllers
             var resp = await _WMS.get_EstatusOP_PT(almacen);
             return resp;
         }
+
+        [HttpPost("Insert_Estatus_Unidades_OP")]
+        public async Task<ActionResult<IM_WMS_Insert_Estatus_Unidades_OP_DTO>> GetIM_WMS_Insert_Estatus_Unidades_OPs(IM_WMS_Insert_Estatus_Unidades_OP_DTO data)
+        {
+            var resp = await _WMS.GetM_WMS_Insert_Estatus_Unidades_OPs(data);
+            return Ok(resp);
+        }
+
+        [HttpGet("Crear_Despacho_PT/{driver}/{truck}/{userCreated}/{almacen}")]
+        public async Task<ActionResult<IM_WMS_Crear_Despacho_PT>> getCrear_Despacho_PT(string driver, string truck, string userCreated,int almacen)
+        {
+            var resp = await _WMS.GetCrear_Despacho_PT(driver, truck, userCreated,almacen);
+            return resp;
+        }
+
+        [HttpGet("ObtenerDespachosPT/{estado}/{almacen}/{DespachoId}")]
+        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT(string estado, int almacen, int DespachoId)
+        {
+            var resp = await _WMS.Get_Despachos_PT_DTOs(estado, almacen, DespachoId);
+            return resp;
+        }
+
+        [HttpGet("packingDespachoPT/{ProdID}/{UserCreated}/{Box}/{DespachoID}")]
+        public async Task<ActionResult<IM_WMS_Packing_DespachoPTDTO>> GetPacking_DespachoPT(string ProdID, string UserCreated, int Box, int DespachoID)
+        {
+            var resp = await _WMS.GetPacking_DespachoPT(ProdID, UserCreated, Box, DespachoID);
+            return resp;
+        }
+
     }
 }
