@@ -3,6 +3,7 @@ using Core.Interfaces;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_Traslado_Enviar_Recibir;
+using ServiceReference1;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -116,6 +117,41 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        //Entrada en diarios de movimiento
+        public string InsertDeleteEntradaMovimientoLine (string JOURNALID, string ITEMBARCODE, string PROCESO )
+        {
+            object obj = new object();
+            MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
+            List<MOVIMIENTOLINE> LIST = new List<MOVIMIENTOLINE>();
+
+            MOVIMIENTOLINE LINE = new MOVIMIENTOLINE();
+            LINE.JOURNALID = JOURNALID;
+            LINE.ITEMBARCODE = ITEMBARCODE;
+            LINE.PROCESO = PROCESO;
+            LIST.Add(LINE);
+
+            HEADER.LINES = LIST.ToArray();
+            string movimientosLines = SerializationService.Serialize(HEADER);
+            ServiceReference1.CallContext context = new ServiceReference1.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_Entrada_MovimientoClient(GetBinding(), GetEndpointEntradaMovimiento());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, movimientosLines);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
@@ -154,6 +190,19 @@ namespace WMS_API.Features.Repositories
         {
 
             string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Reduccion_CajasGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+
+        private EndpointAddress GetEndpointEntradaMovimiento()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Entrada_MovimientoGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

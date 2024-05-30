@@ -214,5 +214,23 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("PackingDespachoPT/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_Picking_Despacho_PT_DTO>> GetPacking_Despacho_PT(int DespachoID)
+        {
+            var resp = await _WMS.GetDetalleDespachoPT(DespachoID);
+            return resp;
+        }
+
+        //entrada de Diarios de movimiento
+
+        [HttpGet("EntradaMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
+       
+        public string GetEntradaMovimiento(string JOURNALID, string ITEMBARCODE, string PROCESO)
+        {
+            var resp = _AX.InsertDeleteEntradaMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
+            return resp;
+        }
+
+
     }
 }

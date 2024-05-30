@@ -1763,5 +1763,31 @@ namespace WMS_API.Features.Repositories
                 DespachoID = Convert.ToInt32(reader["DespachoID"].ToString()),
             };
         }
+
+        public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetDetalleDespachoPT(int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerDetalleDespachoPT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));                   
+
+
+
+                    var response = new List<IM_WMS_Picking_Despacho_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add( GetPickking_Despacho_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
     }
 }
