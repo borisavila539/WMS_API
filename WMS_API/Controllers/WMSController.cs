@@ -231,6 +231,15 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        //transferir de almacen a otro almacen
+        [HttpGet("TransferirMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
+
+        public string GetTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
+        {
+            var resp = _AX.InsertDeleteTransferirMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
+            return resp;
+        }
+
 
     }
 }

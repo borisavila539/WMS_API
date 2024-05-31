@@ -3,6 +3,7 @@ using Core.Interfaces;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_Traslado_Enviar_Recibir;
+using ServiceReferenceIM_WMS_Trasferir_Inventario;
 using ServiceReference1;
 using System;
 using System.Collections.Generic;
@@ -152,6 +153,42 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        //transferir inventario de un almacen a otro
+        //InsertDeleteTransferirMovimientoLine
+        public string InsertDeleteTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
+        {
+            object obj = new object();
+            MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
+            List<MOVIMIENTOLINE> LIST = new List<MOVIMIENTOLINE>();
+
+            MOVIMIENTOLINE LINE = new MOVIMIENTOLINE();
+            LINE.JOURNALID = JOURNALID;
+            LINE.ITEMBARCODE = ITEMBARCODE;
+            LINE.PROCESO = PROCESO;
+            LIST.Add(LINE);
+
+            HEADER.LINES = LIST.ToArray();
+            string movimientosLines = SerializationService.Serialize(HEADER);
+            ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext context = new ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_Trasferir_InventarioClient(GetBinding(), GetEndpointTransferir());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, movimientosLines);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
@@ -203,6 +240,18 @@ namespace WMS_API.Features.Repositories
         {
 
             string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Entrada_MovimientoGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+        private EndpointAddress GetEndpointTransferir()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Trasferir_InventarioGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);
