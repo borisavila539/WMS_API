@@ -43,6 +43,10 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_DTOs(string estado, int almacen, int DespachoId);
         public Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box, int DespachoID);
         public Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetDetalleDespachoPT(int DespachoID);
+        public Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user);
+
+        //==========================Transferir
+        public Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro);
 
 
     }

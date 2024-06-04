@@ -3,9 +3,11 @@ using Core.DTOs.Despacho_PT;
 using Core.DTOs.Reduccion_Cajas;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -1788,6 +1790,407 @@ namespace WMS_API.Features.Repositories
                     return response;
                 }
             }
+        }
+
+        public async Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Obtener_Diarios_Transferir]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@user", user));
+                    cmd.Parameters.Add(new SqlParameter("@filtro", filtro));
+
+                    var response = new List<DiariosAbiertosDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetDiariosAbiertos(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        //obtenre informacion del detalle que se colocara en el archivo de excel Despacho PT Contratistas
+        public async Task<List<IM_WMS_Detalle_Despacho_Excel>> getDetalle_Despacho_Excel(int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Despacho_Excel]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));                 
+
+                    var response = new List<IM_WMS_Detalle_Despacho_Excel>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getDetalle_Despacho_ExcelLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Detalle_Despacho_Excel getDetalle_Despacho_ExcelLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Detalle_Despacho_Excel()
+            {
+                InventLocation = reader["InventLocation"].ToString(),
+                Base = reader["Base"].ToString(),
+                ItemID = reader["ItemID"].ToString(),
+                Nombre = reader["Nombre"].ToString(),
+                Color = reader["Color"].ToString(),
+                Size = reader["Size"].ToString(),
+                ProdID = reader["ProdID"].ToString(),
+                InventRefId = reader["InventRefId"].ToString(),
+                Planificado = Convert.ToInt32(reader["Planificado"].ToString()),
+                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
+                Primeras = Convert.ToInt32(reader["Primeras"].ToString()),
+                Costura1 = Convert.ToInt32(reader["Costura1"].ToString()),
+                Textil1 = Convert.ToInt32(reader["Textil1"].ToString()),          
+                Costura2 = Convert.ToInt32(reader["Costura2"].ToString()),
+                Textil2 = Convert.ToInt32(reader["Textil2"].ToString()),
+                TotalUnidades = Convert.ToInt32(reader["TotalUnidades"].ToString()),
+                DifPrdVrsPlan = Convert.ToInt32(reader["DifPrdVrsPlan"].ToString()),
+                DifCortVrsExport = Convert.ToInt32(reader["DifCortVrsExport"].ToString()),
+                PorCostura = Convert.ToDecimal(reader["PorCostura"].ToString()),
+                PorTextil = Convert.ToDecimal(reader["PorTextil"].ToString()),
+                Irregulares1PorcCostura = Convert.ToDecimal(reader["Irregulares1PorcCostura"].ToString()),
+                IrregularesCobrarCostura = Convert.ToDecimal(reader["IrregularesCobrarCostura"].ToString()),
+                Irregulares1PorcTextil = Convert.ToDecimal(reader["Irregulares1PorcTextil"].ToString()),
+                IrregularesCobrarTextil = Convert.ToDecimal(reader["IrregularesCobrarTextil"].ToString()),
+                Cajas = Convert.ToInt32(reader["Cajas"].ToString()),
+                TotalDocenas = Convert.ToDecimal(reader["TotalDocenas"].ToString())               
+            };
+        }
+
+        public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user)
+        {
+            var response = new IM_WMS_EnviarDespacho();
+            //Cambiar estado del despacho a enviado
+            /*using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Despacho_Excel]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
+                    
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = Get_EnviarDespachosLine(reader);
+                        }
+                    }
+                   
+                }
+            }
+
+            if(response.Descripcion == "Enviado")
+            {*/
+                var data = await getDetalle_Despacho_Excel(DespachoID);
+
+                if (data.Count() > 0)
+                {
+                    try
+                    {
+                        Byte[] fileContents;
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                        using (ExcelPackage package = new ExcelPackage())
+                        {
+                            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Hoja1");
+                            int cont = 1;
+                            int fila = 12;
+
+                            var rangeEncabezado = worksheet.Cells[2, 1, 5, 1];
+                            rangeEncabezado.Style.Font.Size = 16;
+                            rangeEncabezado.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            rangeEncabezado.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;                         
+
+                            //encabezado del libro
+                            var encabezado = await GetEncabezadoDespachoExcel(user);
+                                for(int x = 2;x <= 5; x++)
+                                {
+                                    var rangeMerge = worksheet.Cells[x, 1, x, 26];
+                                    rangeMerge.Merge = true;
+                                    string texto = "";
+                                    switch (x)
+                                    {
+                                        case 2:
+                                            texto = encabezado.NAME;
+                                        break;
+                                        case 3:
+                                            texto = "Direccion: " +encabezado.STREET;
+                                        break;
+                                        case 4:
+                                            texto = "Telefono: " +encabezado.LOCATOR;
+                                        break;
+                                        case 5:
+                                            texto = "RTN: "+ encabezado.ORGNUMBER;
+                                        break;
+                                }
+                                    worksheet.Cells[x, 1].Value = texto;
+                            }
+
+
+                            worksheet.Row(fila).Height = 57;
+                            var range = worksheet.Cells[12, 1, 12, 26];
+                            range.Style.Font.Size = 12;
+                            range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            range.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                            range.Style.WrapText = true;
+
+                            worksheet.Cells[8, 2].Value = "Cliente:";
+                            worksheet.Cells[8, 3].Value = "INTERMODA";
+                            worksheet.Cells[8, 6].Value = "Entrega A:";
+                            worksheet.Cells[8, 7].Value = data[0].InventLocation;
+                            worksheet.Cells[9, 2].Value = "Fecha:";
+                            worksheet.Cells[9, 3].Value = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
+                            worksheet.Cells[9, 6].Value = "Packing List: ";
+                            worksheet.Cells[9, 7].Value = DespachoID.ToString().PadLeft(8,'0');
+
+                            //Encabezado de la tabla
+                            worksheet.Cells[fila, 1].Value = "#";
+                            worksheet.Column(1).Width = 9.33;
+
+                            worksheet.Cells[fila, 2].Value = "Base";
+                            worksheet.Column(2).Width = 12.56;
+
+                            worksheet.Cells[fila, 3].Value = "Codigo de Articulo";
+                            worksheet.Column(3).Width = 37.11;
+
+                            worksheet.Cells[fila, 4].Value = "Nombre Producto";
+                            worksheet.Column(4).Width = 27.67;
+
+                            worksheet.Cells[fila, 5].Value = "Nombre Color";
+                            worksheet.Column(5).Width = 43.11;
+
+                            worksheet.Cells[fila, 6].Value = "Talla";
+                            worksheet.Column(6).Width = 11.67;
+
+                            worksheet.Cells[fila, 7].Value = "Numero de Kamban";
+                            worksheet.Column(7).Width = 38.22;
+
+                            worksheet.Cells[fila, 8].Value = "PC";
+                            worksheet.Column(8).Width = 43.11;
+
+                            worksheet.Cells[fila, 9].Value = "Unidades Planificadas";
+                            worksheet.Column(9).Width = 21.67;
+
+                            worksheet.Cells[fila, 10].Value = "Unidades Cortadas";
+                            worksheet.Column(10).Width = 15.11;
+
+                            worksheet.Cells[fila, 11].Value = "Und. De Primeras";
+                            worksheet.Column(11).Width = 12.56;
+
+                            worksheet.Cells[fila, 12].Value = "Costura1";
+                            worksheet.Column(12).Width = 10.56;
+
+                            worksheet.Cells[fila, 13].Value = "Textil1";
+                            worksheet.Column(13).Width = 8.56;
+
+                            worksheet.Cells[fila, 14].Value = "Costura2";
+                            worksheet.Column(14).Width = 11.89;
+
+                            worksheet.Cells[fila, 15].Value = "Textil2";
+                            worksheet.Column(15).Width = 9.89;
+
+                            worksheet.Cells[fila, 16].Value = "Total de Unidades por Orden";
+                            worksheet.Column(16).Width = 18.56;
+
+                            worksheet.Cells[fila, 17].Value = "Dif Prd vrs Plan";
+                            worksheet.Column(17).Width = 13.67;
+
+                            worksheet.Cells[fila, 18].Value = "Dif Cortado vrs Exportado";
+                            worksheet.Column(18).Width = 20.11;
+
+                            worksheet.Cells[fila, 19].Value = "Por Costura";
+                            worksheet.Column(19).Width = 14.78;
+
+                            worksheet.Cells[fila, 20].Value = "Por Textil";
+                            worksheet.Column(20).Width = 12.78;
+
+                            worksheet.Cells[fila, 21].Value = "Irregulares del 1% por Costura";
+                            worksheet.Column(21).Width = 15.56;
+
+                            worksheet.Cells[fila, 22].Value = "Irregulares a Cobrar Por Costura";
+                            worksheet.Column(22).Width = 15.56;
+
+                            worksheet.Cells[fila, 23].Value = "Irregulares del 1% por Textil";
+                            worksheet.Column(23).Width = 15.56;
+
+                            worksheet.Cells[fila, 24].Value = "Irregulares a Cobrar Por Textil";
+                            worksheet.Column(24).Width = 15.56;
+
+                            worksheet.Cells[fila, 25].Value = "Cajas de Primeras";
+                            worksheet.Column(25).Width = 17.56;
+
+                            worksheet.Cells[fila, 26].Value = "Total de Docenas";
+                            worksheet.Column(26).Width = 14.78;
+
+
+                        fila++;
+
+                            data.ForEach(element =>
+                            {
+                                worksheet.Row(fila).Height = 36;
+                                worksheet.Cells[fila, 1].Value = cont;
+                                worksheet.Cells[fila, 2].Value = element.Base;
+                                worksheet.Cells[fila, 3].Value = element.ItemID;
+                                worksheet.Cells[fila, 4].Value = element.Nombre;
+                                worksheet.Cells[fila, 5].Value = element.Color;
+                                worksheet.Cells[fila, 6].Value = element.Size;
+                                worksheet.Cells[fila, 7].Value = element.ProdID;
+                                worksheet.Cells[fila, 8].Value = element.InventRefId;
+                                worksheet.Cells[fila, 9].Value = element.Planificado;
+                                worksheet.Cells[fila, 10].Value = element.Cortado;
+                                worksheet.Cells[fila, 11].Value = element.Primeras;
+                                worksheet.Cells[fila, 12].Value = element.Costura1;
+                                worksheet.Cells[fila, 13].Value = element.Textil1;
+                                worksheet.Cells[fila, 14].Value = element.Costura2;
+                                worksheet.Cells[fila, 15].Value = element.Textil2;
+                                worksheet.Cells[fila, 16].Value = element.TotalUnidades;
+                                worksheet.Cells[fila, 17].Value = element.DifPrdVrsPlan;
+                                worksheet.Cells[fila, 18].Value = element.DifCortVrsExport;
+                                worksheet.Cells[fila, 19].Value =element.PorCostura;
+                                worksheet.Cells[fila, 20].Value =element.PorTextil;
+                                worksheet.Cells[fila, 21].Value =element.Irregulares1PorcCostura;
+                                worksheet.Cells[fila, 22].Value =element.IrregularesCobrarCostura;
+                                worksheet.Cells[fila, 23].Value =element.Irregulares1PorcTextil;
+                                worksheet.Cells[fila, 24].Value =element.IrregularesCobrarTextil;
+                                worksheet.Cells[fila, 25].Value =element.Cajas;
+                                worksheet.Cells[fila, 26].Value =element.TotalDocenas;                                
+
+                                fila++;
+                                cont++;
+                            });
+
+                            var range2 = worksheet.Cells[13, 1, fila, 26];
+                            range2.Style.Font.Size = 16;
+                            range2.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            range2.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                            range2.Style.WrapText = true;
+
+                            fila--;
+                            var rangeTable = worksheet.Cells[12, 1, fila, 26];
+                            var table = worksheet.Tables.Add(rangeTable, "MyTable");
+                            table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+                            int col = 11;
+                            for(char c = 'K';c<= 'Z';c++)
+                            {
+                                worksheet.Cells[fila + 1, col].Formula = "sum(" + c + "13:" + c + fila + ")";
+                                col++;
+                            }
+                            fileContents = package.GetAsByteArray();                        
+                        }
+
+                        try
+                        {
+                            MailMessage mail = new MailMessage();
+
+                            mail.From = new MailAddress("sistema@intermoda.com.hn");
+
+                            //var correos = await getCorreosDespacho();
+
+                            //foreach (IM_WMS_Correos_Despacho correo in correos)
+                            //{
+                            mail.To.Add("bavila@intermoda.com.hn");
+                            //}
+                            mail.Subject = "Despacho No." + DespachoID.ToString().PadLeft(8, '0');
+                            mail.IsBodyHtml = false;
+
+                            mail.Body = "Esto es una prueba";
+
+                            using (MemoryStream ms = new MemoryStream(fileContents))
+                            {
+                                Attachment attachment = new Attachment(ms,"text.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                                mail.Attachments.Add(attachment);
+
+                                SmtpClient oSmtpClient = new SmtpClient();
+
+                                oSmtpClient.Host = "smtp.office365.com";
+                                oSmtpClient.Port = 587;
+                                oSmtpClient.EnableSsl = true;
+                                oSmtpClient.UseDefaultCredentials = false;
+
+                                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
+
+                                oSmtpClient.Credentials = userCredential;
+
+                                oSmtpClient.Send(mail);
+                                oSmtpClient.Dispose();
+                            }
+                        }catch (Exception err)
+                        {
+                            response.Descripcion = err.ToString();
+                        }
+                }
+                catch(Exception err)
+                    {
+                    response.Descripcion = err.ToString();
+                    }
+                }
+            //}
+
+            return response;
+        }
+
+        public IM_WMS_EnviarDespacho Get_EnviarDespachosLine(SqlDataReader reader)
+        {
+            return new IM_WMS_EnviarDespacho()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                Descripcion = reader["UserPacking"].ToString()
+            };
+        }
+        public async Task<IM_WMS_EncabezadoDespachoExcelDTO> GetEncabezadoDespachoExcel(string user)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EncabezadoDespachoExcel]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@user", user));
+
+
+
+                    var response = new IM_WMS_EncabezadoDespachoExcelDTO();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = GetEncabezadoDespachoExcelLine(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_EncabezadoDespachoExcelDTO GetEncabezadoDespachoExcelLine(SqlDataReader reader)
+        {
+            return new IM_WMS_EncabezadoDespachoExcelDTO()
+            {
+                NAME = reader["NAME"].ToString(),
+                STREET = reader["STREET"].ToString(),
+                LOCATOR = reader["LOCATOR"].ToString(),
+                ORGNUMBER = reader["ORGNUMBER"].ToString()
+            };
         }
     }
 }

@@ -221,6 +221,14 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        //Enviar despacho
+        [HttpGet("EnviarDespachoPT/{DespachoID}/{user}")]
+        public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID,string user)
+        {
+            var resp = await _WMS.Get_EnviarDespachos(DespachoID,user);
+            return resp;
+        }
+
         //entrada de Diarios de movimiento
 
         [HttpGet("EntradaMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
@@ -238,6 +246,13 @@ namespace WMS_API.Controllers
         {
             var resp = _AX.InsertDeleteTransferirMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
             return resp;
+        }
+
+        [HttpGet("DiariosTransferirAbiertos/{user}/{filtro}")]
+        public async Task<ActionResult<IEnumerable<DiariosAbiertosDTO>>> GetDiariosTransferirAbiertos(string user, string filtro)
+        {
+            var resp = await _WMS.getObtenerDiarioTransferir(user, filtro);
+            return Ok(resp);
         }
 
 
