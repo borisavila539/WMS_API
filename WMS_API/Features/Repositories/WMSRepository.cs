@@ -1879,9 +1879,9 @@ namespace WMS_API.Features.Repositories
         {
             var response = new IM_WMS_EnviarDespacho();
             //Cambiar estado del despacho a enviado
-            /*using (SqlConnection sql = new SqlConnection(_connectionString))
+            using (SqlConnection sql = new SqlConnection(_connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Despacho_Excel]", sql))
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EnviarDespacho]", sql))
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
@@ -1900,7 +1900,7 @@ namespace WMS_API.Features.Repositories
             }
 
             if(response.Descripcion == "Enviado")
-            {*/
+            {
                 var data = await getDetalle_Despacho_Excel(DespachoID);
 
                 if (data.Count() > 0)
@@ -2042,7 +2042,7 @@ namespace WMS_API.Features.Repositories
                             worksheet.Column(26).Width = 14.78;
 
 
-                        fila++;
+                            fila++;
 
                             data.ForEach(element =>
                             {
@@ -2144,7 +2144,7 @@ namespace WMS_API.Features.Repositories
                     response.Descripcion = err.ToString();
                     }
                 }
-            //}
+            }
 
             return response;
         }
@@ -2154,7 +2154,7 @@ namespace WMS_API.Features.Repositories
             return new IM_WMS_EnviarDespacho()
             {
                 ID = Convert.ToInt32(reader["ID"].ToString()),
-                Descripcion = reader["UserPacking"].ToString()
+                Descripcion = reader["Descripcion"].ToString()
             };
         }
         public async Task<IM_WMS_EncabezadoDespachoExcelDTO> GetEncabezadoDespachoExcel(string user)
@@ -2190,6 +2190,113 @@ namespace WMS_API.Features.Repositories
                 STREET = reader["STREET"].ToString(),
                 LOCATOR = reader["LOCATOR"].ToString(),
                 ORGNUMBER = reader["ORGNUMBER"].ToString()
+            };
+        }
+
+        public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEnviados()
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosEnviados]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+
+
+                    var response = new List< IM_WMS_Get_Despachos_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add( Get_Despachos_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public async Task<List<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int despachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerDespachoPTEnviados]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", despachoID));
+
+                    var response = new List<IM_WMS_ObtenerDespachoPTEnviados>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(GetObtenerDespachoPTEnviadosLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_ObtenerDespachoPTEnviados GetObtenerDespachoPTEnviadosLines(SqlDataReader reader)
+        {
+            return new IM_WMS_ObtenerDespachoPTEnviados()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                ProdID = reader["ProdID"].ToString(),
+                Size = reader["Size"].ToString(),
+                Color = reader["Color"].ToString(),
+                fechaPacking = Convert.ToDateTime(reader["fechaPacking"].ToString()),
+                ItemID = reader["ItemID"].ToString(),
+                Box = Convert.ToInt32(reader["Box"].ToString()),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                NeedAudit = Convert.ToBoolean(reader["NeedAudit"].ToString()),
+                Receive = Convert.ToBoolean(reader["Receive"].ToString())
+            };
+        }
+
+        public async Task<IM_WMS_DespachoPT_RecibirDTO> GetRecibir_DespachoPT(string ProdID, string userCreated, int Box)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachoPT_Recibir]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@prodID", ProdID));
+                    cmd.Parameters.Add(new SqlParameter("@box", Box));
+                    cmd.Parameters.Add(new SqlParameter("@user", userCreated));
+
+
+
+
+                    var response = new IM_WMS_DespachoPT_RecibirDTO();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response = GetRecibir_DespachoPTLine(reader);
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_DespachoPT_RecibirDTO GetRecibir_DespachoPTLine(SqlDataReader reader)
+        {
+            return new IM_WMS_DespachoPT_RecibirDTO()
+            {
+                BOX = Convert.ToInt32(reader["BOX"].ToString()),
+                PRODID = reader["PRODID"].ToString(),
+                Receive = Convert.ToBoolean(reader["Receive"].ToString()),
+                FechaReceive = Convert.ToDateTime(reader["FechaReceive"].ToString()),
+                UserReceive = reader["UserReceive"].ToString(),                
             };
         }
     }

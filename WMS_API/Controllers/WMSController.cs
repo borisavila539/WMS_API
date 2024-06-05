@@ -221,11 +221,33 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("DespachoPTEnviados/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int DespachoID)
+        {
+            var resp = await _WMS.GetObtenerDespachoPTEnviados(DespachoID);
+            return resp;
+        }
+
         //Enviar despacho
         [HttpGet("EnviarDespachoPT/{DespachoID}/{user}")]
         public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID,string user)
         {
             var resp = await _WMS.Get_EnviarDespachos(DespachoID,user);
+            return resp;
+        }
+
+        [HttpGet("DespachoPTEnviados")]
+        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_Enviados()
+        {
+            var resp = await _WMS.GetDespachosEnviados();
+            return resp;
+        }
+
+        //Recibir Despacho
+        [HttpGet("ReceiveDespachoPT/{ProdID}/{UserCreated}/{Box}")]
+        public async Task<ActionResult<IM_WMS_DespachoPT_RecibirDTO>> GetRecibir_DespachoPT(string ProdID, string UserCreated, int Box)
+        {
+            var resp = await _WMS.GetRecibir_DespachoPT(ProdID, UserCreated, Box);
             return resp;
         }
 
