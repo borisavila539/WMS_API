@@ -236,10 +236,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("DespachoPTEnviados")]
-        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_Enviados()
+        [HttpGet("DespachoPTEstado/{estado}")]
+        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_Enviados(string estado)
         {
-            var resp = await _WMS.GetDespachosEnviados();
+            var resp = await _WMS.GetDespachosEstado(estado);
             return resp;
         }
 
@@ -250,6 +250,64 @@ namespace WMS_API.Controllers
             var resp = await _WMS.GetRecibir_DespachoPT(ProdID, UserCreated, Box);
             return resp;
         }
+
+        //Cajas a auditar del despacho ?
+        [HttpGet("DespachoPTCajasAuditar/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int DespachoID)
+        {
+            var resp = await _WMS.getCajasAuditar(DespachoID);
+            return resp;
+        }
+
+        //detalle de la caja auditoria
+
+        [HttpGet("DetalleAuditoriaCaja/{ProdID}/{Box}")]
+        public async Task<IEnumerable<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int Box)
+        {
+            var resp = await _WMS.getDetalleAuditoriaCaja(ProdID,Box);
+            return resp;
+        }
+
+
+        //Consulta OP
+
+
+        [HttpGet("DespachosPTEstado/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado( int DespachoID)
+        {
+            var resp = await _WMS.getDespachosPTEstado(DespachoID);
+            return resp;
+        }
+        
+        [HttpGet("DespachosPTConsultaOrdenes/{ProdCutSheetID}/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes( string ProdCutSheetID, int DespachoID)
+        {
+            var resp = await _WMS.getConsultaOpOrdenes(ProdCutSheetID,DespachoID);
+            return resp;
+        }
+        //Consulta OP Detalle
+
+        [HttpGet("ConsultaOPDetalle/{ProdCutSheetID}")]
+        public async Task<IEnumerable<IM_WMS_Consulta_OP_DetalleDTO>> getConsultaOPDetalle( string ProdCutSheetID)
+        {
+            var resp = await _WMS.getConsultaOPDetalle(ProdCutSheetID);
+            return resp;
+        }
+
+        //Consulta Op Detalle cajas
+        
+        [HttpGet("ConsultaOPDetalleCajas/{ProdCutSheetID}/{DespachoID}")]
+        public async Task<IEnumerable<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID)
+        {
+            var resp = await _WMS.getConsultaOPDetalleCajas(ProdCutSheetID, DespachoID);
+            return resp;
+        }
+
+
+
+
+
+
 
         //entrada de Diarios de movimiento
 

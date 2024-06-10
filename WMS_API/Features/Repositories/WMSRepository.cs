@@ -2193,13 +2193,14 @@ namespace WMS_API.Features.Repositories
             };
         }
 
-        public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEnviados()
+        public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEstado(string estado)
         {
             using (SqlConnection sql = new SqlConnection(_connectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosEnviados]", sql))
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosEstado]", sql))
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@estado", estado));
 
 
 
@@ -2270,9 +2271,6 @@ namespace WMS_API.Features.Repositories
                     cmd.Parameters.Add(new SqlParameter("@box", Box));
                     cmd.Parameters.Add(new SqlParameter("@user", userCreated));
 
-
-
-
                     var response = new IM_WMS_DespachoPT_RecibirDTO();
                     await sql.OpenAsync();
 
@@ -2297,6 +2295,217 @@ namespace WMS_API.Features.Repositories
                 Receive = Convert.ToBoolean(reader["Receive"].ToString()),
                 FechaReceive = Convert.ToDateTime(reader["FechaReceive"].ToString()),
                 UserReceive = reader["UserReceive"].ToString(),                
+            };
+        }
+
+        public async Task<List<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int despachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachoPT_CajasAuditar]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", despachoID));
+                    
+
+                    var response = new List<IM_WMS_DespachoPT_CajasAuditarDTO> ();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getCajasAuditarline(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_DespachoPT_CajasAuditarDTO getCajasAuditarline(SqlDataReader reader)
+        {
+            return new IM_WMS_DespachoPT_CajasAuditarDTO()
+            {
+                ID = Convert.ToInt32(reader["ID"].ToString()),
+                ProdID = reader["ProdID"].ToString(),               
+                Size = reader["Size"].ToString(),
+                Color = reader["Color"].ToString(),                                
+                ItemID = reader["ItemID"].ToString(),
+                Box = Convert.ToInt32(reader["Box"].ToString()),
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                Auditado = Convert.ToInt32(reader["Auditado"].ToString()),
+            };
+        }
+
+        public async Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Auditoria_Caja]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@ProdID", ProdID));
+                    cmd.Parameters.Add(new SqlParameter("@Box", box));
+
+
+                    var response = new List<IM_WMS_Detalle_Auditoria_CajaDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getDetalleAuditoriaCajaLine(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Detalle_Auditoria_CajaDTO getDetalleAuditoriaCajaLine(SqlDataReader reader)
+        {
+            return new IM_WMS_Detalle_Auditoria_CajaDTO()
+            {
+                ItemID = reader["ItemID"].ToString(),
+                Size = reader["Size"].ToString(),
+                Color = reader["Color"].ToString(),                
+                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                Auditada = Convert.ToInt32(reader["Auditada"].ToString()),
+            };
+        }
+
+        public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosPT]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));              
+
+                    var response = new List<IM_WMS_Get_Despachos_PT_DTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(Get_Despachos_PT_Lines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public async Task<List<IM_WMS_Consulta_OP_DetalleDTO>> getConsultaOPDetalle(string Prodcutsheetid)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Consulta_OP_Detalle]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", Prodcutsheetid));
+
+                    var response = new List<IM_WMS_Consulta_OP_DetalleDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getConsultaOPDetalleLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+
+        public IM_WMS_Consulta_OP_DetalleDTO getConsultaOPDetalleLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Consulta_OP_DetalleDTO()
+            {
+                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),
+                ProdID = reader["ProdID"].ToString(),
+                Color = reader["Color"].ToString(),
+                Size = reader["Size"].ToString(),                
+                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
+                Receive = Convert.ToInt32(reader["Receive"].ToString()),
+                Segundas = Convert.ToInt32(reader["Segundas"].ToString()),
+                terceras = Convert.ToInt32(reader["terceras"].ToString()),
+                cajas = Convert.ToInt32(reader["cajas"].ToString()),
+                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString()),
+            };
+        }
+
+        public async Task<List<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes(string ProdCutSheetID, int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ConsultaOP_Ordenes]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", ProdCutSheetID));
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
+
+
+                    var response = new List<IM_WMS_ConsultaOP_OrdenesDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getConsultaOPOrdenesLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_ConsultaOP_OrdenesDTO getConsultaOPOrdenesLines(SqlDataReader reader)
+        {
+            return new IM_WMS_ConsultaOP_OrdenesDTO()
+            {
+                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),                
+                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString())
+            };
+        }
+
+        public async Task<List<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Consulta_OP_Detalle_Cajas]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", ProdCutSheetID));
+                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
+
+
+                    var response = new List<IM_WMS_Consulta_OP_Detalle_CajasDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getConsultaOPDetalleCajasLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Consulta_OP_Detalle_CajasDTO getConsultaOPDetalleCajasLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Consulta_OP_Detalle_CajasDTO()
+            {
+                Size = reader["Size"].ToString(),
+                Box = Convert.ToInt32(reader["Box"].ToString()),
+                QTY = Convert.ToInt32(reader["QTY"].ToString())
+
             };
         }
     }
