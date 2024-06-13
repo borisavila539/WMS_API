@@ -43,13 +43,14 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_DTOs(string estado, int almacen, int DespachoId);
         public Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box, int DespachoID);
         public Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetDetalleDespachoPT(int DespachoID);
-        public Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user);
+        public Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user,int cajasSegundas,int cajasTerceras);
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEstado(string estado);
         public Task<List<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int despachoID);
         public Task<IM_WMS_DespachoPT_RecibirDTO> GetRecibir_DespachoPT(string ProdID, string userCreated, int Box);
         public Task<List<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int despachoID);
         public Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box);
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID);
+        public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user);
         
 
         //consulta OP

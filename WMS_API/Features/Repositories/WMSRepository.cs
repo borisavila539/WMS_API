@@ -14,6 +14,8 @@ using System.Net.Mail;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using OfficeOpenXml.Style;
 
 namespace WMS_API.Features.Repositories
 {
@@ -1875,7 +1877,7 @@ namespace WMS_API.Features.Repositories
             };
         }
 
-        public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user)
+        public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user, int cajasSegundas, int cajasTerceras)
         {
             var response = new IM_WMS_EnviarDespacho();
             //Cambiar estado del despacho a enviado
@@ -1885,7 +1887,10 @@ namespace WMS_API.Features.Repositories
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
-                    
+                    cmd.Parameters.Add(new SqlParameter("@cajasSegundas", cajasSegundas));
+                    cmd.Parameters.Add(new SqlParameter("@cajasTerceras", cajasTerceras));
+
+
                     await sql.OpenAsync();
 
                     using (var reader = await cmd.ExecuteReaderAsync())
@@ -1902,6 +1907,10 @@ namespace WMS_API.Features.Repositories
             if(response.Descripcion == "Enviado")
             {
                 var data = await getDetalle_Despacho_Excel(DespachoID);
+                var tmp = new IM_WMS_Detalle_Despacho_Excel();
+                tmp.CajasSegundas = cajasSegundas;
+                tmp.CajasTerceras = cajasTerceras;
+                data.Add(tmp);
 
                 if (data.Count() > 0)
                 {
@@ -1947,7 +1956,7 @@ namespace WMS_API.Features.Repositories
 
 
                             worksheet.Row(fila).Height = 57;
-                            var range = worksheet.Cells[12, 1, 12, 26];
+                            var range = worksheet.Cells[12, 1, 12, 28];
                             range.Style.Font.Size = 12;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
@@ -1981,7 +1990,7 @@ namespace WMS_API.Features.Repositories
                             worksheet.Cells[fila, 6].Value = "Talla";
                             worksheet.Column(6).Width = 11.67;
 
-                            worksheet.Cells[fila, 7].Value = "Numero de Kamban";
+                            worksheet.Cells[fila, 7].Value = "Numero Orden Produccion";
                             worksheet.Column(7).Width = 38.22;
 
                             worksheet.Cells[fila, 8].Value = "PC";
@@ -1996,11 +2005,28 @@ namespace WMS_API.Features.Repositories
                             worksheet.Cells[fila, 11].Value = "Und. De Primeras";
                             worksheet.Column(11).Width = 12.56;
 
+                            worksheet.Cells[fila-1, 12].Value = "Irregulares";
+                            range = worksheet.Cells[fila - 1, 12, fila - 1, 13];
+                            range.Merge = true;
+                            range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                            range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+
                             worksheet.Cells[fila, 12].Value = "Costura1";
                             worksheet.Column(12).Width = 10.56;
 
                             worksheet.Cells[fila, 13].Value = "Textil1";
                             worksheet.Column(13).Width = 8.56;
+
+                            worksheet.Cells[fila - 1, 14].Value = "Terceras";
+                            range = worksheet.Cells[fila - 1, 14, fila - 1, 15];
+                            range.Merge = true;
+                            range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                            range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+
 
                             worksheet.Cells[fila, 14].Value = "Costura2";
                             worksheet.Column(14).Width = 11.89;
@@ -2017,29 +2043,44 @@ namespace WMS_API.Features.Repositories
                             worksheet.Cells[fila, 18].Value = "Dif Cortado vrs Exportado";
                             worksheet.Column(18).Width = 20.11;
 
+                            worksheet.Cells[fila - 1, 19].Value = "% de Irregular y Tercera";
+                            range = worksheet.Cells[fila - 1, 19, fila - 1, 20];
+                            range.Merge = true;
+                            range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                            range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            range = worksheet.Cells[fila - 1, 19, fila - 1, 24];
+                            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+
                             worksheet.Cells[fila, 19].Value = "Por Costura";
                             worksheet.Column(19).Width = 14.78;
 
                             worksheet.Cells[fila, 20].Value = "Por Textil";
                             worksheet.Column(20).Width = 12.78;
 
-                            worksheet.Cells[fila, 21].Value = "Irregulares del 1% por Costura";
+                            worksheet.Cells[fila, 21].Value = "Irregulares Permitidos del 1% por Costura";
                             worksheet.Column(21).Width = 15.56;
 
-                            worksheet.Cells[fila, 22].Value = "Irregulares a Cobrar Por Costura";
+                            worksheet.Cells[fila, 22].Value = "Irregulares arriba del 1% Por Costura";
                             worksheet.Column(22).Width = 15.56;
 
-                            worksheet.Cells[fila, 23].Value = "Irregulares del 1% por Textil";
+                            worksheet.Cells[fila, 23].Value = "Irregulares Permitidas del 1% por Defecto Textil";
                             worksheet.Column(23).Width = 15.56;
 
-                            worksheet.Cells[fila, 24].Value = "Irregulares a Cobrar Por Textil";
+                            worksheet.Cells[fila, 24].Value = "Irregulares arriba del 1% por Defecto Textil";
                             worksheet.Column(24).Width = 15.56;
 
                             worksheet.Cells[fila, 25].Value = "Cajas de Primeras";
                             worksheet.Column(25).Width = 17.56;
 
-                            worksheet.Cells[fila, 26].Value = "Total de Docenas";
-                            worksheet.Column(26).Width = 14.78;
+                            worksheet.Cells[fila, 26].Value = "Cajas de Segundas";
+                            worksheet.Column(26).Width = 17.56;
+
+                            worksheet.Cells[fila, 27].Value = "Cajas de Terceras";
+                            worksheet.Column(27).Width = 17.56;
+
+                            worksheet.Cells[fila, 28].Value = "Total de Docenas";
+                            worksheet.Column(28).Width = 14.78;
 
 
                             fila++;
@@ -2065,27 +2106,31 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila, 16].Value = element.TotalUnidades;
                                 worksheet.Cells[fila, 17].Value = element.DifPrdVrsPlan;
                                 worksheet.Cells[fila, 18].Value = element.DifCortVrsExport;
-                                worksheet.Cells[fila, 19].Value =element.PorCostura;
-                                worksheet.Cells[fila, 20].Value =element.PorTextil;
-                                worksheet.Cells[fila, 21].Value =element.Irregulares1PorcCostura;
-                                worksheet.Cells[fila, 22].Value =element.IrregularesCobrarCostura;
-                                worksheet.Cells[fila, 23].Value =element.Irregulares1PorcTextil;
-                                worksheet.Cells[fila, 24].Value =element.IrregularesCobrarTextil;
-                                worksheet.Cells[fila, 25].Value =element.Cajas;
-                                worksheet.Cells[fila, 26].Value =element.TotalDocenas;                                
+                                worksheet.Cells[fila, 19].Value = Math.Round( element.PorCostura,2)/100;
+                                worksheet.Cells[fila, 19].Style.Numberformat.Format = "0.00%";
+                                worksheet.Cells[fila, 20].Value = Math.Round(element.PorTextil, 2)/100;
+                                worksheet.Cells[fila, 20].Style.Numberformat.Format = "0.00%";
+                                worksheet.Cells[fila, 21].Value = element.Irregulares1PorcCostura;
+                                worksheet.Cells[fila, 22].Value = element.IrregularesCobrarCostura;
+                                worksheet.Cells[fila, 23].Value = element.Irregulares1PorcTextil;
+                                worksheet.Cells[fila, 24].Value = element.IrregularesCobrarTextil;
+                                worksheet.Cells[fila, 25].Value = element.Cajas;
+                                worksheet.Cells[fila, 26].Value = element.CajasSegundas;
+                                worksheet.Cells[fila, 27].Value = element.CajasTerceras;
+                                worksheet.Cells[fila, 28].Value = element.TotalDocenas;                                
 
                                 fila++;
                                 cont++;
                             });
 
-                            var range2 = worksheet.Cells[13, 1, fila, 26];
+                            var range2 = worksheet.Cells[13, 1, fila, 28];
                             range2.Style.Font.Size = 16;
                             range2.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range2.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                             range2.Style.WrapText = true;
 
                             fila--;
-                            var rangeTable = worksheet.Cells[12, 1, fila, 26];
+                            var rangeTable = worksheet.Cells[12, 1, fila, 28];
                             var table = worksheet.Tables.Add(rangeTable, "MyTable");
                             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
@@ -2095,49 +2140,108 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila + 1, col].Formula = "sum(" + c + "13:" + c + fila + ")";
                                 col++;
                             }
-                            fileContents = package.GetAsByteArray();                        
-                        }
 
-                        try
-                        {
-                            MailMessage mail = new MailMessage();
-
-                            mail.From = new MailAddress("sistema@intermoda.com.hn");
-
-                            //var correos = await getCorreosDespacho();
-
-                            //foreach (IM_WMS_Correos_Despacho correo in correos)
-                            //{
-                            mail.To.Add("bavila@intermoda.com.hn");
-                            //}
-                            mail.Subject = "Despacho No." + DespachoID.ToString().PadLeft(8, '0');
-                            mail.IsBodyHtml = false;
-
-                            mail.Body = "Esto es una prueba";
-
-                            using (MemoryStream ms = new MemoryStream(fileContents))
+                            for (char c = 'A'; c <= 'B'; c++)
                             {
-                                Attachment attachment = new Attachment(ms,"text.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                                mail.Attachments.Add(attachment);
-
-                                SmtpClient oSmtpClient = new SmtpClient();
-
-                                oSmtpClient.Host = "smtp.office365.com";
-                                oSmtpClient.Port = 587;
-                                oSmtpClient.EnableSsl = true;
-                                oSmtpClient.UseDefaultCredentials = false;
-
-                                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
-
-                                oSmtpClient.Credentials = userCredential;
-
-                                oSmtpClient.Send(mail);
-                                oSmtpClient.Dispose();
+                                worksheet.Cells[fila + 1, col].Formula = "sum(A" + c + "13:A" + c + fila + ")";
+                                col++;
                             }
-                        }catch (Exception err)
-                        {
-                            response.Descripcion = err.ToString();
-                        }
+
+                            range = worksheet.Cells[fila+1, 11, fila+1, col-1];
+                            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+
+                            //pie de pagina 
+                            worksheet.HeaderFooter.OddFooter.LeftAlignedText = "___________________________";
+
+                            worksheet.HeaderFooter.OddFooter.LeftAlignedText = "___________________________\nFIRMA DEL AUDITOR INTERMODA";
+                            worksheet.HeaderFooter.OddFooter.CenteredText = "___________________________\nFIRMA DEL TRANSPORTISTA";
+                            worksheet.HeaderFooter.OddFooter.RightAlignedText = "___________________________\nFIRMA DE CONTROL DE INVENTARIO";
+                            fila += 3;
+
+                            range = worksheet.Cells[fila, 26, fila, 27];
+                            range.Merge = true;
+                            worksheet.Cells[fila, 26].Value = "Total Cajas Primera";
+                            worksheet.Cells[fila, 28].Value = data.Sum(x=>x.Cajas);
+
+                            fila++;
+                            range = worksheet.Cells[fila, 26, fila, 27];
+                            range.Merge = true;
+                            worksheet.Cells[fila, 26].Value = "Total Cajas Irregulares";
+                            worksheet.Cells[fila, 28].Value = cajasSegundas;
+
+                            fila++;
+                            range = worksheet.Cells[fila, 26, fila, 27];
+                            range.Merge = true;
+                            worksheet.Cells[fila, 26].Value = "Total Cajas Terceras";
+                            worksheet.Cells[fila, 28].Value = cajasTerceras;
+
+                            fila++;
+                            range = worksheet.Cells[fila, 26, fila, 27];
+                            range.Merge = true;
+                            worksheet.Cells[fila, 26].Value = "Total Cajas";
+                            worksheet.Cells[fila, 28].Value = data.Sum(x => x.Cajas) + cajasTerceras +cajasSegundas;
+
+                            range = worksheet.Cells[fila-3, 26, fila, 28];
+                            range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                            range.Style.Border.Top.Color.SetColor(Color.Black);
+
+                            range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                            range.Style.Border.Bottom.Color.SetColor(Color.Black);
+
+                            range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                            range.Style.Border.Right.Color.SetColor(Color.Black);
+
+                            range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                            range.Style.Border.Left.Color.SetColor(Color.Black);
+
+                            fileContents = package.GetAsByteArray();
+                            try
+                            {
+                                MailMessage mail = new MailMessage();
+
+                                mail.From = new MailAddress("sistema@intermoda.com.hn");
+
+                                var correos = await getCorreosDespachoPT(user);
+
+                                foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                                {
+                                    mail.To.Add(correo.Correo);
+                                }
+                                mail.Subject = "Despacho PT No." + DespachoID.ToString().PadLeft(8, '0');
+                                mail.IsBodyHtml = false;
+
+                                mail.Body = "Despacho de PT desde " + encabezado.NAME + " a " + data[0].InventLocation;
+
+                                using (MemoryStream ms = new MemoryStream(fileContents))
+                                {
+                                    DateTime date = DateTime.Now;
+                                    string fecha = date.Day + "_" + date.Month + "_" + date.Year;
+                                    Attachment attachment = new Attachment(ms, "Despacho N"+DespachoID + "-"+ fecha+".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                                    mail.Attachments.Add(attachment);
+
+                                    SmtpClient oSmtpClient = new SmtpClient();
+
+                                    oSmtpClient.Host = "smtp.office365.com";
+                                    oSmtpClient.Port = 587;
+                                    oSmtpClient.EnableSsl = true;
+                                    oSmtpClient.UseDefaultCredentials = false;
+
+                                    NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
+
+                                    oSmtpClient.Credentials = userCredential;
+
+                                    oSmtpClient.Send(mail);
+                                    oSmtpClient.Dispose();
+                                }
+                            }
+                            catch (Exception err)
+                            {
+                                response.Descripcion = err.ToString();
+                            }
+
+
+                        }                       
                 }
                 catch(Exception err)
                     {
@@ -2505,6 +2609,40 @@ namespace WMS_API.Features.Repositories
                 Size = reader["Size"].ToString(),
                 Box = Convert.ToInt32(reader["Box"].ToString()),
                 QTY = Convert.ToInt32(reader["QTY"].ToString())
+
+            };
+        }
+
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Correos_DespachoPTDTO]", sql))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter("@user", user));
+
+
+                    var response = new List<IM_WMS_Correos_DespachoPTDTO>();
+                    await sql.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            response.Add(getCorreosDespachoPTLines(reader));
+                        }
+                    }
+                    return response;
+                }
+            }
+        }
+        public IM_WMS_Correos_DespachoPTDTO getCorreosDespachoPTLines(SqlDataReader reader)
+        {
+            return new IM_WMS_Correos_DespachoPTDTO()
+            {
+                Correo = reader["Correo"].ToString(),
+                ID = Convert.ToInt32(reader["ID"].ToString()),
 
             };
         }

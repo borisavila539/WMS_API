@@ -239,7 +239,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointEntradaMovimiento()
         {
 
-            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Entrada_MovimientoGP";
+            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Entrada_MovimientoGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);
@@ -251,7 +251,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointTransferir()
         {
 
-            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_Trasferir_InventarioGP";
+            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Trasferir_InventarioGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

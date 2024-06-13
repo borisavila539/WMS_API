@@ -229,10 +229,10 @@ namespace WMS_API.Controllers
         }
 
         //Enviar despacho
-        [HttpGet("EnviarDespachoPT/{DespachoID}/{user}")]
-        public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID,string user)
+        [HttpGet("EnviarDespachoPT/{DespachoID}/{user}/{cajasSegundas}/{cajasTerceras}")]
+        public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID,string user,int cajasSegundas,int cajasTerceras)
         {
-            var resp = await _WMS.Get_EnviarDespachos(DespachoID,user);
+            var resp = await _WMS.Get_EnviarDespachos(DespachoID,user,cajasSegundas,cajasTerceras);
             return resp;
         }
 

@@ -33,6 +33,10 @@ namespace Core.DTOs.Despacho_PT
         public decimal Irregulares1PorcTextil { get; set; }
         public decimal IrregularesCobrarTextil { get; set; }
         public int Cajas { get; set; }
+        public int CajasSegundas { get; set; }
+
+        public int CajasTerceras { get; set; }
+
         public decimal TotalDocenas { get; set; }
     }
 }
