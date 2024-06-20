@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.Despacho_PT;
+using Core.DTOs.DiarioTransferir;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -321,10 +322,16 @@ namespace WMS_API.Controllers
 
         //transferir de almacen a otro almacen
         [HttpGet("TransferirMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
-
         public string GetTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
         {
             var resp = _AX.InsertDeleteTransferirMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
+            return resp;
+        }
+
+        [HttpGet("EnviarCorreotransferir/{JOURNALID}/{USERID}")]
+        public Task<IM_WMS_EnviarDiarioTransferirDTO> GetEnviarCorreotransferir(string JOURNALID, string USERID)
+        {
+            var resp =  _WMS.getEnviarDiarioTransferir(JOURNALID, USERID);
             return resp;
         }
 

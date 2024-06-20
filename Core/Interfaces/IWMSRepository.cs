@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.Despacho_PT;
+using Core.DTOs.DiarioTransferir;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -59,6 +60,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID);
 
         //==========================Transferir
+        public Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID);
         public Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro);
 
 
