@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using OfficeOpenXml.Style;
 using Core.DTOs.DiarioTransferir;
+using WMS_API.Features.Utilities;
 
 namespace WMS_API.Features.Repositories
 {
@@ -31,154 +32,63 @@ namespace WMS_API.Features.Repositories
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_Login_WMS]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@user", datos.user));
-                    cmd.Parameters.Add(new SqlParameter("@pass", datos.pass));
-
-                    var response = new LoginDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = getLogin(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public LoginDTO getLogin(SqlDataReader reader)
-        {
-            return new LoginDTO()
-            {
-                user = reader["user"].ToString(),
-                pass = reader["pass"].ToString(),
-                logeado = reader["logeado"].ToString() != "0" ? true : false,
-                Almacen = Convert.ToInt32(reader["Almacen"].ToString())
-
+                new SqlParameter("@user",datos.user),
+                new SqlParameter("@pass",datos.pass)
             };
-        }
+
+            LoginDTO result = await executeProcedure.ExecuteStoredProcedure<LoginDTO>("[IM_Login_WMS]", parametros);
+
+            return result;
+        }       
+
+        //Diarios de salida
 
         public async Task<List<DiariosAbiertosDTO>> GetDiariosAbiertos(string user, string filtro)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerDiariosMovimientoAbiertos]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@user", user));
-                    cmd.Parameters.Add(new SqlParameter("@filtro", filtro));
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-                    var response = new List<DiariosAbiertosDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetDiariosAbiertos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public DiariosAbiertosDTO GetDiariosAbiertos(SqlDataReader reader)
-        {
-            return new DiariosAbiertosDTO()
+            var parametros = new List<SqlParameter>
             {
-                JOURNALID = reader["JOURNALID"].ToString(),
-                DESCRIPTION = reader["DESCRIPTION"].ToString(),
-                NUMOFLINES = Convert.ToInt32(reader["NUMOFLINES"].ToString()),
-                JOURNALNAMEID = reader["JOURNALNAMEID"].ToString(),
+                new SqlParameter("@user",user),
+                new SqlParameter("@filtro", filtro)
             };
-        }
 
+            List<DiariosAbiertosDTO> result = await executeProcedure.ExecuteStoredProcedureList<DiariosAbiertosDTO>("[IM_ObtenerDiariosMovimientoAbiertos]", parametros);
+
+            return result;
+        }
         public async Task<List<LineasDTO>> GetLineasDiario(string diario)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerLineasDiario]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@JOURNALID", diario));
-
-                    var response = new List<LineasDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetLineasDiario(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public LineasDTO GetLineasDiario(SqlDataReader reader)
-        {
-            return new LineasDTO()
-            {
-                ITEMBARCODE = reader["ITEMBARCODE"].ToString(),
-                ITEMID = reader["ITEMID"].ToString(),
-                INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
-                INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
-                IMBOXCODE = reader["IMBOXCODE"].ToString(),
-                QTY = Convert.ToInt32(Convert.ToDecimal(reader["QTY"].ToString())),
-
+                new SqlParameter("@JOURNALID",diario)
             };
-        }
 
+            List<LineasDTO> result = await executeProcedure.ExecuteStoredProcedureList<LineasDTO>("[IM_ObtenerLineasDiario]", parametros);
+
+            return result;
+           
+        }      
         public async Task<List<EtiquetaDTO>> GetDatosEtiquetaMovimiento(string diario, string IMBoxCode)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_Movimiento_Diario_Etiqueta]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@diario", diario));
-                    cmd.Parameters.Add(new SqlParameter("@IMBOXCODE", IMBoxCode));
-
-
-                    var response = new List<EtiquetaDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetEtiqueta(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public EtiquetaDTO GetEtiqueta(SqlDataReader reader)
-        {
-            return new EtiquetaDTO()
-            {
-                IM_CENTRO_DE_COSTOS = reader["IM_CENTRO_DE_COSTOS"].ToString(),
-                Numero_caja = Convert.ToInt32(reader["Numero_caja"].ToString()),
-                JOURNALNAMEID = reader["JOURNALNAMEID"].ToString(),
-                ITEMID = reader["ITEMID"].ToString(),
-                INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
-                INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
-                Solicitante = reader["Solicitante"].ToString(),
-                Empacador = reader["Empacador"].ToString(),
+                new SqlParameter("@diario", diario),
+                new SqlParameter("@IMBOXCODE", IMBoxCode)
             };
-        }
 
+            List<EtiquetaDTO> result = await executeProcedure.ExecuteStoredProcedureList<EtiquetaDTO>("[IM_Movimiento_Diario_Etiqueta]", parametros);
+
+            return result;           
+        }
         public async Task<string> GetImprimirEtiquetaMovimiento(string diario, string IMBoxCode, string PRINT)
         {
             var data = await GetDatosEtiquetaMovimiento(diario, IMBoxCode);
@@ -334,119 +244,49 @@ namespace WMS_API.Features.Repositories
 
 
         }
-
         public async Task<List<ImpresoraDTO>> getImpresoras()
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_Impresoras_SanBernardo]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-                    var response = new List<ImpresoraDTO>();
-                    await sql.OpenAsync();
+            var parametros = new List<SqlParameter> { };
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetImpresoras(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            List<ImpresoraDTO> result = await executeProcedure.ExecuteStoredProcedureList<ImpresoraDTO>("[IM_Impresoras_SanBernardo]", parametros);
+
+            return result;
+            
         }
-        public ImpresoraDTO GetImpresoras(SqlDataReader reader)
-        {
-            return new ImpresoraDTO()
-            {
-                IM_DESCRIPTION_PRINTER = reader["IM_DESCRIPTION_PRINTER"].ToString(),
-                IM_IPPRINTER = reader["IM_IPPRINTER"].ToString(),
-            };
-        }
-
+        //Despacho de Tela
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_AX>> GetIM_WMS_Despacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Detalle_AX]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM));
-                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO));
-                    cmd.Parameters.Add(new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO));
-
-
-                    var response = new List<IM_WMS_Despacho_Tela_Detalle_AX>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetDespacho_Tela_Detalle_AX(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Despacho_Tela_Detalle_AX GetDespacho_Tela_Detalle_AX(SqlDataReader reader)
-        {
-            return new IM_WMS_Despacho_Tela_Detalle_AX()
-            {
-                TRANSFERID = reader["TRANSFERID"].ToString(),
-                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
-                APVENDROLL = reader["APVENDROLL"].ToString(),
-                QTYTRANSFER = Convert.ToDecimal(reader["QTYTRANSFER"].ToString()),
-                NAME = reader["NAME"].ToString(),
-                CONFIGID = reader["CONFIGID"].ToString(),
-                INVENTBATCHID = reader["INVENTBATCHID"].ToString(),
-                ITEMID = reader["ITEMID"].ToString(),
-                BFPITEMNAME = reader["BFPITEMNAME"].ToString()
+                new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM),
+                new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO),
+                new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO)
             };
-        }
 
+            List<IM_WMS_Despacho_Tela_Detalle_AX> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_AX>("[IM_WMS_Despacho_Tela_Detalle_AX]", parametros);
+
+            return result;            
+        }
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> Get_Despacho_Tela_Detalle_Rollo(string INVENTSERIALID, string InventTransID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Detalle_Rollo]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
-                    cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
-
-                    var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetDespacho_Tela_Detalle_Rollo(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Despacho_Tela_Detalle_Rollo GetDespacho_Tela_Detalle_Rollo(SqlDataReader reader)
-        {
-            return new IM_WMS_Despacho_Tela_Detalle_Rollo()
-            {
-                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
-                Picking = Convert.ToBoolean(reader["Picking"].ToString()),
-                Packing = Convert.ToBoolean(reader["Packing"].ToString()),
-                Receive = Convert.ToBoolean(reader["Receive"].ToString()),
-
+                new SqlParameter("@INVENTSERIALID", INVENTSERIALID),
+                new SqlParameter("@InventTransID", InventTransID)
             };
-        }
 
+            List<IM_WMS_Despacho_Tela_Detalle_Rollo> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_Rollo>("[IM_WMS_Despacho_Tela_Detalle_Rollo]", parametros);
+
+            return result;            
+        }       
         public async Task<List<DespachoTelasDetalleDTO>> GetDespacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO, string tipo)
         {
             var response = new List<DespachoTelasDetalleDTO>();
@@ -475,47 +315,29 @@ namespace WMS_API.Features.Repositories
                 }
 
             }
-
-            //response = response.OrderBy(x => x.NAME).ThenBy(x => x.CONFIGID).ThenBy(x=> x.INVENTBATCHID).ThenBy(x=> x.ITEMID).ToList();
-
+            
             return response;
-
-
         }
-
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID, string USER, int IDremision)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Despacho_Tela_Picking_Packing]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                new SqlParameter("@INVENTSERIALID", INVENTSERIALID),
+                new SqlParameter("@Tipo", TIPO),
+                new SqlParameter("@Camion", CAMION),
+                new SqlParameter("@Chofer", CHOFER),
+                new SqlParameter("@InventTransID", InventTransID),
+                new SqlParameter("@User", USER),
+                new SqlParameter("@ID", IDremision)
+            };
 
-                    cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
-                    cmd.Parameters.Add(new SqlParameter("@Tipo", TIPO));
-                    cmd.Parameters.Add(new SqlParameter("@Camion", CAMION));
-                    cmd.Parameters.Add(new SqlParameter("@Chofer", CHOFER));
-                    cmd.Parameters.Add(new SqlParameter("@InventTransID", InventTransID));
-                    cmd.Parameters.Add(new SqlParameter("@User", USER));
-                    cmd.Parameters.Add(new SqlParameter("@ID", IDremision));
+            List<IM_WMS_Despacho_Tela_Detalle_Rollo> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_Rollo>("[IM_WMS_Despacho_Tela_Picking_Packing]", parametros);
 
-
-
-                    var response = new List<IM_WMS_Despacho_Tela_Detalle_Rollo>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetDespacho_Tela_Detalle_Rollo(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return result;          
         }
-
         public async Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
             string etiqueta = "";
@@ -548,81 +370,34 @@ namespace WMS_API.Features.Repositories
                 return err.ToString();
             }
         }
-
         public async Task<List<IM_WMS_TrasladosAbiertos>> getTrasladosAbiertos(string INVENTLOXATIONIDTO)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_TrasladosAbiertos]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@location", INVENTLOXATIONIDTO));
-
-                    var response = new List<IM_WMS_TrasladosAbiertos>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetTrasladosAbiertos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_TrasladosAbiertos GetTrasladosAbiertos(SqlDataReader reader)
-        {
-            return new IM_WMS_TrasladosAbiertos()
-            {
-                TRANSFERIDFROM = reader["TRANSFERIDFROM"].ToString(),
-                TRANSFERIDTO = reader["TRANSFERIDTO"].ToString(),
-                INVENTLOCATIONIDTO = reader["INVENTLOCATIONIDTO"].ToString(),
-                DESCRIPTION = reader["DESCRIPTION"].ToString(),
-                RecID = reader["RecId"].ToString(),
+                new SqlParameter("@location", INVENTLOXATIONIDTO)
             };
-        }
 
+            List<IM_WMS_TrasladosAbiertos> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_TrasladosAbiertos>("[IM_WMS_TrasladosAbiertos]", parametros);
+
+            return result;           
+        }       
         public async Task<List<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EstadoTraslados]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM),
+                new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO),
+                new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO)
+        };
 
-                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDFROM", TRANSFERIDFROM));
-                    cmd.Parameters.Add(new SqlParameter("@TRANSFERIDTO", TRANSFERIDTO));
-                    cmd.Parameters.Add(new SqlParameter("@INVENTLOCATIONIDTO", INVENTLOCATIONIDTO));
+            List<IM_WMS_EstadoTrasladosDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_EstadoTrasladosDTO>("[IM_WMS_EstadoTraslados]", parametros);
 
-                    var response = new List<IM_WMS_EstadoTrasladosDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetEstadoTraslados(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_EstadoTrasladosDTO GetEstadoTraslados(SqlDataReader reader)
-        {
-            return new IM_WMS_EstadoTrasladosDTO()
-            {
-                TRANSFERID = reader["TRANSFERID"].ToString(),
-                Estado = reader["Estado"].ToString(),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
-                Enviado = Convert.ToInt32(reader["Enviado"].ToString()),
-                Recibido = Convert.ToInt32(reader["Recibido"].ToString()),
-            };
-        }
-
+            return result;       
+        }       
         public async Task<List<EstadoTrasladoTipoDTO>> gteEstadoTrasladoTipo(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
             var response = new List<EstadoTrasladoTipoDTO>();
@@ -703,108 +478,47 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
-
         public async Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Chofer, string camion)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_CrearDespacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@RecIDtraslado", RecIDTraslados));
-                    cmd.Parameters.Add(new SqlParameter("@chofer", Chofer));
-                    cmd.Parameters.Add(new SqlParameter("@camion", camion));
-
-                    var response = new List<CrearDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetCrearDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public CrearDespachoDTO GetCrearDespachos(SqlDataReader reader)
-        {
-            return new CrearDespachoDTO()
-            {
-
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                RecIDTraslados = reader["RecIDTraslados"].ToString(),
-                chofer = reader["chofer"].ToString(),
-                camion = reader["camion"].ToString(),
-                Estado = Convert.ToBoolean(reader["Estado"].ToString()),
+                new SqlParameter("@RecIDtraslado", RecIDTraslados),
+                new SqlParameter("@chofer", Chofer),
+                new SqlParameter("@camion", camion)
             };
-        }
 
+            List<CrearDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_CrearDespacho]", parametros);
+
+            return result;            
+        }     
         public async Task<List<CrearDespachoDTO>> GetObtenerDespachos(string RecIDTraslados)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerDespachos]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@RecIDtraslado", RecIDTraslados));
-
-
-                    var response = new List<CrearDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetCrearDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public async Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id)
-        {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_CerrarDespacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@ID", id));
-
-
-                    var response = new List<CerrarDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetCerrarDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public CerrarDespachoDTO GetCerrarDespachos(SqlDataReader reader)
-        {
-            return new CerrarDespachoDTO()
-            {
-
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                Estado = Convert.ToBoolean(reader["Estado"].ToString()),
+                new SqlParameter("@RecIDtraslado", RecIDTraslados)
             };
 
-        }
+            List<CrearDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_ObtenerDespachos]", parametros);
 
+            return result;           
+        }
+        public async Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@ID", id)
+            };
+
+            List<CerrarDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CerrarDespachoDTO>("[IM_CerrarDespacho]", parametros);
+
+            return result;           
+        }        
         public async Task<string> getNotaDespacho(int DespachoID, string recid, string empleado, string camion)
         {
             string despacho = "";
@@ -1066,212 +780,85 @@ namespace WMS_API.Features.Repositories
 
            return despacho;
         }
-
         public async Task<List<EncabezadoNotaDespachoDTO>> getEncabezadoDespacho(string empleado, string recid)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Encabezado_Despacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@empleado", empleado));
-                    cmd.Parameters.Add(new SqlParameter("@recid", recid));
-
-
-
-                    var response = new List<EncabezadoNotaDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getEncabezadoDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public EncabezadoNotaDespachoDTO getEncabezadoDespachos(SqlDataReader reader)
-        {
-            return new EncabezadoNotaDespachoDTO()
-            {
-
-                fecha = Convert.ToDateTime(reader["Fecha"].ToString()),
-                Motorista = reader["Motorista"].ToString(),
-                TRANSFERIDFROM = reader["TRANSFERIDFROM"].ToString(),
-                TRANSFERIDTO = reader["TRANSFERIDTO"].ToString(),
-                Destino = reader["Destino"].ToString(),
+                new SqlParameter("@empleado", empleado),
+                new SqlParameter("@recid", recid)
             };
 
+            List<EncabezadoNotaDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<EncabezadoNotaDespachoDTO>("[IM_WMS_Encabezado_Despacho]", parametros);
+
+            return result;
         }
         public async Task<List<RollosDespachoDTO>> getRolloDespacho(int id)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_RolloDespacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@ID", id));
-                    
-
-
-
-                    var response = new List<RollosDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getRollosDespacho(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public RollosDespachoDTO getRollosDespacho(SqlDataReader reader)
-        {
-            return new RollosDespachoDTO()
-            {                
-                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
-                InventTransID = reader["InventTransID"].ToString()
+                new SqlParameter("@ID", id)
             };
 
+            List<RollosDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RollosDespachoDTO>("[IM_WMS_RolloDespacho]", parametros);
+
+            return result;           
         }
         public async Task<List<RollosDespachoDTO>> getRolloDespachoAX(string InventTransID,string INVENTSERIALID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_NotaDespachoDetalleAX]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    cmd.Parameters.Add(new SqlParameter("@TRANSFERID", InventTransID));
-                    cmd.Parameters.Add(new SqlParameter("@INVENTSERIALID", INVENTSERIALID));
-
-                    var response = new List<RollosDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getRollosDespachoAX(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public RollosDespachoDTO getRollosDespachoAX(SqlDataReader reader)
-        {
-            return new RollosDespachoDTO()
-            {
-                INVENTSERIALID = reader["INVENTSERIALID"].ToString(),
-                Color = reader["Color"].ToString(),
-                Config = reader["CONFIGID"].ToString(),
-                LibrasYardas = reader["LibrasYardas"].ToString(),
-                NameAlias = reader["NameAlias"].ToString(),
-                inventBatchId = reader["inventBatchId"].ToString(),
-
+                new SqlParameter("@TRANSFERID", InventTransID),
+                new SqlParameter("@INVENTSERIALID", INVENTSERIALID)
             };
 
-        }
+            List<RollosDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RollosDespachoDTO>("[IM_WMS_NotaDespachoDetalleAX]", parametros);
 
+            return result;         
+        }     
         public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespacho()
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerCorreosDespachotela]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-               
-                    var response = new List<IM_WMS_Correos_Despacho>();
-                    await sql.OpenAsync();
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getCorreosDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            var parametros = new List<SqlParameter>{};
+
+            List<IM_WMS_Correos_Despacho> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_Despacho>("[IM_WMS_ObtenerCorreosDespachotela]", parametros);
+
+            return result;
         }
-
-        public IM_WMS_Correos_Despacho getCorreosDespachos(SqlDataReader reader)
-        {
-            return new IM_WMS_Correos_Despacho()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                Correo = reader["Correo"].ToString()
-            };
-
-        }
-
         public async Task<List<RolloDespachoDTO>> getRollosDespacho(int despachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> 
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerRollosDespacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoId", despachoID));
-
-                    var response = new List<RolloDespachoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getListaRollosDespacho(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public RolloDespachoDTO getListaRollosDespacho(SqlDataReader reader)
-        {
-            return new RolloDespachoDTO()
-            {   ID = Convert.ToInt32(reader["ID"].ToString()),
-                INVENTSERIALID = reader["INVENTSERIALID"].ToString()
+                new SqlParameter("@DespachoId", despachoID)
             };
 
-        }
+            List<RolloDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RolloDespachoDTO>("[IM_ObtenerRollosDespacho]", parametros);
 
+            return result;           
+        }     
+        //Reduccion de cajas
         public async Task<List<LineasDTO>> GetLineasReducionCajas(string IMBOXCODE)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerReduccionCajas]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@IMBOXCODE", IMBOXCODE));
+                new SqlParameter("@IMBOXCODE",IMBOXCODE)
+            };
 
-                    var response = new List<LineasDTO>();
-                    await sql.OpenAsync();
+            List<LineasDTO> result = await executeProcedure.ExecuteStoredProcedureList<LineasDTO>("[IM_ObtenerReduccionCajas]", parametros);
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetLineasDiario(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return result;
         }
-
         public async Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string ubicacion, string empacador, string PRINT)
         {
             DateTime hoy = DateTime.Now;
@@ -1412,498 +999,195 @@ namespace WMS_API.Features.Repositories
 
 
         }
-
         public async Task<EmpleadoDTO> getNombreEmpleado(string empleado)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> 
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_ObtenerNombreEmpleado]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@empleado", empleado));
-
-                    var response = new EmpleadoDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = getNombreEmpleados(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public EmpleadoDTO getNombreEmpleados(SqlDataReader reader)
-        {
-            return new EmpleadoDTO()
-            {
-                Nombre = reader["Nombre"].ToString(),
-                Cuenta = reader["Cuenta"].ToString(),
-                
-
+                new SqlParameter("@empleado", empleado)
             };
-        }
+
+            EmpleadoDTO result = await executeProcedure.ExecuteStoredProcedure<EmpleadoDTO>("[IM_ObtenerNombreEmpleado]", parametros);
+
+            return result;            
+        }       
         public async Task<List<EtiquetaReduccionDTO>> GetDatosEtiquetaReduccion(string IMBoxCode)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Obtener_Etiqueta_Reduccion]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@IMBOXCODE", IMBoxCode));
-
-
-                    var response = new List<EtiquetaReduccionDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetEtiquetaReduccion(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public EtiquetaReduccionDTO GetEtiquetaReduccion(SqlDataReader reader)
-        {
-            return new EtiquetaReduccionDTO()
-            {
-                NameAlias = reader["NameAlias"].ToString(),
-                ITEMID = reader["ITEMID"].ToString(),
-                INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
-                INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),                
+                new SqlParameter("@IMBOXCODE", IMBoxCode)
             };
-        }
 
-        //=============================================Despacho  PT
+            List<EtiquetaReduccionDTO> result = await executeProcedure.ExecuteStoredProcedureList<EtiquetaReduccionDTO>("[IM_WMS_Obtener_Etiqueta_Reduccion]", parametros);
+
+            return result;
+        }
+        //Despacho  PT
         public async Task<List<IM_WMS_Insert_Boxes_Despacho_PT_DTO>> GetInsert_Boxes_Despacho_PT(string ProdID, string userCreated, int Box)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Insert_Boxes_Despacho_PT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ProdID", ProdID));
-                    cmd.Parameters.Add(new SqlParameter("@userCreated", userCreated));
-                    cmd.Parameters.Add(new SqlParameter("@Box", Box));
-
-                    var response = new List<IM_WMS_Insert_Boxes_Despacho_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetInsert_Boxes_Despacho_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Insert_Boxes_Despacho_PT_DTO GetInsert_Boxes_Despacho_PT_Lines(SqlDataReader reader)
-        {
-            return new IM_WMS_Insert_Boxes_Despacho_PT_DTO()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                ProdID = reader["ProdID"].ToString(),
-                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),
-                Size = reader["Size"].ToString(),
-                Color = reader["Color"].ToString(),
-                UserPicking = reader["UserPicking"].ToString(),
-                ItemID = reader["ItemID"].ToString(),
-                Box = Convert.ToInt32(reader["Box"].ToString()),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                new SqlParameter("@ProdID", ProdID),
+                new SqlParameter("@userCreated", userCreated),
+                new SqlParameter("@Box", Box)
             };
-        }
 
+            List<IM_WMS_Insert_Boxes_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Insert_Boxes_Despacho_PT_DTO>("[IM_WMS_Insert_Boxes_Despacho_PT]", parametros);
+
+            return result;            
+        }
         public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetPicking_Despacho_PT(int Almacen)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Picking_Despacho_PT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@Almacen", Almacen));
-                   
-
-                    var response = new List<IM_WMS_Picking_Despacho_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetPickking_Despacho_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Picking_Despacho_PT_DTO GetPickking_Despacho_PT_Lines(SqlDataReader reader)
-        {
-            return new IM_WMS_Picking_Despacho_PT_DTO()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                ProdID = reader["ProdID"].ToString(),                
-                Size = reader["Size"].ToString(),
-                Color = reader["Color"].ToString(),
-                fechaPicking = Convert.ToDateTime( reader["fechaPicking"].ToString()),
-                ItemID = reader["ItemID"].ToString(),
-                Box = Convert.ToInt32(reader["Box"].ToString()),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
+                new SqlParameter("@Almacen", Almacen)
             };
-        }
 
+            List<IM_WMS_Picking_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Picking_Despacho_PT_DTO>("[IM_WMS_Picking_Despacho_PT]", parametros);
+
+            return result;            
+        }
         public async Task<List<IM_WMS_Get_EstatusOP_PT_DTO>> get_EstatusOP_PT(int almacen)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Get_EstatusOP]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@inventlocationid", almacen));
-
-
-                    var response = new List<IM_WMS_Get_EstatusOP_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(get_EstatusOP_PTLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Get_EstatusOP_PT_DTO get_EstatusOP_PTLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Get_EstatusOP_PT_DTO()
-            {
-                
-                UserPicking = reader["UserPicking"].ToString(),
-                Prodcutsheetid = reader["Prodcutsheetid"].ToString(),
-                prodid = reader["prodid"].ToString(),                
-                Size = reader["Size"].ToString(),
-                Escaneado = Convert.ToInt32(reader["Escaneado"].ToString()),
-                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
+                new SqlParameter("@inventlocationid", almacen)
             };
-        }
 
+            List<IM_WMS_Get_EstatusOP_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_EstatusOP_PT_DTO>("[IM_WMS_Get_EstatusOP]", parametros);
+
+            return result;           
+        }
         public async Task<IM_WMS_Insert_Estatus_Unidades_OP_DTO> GetM_WMS_Insert_Estatus_Unidades_OPs(IM_WMS_Insert_Estatus_Unidades_OP_DTO data)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Insert_Estatus_Unidades_OP]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@prodID", data.ProdID));
-                    cmd.Parameters.Add(new SqlParameter("@size", data.size));
-                    cmd.Parameters.Add(new SqlParameter("@costura1", data.Costura1));
-                    cmd.Parameters.Add(new SqlParameter("@textil1", data.Textil1));
-                    cmd.Parameters.Add(new SqlParameter("@costura2", data.Costura2));
-                    cmd.Parameters.Add(new SqlParameter("@textil2", data.Textil2));
-                    cmd.Parameters.Add(new SqlParameter("@usuario", data.usuario));
-
-
-                    var response = new IM_WMS_Insert_Estatus_Unidades_OP_DTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetM_WMS_Insert_Estatus_Unidades_OPsLines(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Insert_Estatus_Unidades_OP_DTO GetM_WMS_Insert_Estatus_Unidades_OPsLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Insert_Estatus_Unidades_OP_DTO()
-            {
-
-                ID = Convert.ToInt32(reader["ID"].ToString()),               
-                ProdID = reader["ProdID"].ToString(),
-                size = reader["size"].ToString(),
-                Costura1 = Convert.ToInt32(reader["Costura1"].ToString()),
-                Textil1 = Convert.ToInt32(reader["Textil1"].ToString()),
-                Costura2 = Convert.ToInt32(reader["Costura2"].ToString()),
-                Textil2 = Convert.ToInt32(reader["Textil2"].ToString())            
+                new SqlParameter("@prodID", data.ProdID),
+                new SqlParameter("@size", data.size),
+                new SqlParameter("@costura1", data.Costura1),
+                new SqlParameter("@textil1", data.Textil1),
+                new SqlParameter("@costura2", data.Costura2),
+                new SqlParameter("@textil2", data.Textil2),
+                new SqlParameter("@usuario", data.usuario)
             };
-        }
 
+            IM_WMS_Insert_Estatus_Unidades_OP_DTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Insert_Estatus_Unidades_OP_DTO>("[IM_WMS_Insert_Estatus_Unidades_OP]", parametros);
+
+            return result;
+        }
         public async Task<IM_WMS_Crear_Despacho_PT> GetCrear_Despacho_PT(string driver, string truck, string userCreated, int almacen)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Crear_Despacho_PT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@driver", driver));
-                    cmd.Parameters.Add(new SqlParameter("@truck", truck));
-                    cmd.Parameters.Add(new SqlParameter("@userCreated", userCreated));
-                    cmd.Parameters.Add(new SqlParameter("@almacen", almacen));  
-
-                    var response = new IM_WMS_Crear_Despacho_PT();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetCrear_Despacho_PLines(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Crear_Despacho_PT GetCrear_Despacho_PLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Crear_Despacho_PT()
-            {
-                id = Convert.ToInt32(reader["ID"].ToString()),
-                driver = reader["driver"].ToString(),
-                truck = reader["truck"].ToString(),
-                UserCreated = reader["UserCreated"].ToString(),
-                almacen = Convert.ToInt32(reader["almacen"].ToString())
-
+                new SqlParameter("@driver", driver),
+                new SqlParameter("@truck", truck),
+                new SqlParameter("@userCreated", userCreated),
+                new SqlParameter("@almacen", almacen)
             };
-        }
 
+            IM_WMS_Crear_Despacho_PT result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Crear_Despacho_PT>("[IM_WMS_Crear_Despacho_PT]", parametros);
+
+            return result;
+        }     
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_DTOs(string estado, int almacen, int DespachoId)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Get_Despachos_PT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@Estado", estado));
-                    cmd.Parameters.Add(new SqlParameter("@almacen", almacen));
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoId));
-                   
-
-                    var response = new List<IM_WMS_Get_Despachos_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(Get_Despachos_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Get_Despachos_PT_DTO Get_Despachos_PT_Lines(SqlDataReader reader)
-        {
-            return new IM_WMS_Get_Despachos_PT_DTO()
-            {
-                id = Convert.ToInt32(reader["ID"].ToString()),
-                Driver = reader["driver"].ToString(),
-                truck = reader["truck"].ToString(),
-                CreatedDateTime =Convert.ToDateTime(reader["CreatedDateTime"].ToString()),
-                
-
+                new SqlParameter("@Estado", estado),
+                new SqlParameter("@almacen", almacen),
+                new SqlParameter("@DespachoID", DespachoId)
             };
-        }
 
+            List<IM_WMS_Get_Despachos_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_Get_Despachos_PT]", parametros);
+
+            return result;        
+        }
         public async Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box,int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Packing_DespachoPT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@prodID", ProdID));
-                    cmd.Parameters.Add(new SqlParameter("@box", Box));
-                    cmd.Parameters.Add(new SqlParameter("@user", userCreated));
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
-
-
-
-                    var response = new IM_WMS_Packing_DespachoPTDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetPacking_DespachoPTLine(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Packing_DespachoPTDTO GetPacking_DespachoPTLine(SqlDataReader reader)
-        {
-            return new IM_WMS_Packing_DespachoPTDTO()
-            {
-                BOX = Convert.ToInt32(reader["BOX"].ToString()),
-                PRODID = reader["PRODID"].ToString(),
-                Packing = Convert.ToBoolean(reader["Packing"].ToString()),
-                FechaPacking = Convert.ToDateTime(reader["FechaPacking"].ToString()),
-                UserPacking = reader["UserPacking"].ToString(),
-                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString()),
+                new SqlParameter("@prodID", ProdID),
+                new SqlParameter("@box", Box),
+                new SqlParameter("@user", userCreated),
+                new SqlParameter("@DespachoID", DespachoID)
             };
-        }
 
+            IM_WMS_Packing_DespachoPTDTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Packing_DespachoPTDTO>("[IM_WMS_Packing_DespachoPT]", parametros);
+
+            return result;            
+        }
         public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetDetalleDespachoPT(int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerDetalleDespachoPT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));                   
+                new SqlParameter("@DespachoID", DespachoID)
+            };
 
+            List<IM_WMS_Picking_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Picking_Despacho_PT_DTO>("[IM_WMS_ObtenerDetalleDespachoPT]", parametros);
 
-
-                    var response = new List<IM_WMS_Picking_Despacho_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add( GetPickking_Despacho_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return result;            
         }
-
         public async Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Obtener_Diarios_Transferir]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@user", user));
-                    cmd.Parameters.Add(new SqlParameter("@filtro", filtro));
+                new SqlParameter("@user",user),
+                new SqlParameter("@filtro", filtro)
+            };
 
-                    var response = new List<DiariosAbiertosDTO>();
-                    await sql.OpenAsync();
+            List<DiariosAbiertosDTO> result = await executeProcedure.ExecuteStoredProcedureList<DiariosAbiertosDTO>("[IM_WMS_Obtener_Diarios_Transferir]", parametros);
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetDiariosAbiertos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return result;
         }
 
         //obtenre informacion del detalle que se colocara en el archivo de excel Despacho PT Contratistas
         public async Task<List<IM_WMS_Detalle_Despacho_Excel>> getDetalle_Despacho_Excel(int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Despacho_Excel]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));                 
-
-                    var response = new List<IM_WMS_Detalle_Despacho_Excel>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getDetalle_Despacho_ExcelLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Detalle_Despacho_Excel getDetalle_Despacho_ExcelLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Detalle_Despacho_Excel()
-            {
-                InventLocation = reader["InventLocation"].ToString(),
-                Base = reader["Base"].ToString(),
-                ItemID = reader["ItemID"].ToString(),
-                Nombre = reader["Nombre"].ToString(),
-                Color = reader["Color"].ToString(),
-                Size = reader["Size"].ToString(),
-                ProdID = reader["ProdID"].ToString(),
-                InventRefId = reader["InventRefId"].ToString(),
-                Planificado = Convert.ToInt32(reader["Planificado"].ToString()),
-                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
-                Primeras = Convert.ToInt32(reader["Primeras"].ToString()),
-                Costura1 = Convert.ToInt32(reader["Costura1"].ToString()),
-                Textil1 = Convert.ToInt32(reader["Textil1"].ToString()),          
-                Costura2 = Convert.ToInt32(reader["Costura2"].ToString()),
-                Textil2 = Convert.ToInt32(reader["Textil2"].ToString()),
-                TotalUnidades = Convert.ToInt32(reader["TotalUnidades"].ToString()),
-                DifPrdVrsPlan = Convert.ToInt32(reader["DifPrdVrsPlan"].ToString()),
-                DifCortVrsExport = Convert.ToInt32(reader["DifCortVrsExport"].ToString()),
-                PorCostura = Convert.ToDecimal(reader["PorCostura"].ToString()),
-                PorTextil = Convert.ToDecimal(reader["PorTextil"].ToString()),
-                Irregulares1PorcCostura = Convert.ToDecimal(reader["Irregulares1PorcCostura"].ToString()),
-                IrregularesCobrarCostura = Convert.ToDecimal(reader["IrregularesCobrarCostura"].ToString()),
-                Irregulares1PorcTextil = Convert.ToDecimal(reader["Irregulares1PorcTextil"].ToString()),
-                IrregularesCobrarTextil = Convert.ToDecimal(reader["IrregularesCobrarTextil"].ToString()),
-                Cajas = Convert.ToInt32(reader["Cajas"].ToString()),
-                TotalDocenas = Convert.ToDecimal(reader["TotalDocenas"].ToString())               
+                new SqlParameter("@DespachoID", DespachoID)
             };
-        }
 
+            List<IM_WMS_Detalle_Despacho_Excel> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Detalle_Despacho_Excel>("[IM_WMS_Detalle_Despacho_Excel]", parametros);
+
+            return result;
+        }
         public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user, int cajasSegundas, int cajasTerceras)
         {
-            var response = new IM_WMS_EnviarDespacho();
-            //Cambiar estado del despacho a enviado
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EnviarDespacho]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
-                    cmd.Parameters.Add(new SqlParameter("@cajasSegundas", cajasSegundas));
-                    cmd.Parameters.Add(new SqlParameter("@cajasTerceras", cajasTerceras));
+                new SqlParameter("@DespachoID", DespachoID),
+                new SqlParameter("@cajasSegundas", cajasSegundas),
+                new SqlParameter("@cajasTerceras", cajasTerceras)
+            };
 
-
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = Get_EnviarDespachosLine(reader);
-                        }
-                    }
-                   
-                }
-            }
+            IM_WMS_EnviarDespacho response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EnviarDespacho>("[IM_WMS_EnviarDespacho]", parametros);           
 
             if(response.Descripcion == "Enviado")
             {
@@ -2269,425 +1553,165 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
-
-        public IM_WMS_EnviarDespacho Get_EnviarDespachosLine(SqlDataReader reader)
-        {
-            return new IM_WMS_EnviarDespacho()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                Descripcion = reader["Descripcion"].ToString()
-            };
-        }
         public async Task<IM_WMS_EncabezadoDespachoExcelDTO> GetEncabezadoDespachoExcel(string user)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EncabezadoDespachoExcel]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@user", user));
-
-
-
-                    var response = new IM_WMS_EncabezadoDespachoExcelDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetEncabezadoDespachoExcelLine(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_EncabezadoDespachoExcelDTO GetEncabezadoDespachoExcelLine(SqlDataReader reader)
-        {
-            return new IM_WMS_EncabezadoDespachoExcelDTO()
-            {
-                NAME = reader["NAME"].ToString(),
-                STREET = reader["STREET"].ToString(),
-                LOCATOR = reader["LOCATOR"].ToString(),
-                ORGNUMBER = reader["ORGNUMBER"].ToString()
+                new SqlParameter("@user", user)
             };
-        }
 
+            IM_WMS_EncabezadoDespachoExcelDTO response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EncabezadoDespachoExcelDTO>("[IM_WMS_EncabezadoDespachoExcel]", parametros);
+            return response;
+        }  
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEstado(string estado)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosEstado]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@estado", estado));
+                new SqlParameter("@estado", estado)
+            };
 
+            List<IM_WMS_Get_Despachos_PT_DTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_DespachosEstado]", parametros);
 
-
-                    var response = new List< IM_WMS_Get_Despachos_PT_DTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add( Get_Despachos_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return response;            
         }
-
         public async Task<List<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int despachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ObtenerDespachoPTEnviados]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", despachoID));
-
-                    var response = new List<IM_WMS_ObtenerDespachoPTEnviados>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(GetObtenerDespachoPTEnviadosLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_ObtenerDespachoPTEnviados GetObtenerDespachoPTEnviadosLines(SqlDataReader reader)
-        {
-            return new IM_WMS_ObtenerDespachoPTEnviados()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                ProdID = reader["ProdID"].ToString(),
-                Size = reader["Size"].ToString(),
-                Color = reader["Color"].ToString(),
-                fechaPacking = Convert.ToDateTime(reader["fechaPacking"].ToString()),
-                ItemID = reader["ItemID"].ToString(),
-                Box = Convert.ToInt32(reader["Box"].ToString()),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
-                NeedAudit = Convert.ToBoolean(reader["NeedAudit"].ToString()),
-                Receive = Convert.ToBoolean(reader["Receive"].ToString())
+                new SqlParameter("@DespachoID", despachoID)
             };
-        }
 
+            List<IM_WMS_ObtenerDespachoPTEnviados> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerDespachoPTEnviados>("[IM_WMS_ObtenerDespachoPTEnviados]", parametros);
+
+            return response;
+        }
         public async Task<IM_WMS_DespachoPT_RecibirDTO> GetRecibir_DespachoPT(string ProdID, string userCreated, int Box)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachoPT_Recibir]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@prodID", ProdID));
-                    cmd.Parameters.Add(new SqlParameter("@box", Box));
-                    cmd.Parameters.Add(new SqlParameter("@user", userCreated));
-
-                    var response = new IM_WMS_DespachoPT_RecibirDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetRecibir_DespachoPTLine(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_DespachoPT_RecibirDTO GetRecibir_DespachoPTLine(SqlDataReader reader)
-        {
-            return new IM_WMS_DespachoPT_RecibirDTO()
-            {
-                BOX = Convert.ToInt32(reader["BOX"].ToString()),
-                PRODID = reader["PRODID"].ToString(),
-                Receive = Convert.ToBoolean(reader["Receive"].ToString()),
-                FechaReceive = Convert.ToDateTime(reader["FechaReceive"].ToString()),
-                UserReceive = reader["UserReceive"].ToString(),                
+                new SqlParameter("@prodID", ProdID),
+                new SqlParameter("@box", Box),
+                new SqlParameter("@user", userCreated)
             };
-        }
 
+            IM_WMS_DespachoPT_RecibirDTO response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_DespachoPT_RecibirDTO>("[IM_WMS_DespachoPT_Recibir]", parametros);
+
+            return response;
+        }
         public async Task<List<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int despachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachoPT_CajasAuditar]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", despachoID));
-                    
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-                    var response = new List<IM_WMS_DespachoPT_CajasAuditarDTO> ();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getCajasAuditarline(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_DespachoPT_CajasAuditarDTO getCajasAuditarline(SqlDataReader reader)
-        {
-            return new IM_WMS_DespachoPT_CajasAuditarDTO()
+            var parametros = new List<SqlParameter>
             {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                ProdID = reader["ProdID"].ToString(),               
-                Size = reader["Size"].ToString(),
-                Color = reader["Color"].ToString(),                                
-                ItemID = reader["ItemID"].ToString(),
-                Box = Convert.ToInt32(reader["Box"].ToString()),
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
-                Auditado = Convert.ToInt32(reader["Auditado"].ToString()),
+                new SqlParameter("@DespachoID", despachoID)
             };
-        }
 
+            List<IM_WMS_DespachoPT_CajasAuditarDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DespachoPT_CajasAuditarDTO>("[IM_WMS_DespachoPT_CajasAuditar]", parametros);
+
+            return response;           
+        }
         public async Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Auditoria_Caja]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ProdID", ProdID));
-                    cmd.Parameters.Add(new SqlParameter("@Box", box));
-
-
-                    var response = new List<IM_WMS_Detalle_Auditoria_CajaDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getDetalleAuditoriaCajaLine(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Detalle_Auditoria_CajaDTO getDetalleAuditoriaCajaLine(SqlDataReader reader)
-        {
-            return new IM_WMS_Detalle_Auditoria_CajaDTO()
-            {
-                ItemID = reader["ItemID"].ToString(),
-                Size = reader["Size"].ToString(),
-                Color = reader["Color"].ToString(),                
-                QTY = Convert.ToInt32(reader["QTY"].ToString()),
-                Auditada = Convert.ToInt32(reader["Auditada"].ToString()),
+                new SqlParameter("@ProdID", ProdID),
+                new SqlParameter("@Box", box)
             };
-        }
 
+            List<IM_WMS_Detalle_Auditoria_CajaDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Detalle_Auditoria_CajaDTO>("[IM_WMS_Detalle_Auditoria_Caja]", parametros);
+
+            return response;            
+        }
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_DespachosPT]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));              
+                new SqlParameter("@DespachoID", DespachoID)
+            };
 
-                    var response = new List<IM_WMS_Get_Despachos_PT_DTO>();
-                    await sql.OpenAsync();
+            List<IM_WMS_Get_Despachos_PT_DTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_DespachosPT]", parametros);
 
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(Get_Despachos_PT_Lines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
+            return response;
         }
-
         public async Task<List<IM_WMS_Consulta_OP_DetalleDTO>> getConsultaOPDetalle(string Prodcutsheetid)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Consulta_OP_Detalle]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", Prodcutsheetid));
-
-                    var response = new List<IM_WMS_Consulta_OP_DetalleDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getConsultaOPDetalleLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-
-        public IM_WMS_Consulta_OP_DetalleDTO getConsultaOPDetalleLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Consulta_OP_DetalleDTO()
-            {
-                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),
-                ProdID = reader["ProdID"].ToString(),
-                Color = reader["Color"].ToString(),
-                Size = reader["Size"].ToString(),                
-                Cortado = Convert.ToInt32(reader["Cortado"].ToString()),
-                Receive = Convert.ToInt32(reader["Receive"].ToString()),
-                Segundas = Convert.ToInt32(reader["Segundas"].ToString()),
-                terceras = Convert.ToInt32(reader["terceras"].ToString()),
-                cajas = Convert.ToInt32(reader["cajas"].ToString()),
-                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString()),
+                new SqlParameter("@Prodcutsheetid", Prodcutsheetid)
             };
-        }
 
+            List<IM_WMS_Consulta_OP_DetalleDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Consulta_OP_DetalleDTO>("[IM_WMS_Consulta_OP_Detalle]", parametros);
+
+            return response;
+        }      
         public async Task<List<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes(string ProdCutSheetID, int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_ConsultaOP_Ordenes]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", ProdCutSheetID));
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
-
-
-                    var response = new List<IM_WMS_ConsultaOP_OrdenesDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getConsultaOPOrdenesLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_ConsultaOP_OrdenesDTO getConsultaOPOrdenesLines(SqlDataReader reader)
-        {
-            return new IM_WMS_ConsultaOP_OrdenesDTO()
-            {
-                ProdCutSheetID = reader["ProdCutSheetID"].ToString(),                
-                DespachoID = Convert.ToInt32(reader["DespachoID"].ToString())
+                new SqlParameter("@Prodcutsheetid", ProdCutSheetID),
+                new SqlParameter("@DespachoID", DespachoID)
             };
-        }
 
+            List<IM_WMS_ConsultaOP_OrdenesDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ConsultaOP_OrdenesDTO>("[IM_WMS_ConsultaOP_Ordenes]", parametros);
+
+            return response;
+        }
         public async Task<List<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Consulta_OP_Detalle_Cajas]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@Prodcutsheetid", ProdCutSheetID));
-                    cmd.Parameters.Add(new SqlParameter("@DespachoID", DespachoID));
-
-
-                    var response = new List<IM_WMS_Consulta_OP_Detalle_CajasDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getConsultaOPDetalleCajasLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Consulta_OP_Detalle_CajasDTO getConsultaOPDetalleCajasLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Consulta_OP_Detalle_CajasDTO()
-            {
-                Size = reader["Size"].ToString(),
-                Box = Convert.ToInt32(reader["Box"].ToString()),
-                QTY = Convert.ToInt32(reader["QTY"].ToString())
-
+                new SqlParameter("@Prodcutsheetid", ProdCutSheetID),
+                new SqlParameter("@DespachoID", DespachoID)
             };
-        }
 
+            List<IM_WMS_Consulta_OP_Detalle_CajasDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Consulta_OP_Detalle_CajasDTO>("[IM_WMS_Consulta_OP_Detalle_Cajas]", parametros);
+
+            return response;         
+        }
         public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Correos_DespachoPTDTO]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@user", user));
-
-
-                    var response = new List<IM_WMS_Correos_DespachoPTDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getCorreosDespachoPTLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Correos_DespachoPTDTO getCorreosDespachoPTLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Correos_DespachoPTDTO()
-            {
-                Correo = reader["Correo"].ToString(),
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-
+                new SqlParameter("@user", user)
             };
-        }
 
+            List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_Correos_DespachoPTDTO]", parametros);
+
+            return response;            
+        }
         public async Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID)
         {
-            var response = new IM_WMS_EnviarDiarioTransferirDTO();
-            using (SqlConnection sql = new SqlConnection(_connectionString))
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
             {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_EnviarDiarioTransferir]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@JournalID", JournalID));
-                    cmd.Parameters.Add(new SqlParameter("@user", userID));
+                new SqlParameter("@JournalID", JournalID),
+                new SqlParameter("@user", userID)
+            };
 
-                    
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = getEnviarDiarioTransferirLines(reader);
-                        }
-                    }
-                    
-                }
-            }
+            IM_WMS_EnviarDiarioTransferirDTO response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EnviarDiarioTransferirDTO>("[IM_WMS_EnviarDiarioTransferir]", parametros);
 
             var detalle = await getDetalle_Diario_Transferir_Correo(JournalID);
             string html = @"<!DOCTYPE html>
@@ -2776,6 +1800,7 @@ namespace WMS_API.Features.Repositories
             {
                 MailMessage mail = new MailMessage();
 
+
                 mail.From = new MailAddress("sistema@intermoda.com.hn");
 
                 var correos = await getCorreosDespachoTransferir();
@@ -2802,119 +1827,50 @@ namespace WMS_API.Features.Repositories
 
                 oSmtpClient.Send(mail);
                 oSmtpClient.Dispose();
-
-
             }
             catch (Exception err)
             {
 
             }
+            return response;
+        }
+        public async Task<IM_Encabezado_Diario_TransferirDTO> GetEncabezadoTransferir(string journalID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", journalID)
+            };
+
+            IM_Encabezado_Diario_TransferirDTO response = await executeProcedure.ExecuteStoredProcedure<IM_Encabezado_Diario_TransferirDTO>("[IM_Encabezado_Diario_Transferir]", parametros);
+
+            return response;            
+        }       
+        public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespachoTransferir()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {                
+            };
+
+            List<IM_WMS_Correos_Despacho> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_Despacho>("[IM_WMS_Correos_Transferirsp]", parametros);
 
             return response;
         }
-        public IM_WMS_EnviarDiarioTransferirDTO getEnviarDiarioTransferirLines(SqlDataReader reader)
-        {
-            return new IM_WMS_EnviarDiarioTransferirDTO()
-            {
-                ID = Convert.ToInt32(reader["ID"].ToString()),
-                JournalID = reader["JournalID"].ToString(),
-                userID = reader["userID"].ToString(),
-                Fecha = Convert.ToDateTime(reader["Fecha"].ToString()),
-            };
-        }
-
-        public async Task<IM_Encabezado_Diario_TransferirDTO> GetEncabezadoTransferir(string journalID)
-        {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_Encabezado_Diario_Transferir]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@JournalID", journalID));
-
-
-                    var response = new IM_Encabezado_Diario_TransferirDTO();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response = GetEncabezadoTransferir(reader);
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_Encabezado_Diario_TransferirDTO GetEncabezadoTransferir(SqlDataReader reader)
-        {
-            return new IM_Encabezado_Diario_TransferirDTO()
-            {
-                JOURNALID = reader["JOURNALID"].ToString(),
-                INVENTLOCATIONID = reader["INVENTLOCATIONID"].ToString(),
-                IM_INVENTLOCATIONID_TO = reader["IM_INVENTLOCATIONID_TO"].ToString(),
-                PERSONNELNUMBER = reader["PERSONNELNUMBER"].ToString(),
-            };
-        }
-
-        public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespachoTransferir()
-        {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Correos_Transferirsp]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-                    var response = new List<IM_WMS_Correos_Despacho>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getCorreosDespachos(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
         public async Task<List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>> getDetalle_Diario_Transferir_Correo(string JournalID)
         {
-            using (SqlConnection sql = new SqlConnection(_connectionString))
-            {
-                using (SqlCommand cmd = new SqlCommand("[IM_WMS_Detalle_Diario_Transferir_Correo]", sql))
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@JournalID", JournalID));
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-                    var response = new List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>();
-                    await sql.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            response.Add(getDetalle_Diario_Transferir_CorreoLines(reader));
-                        }
-                    }
-                    return response;
-                }
-            }
-        }
-        public IM_WMS_Detalle_Diario_Transferir_CorreoDTO getDetalle_Diario_Transferir_CorreoLines(SqlDataReader reader)
-        {
-            return new IM_WMS_Detalle_Diario_Transferir_CorreoDTO()
+            var parametros = new List<SqlParameter>
             {
-                ITEMID = reader["ITEMID"].ToString(),
-                INVENTCOLORID = reader["INVENTCOLORID"].ToString(),
-                INVENTSIZEID = reader["INVENTSIZEID"].ToString(),
-                QTY = Convert.ToInt32(Convert.ToDecimal(reader["QTY"].ToString()))
+                new SqlParameter("@JournalID", JournalID)
             };
+
+            List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>("[IM_WMS_Detalle_Diario_Transferir_Correo]", parametros);
+
+            return response;            
         }
-
-
     }
 }
