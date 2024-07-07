@@ -907,18 +907,18 @@ namespace WMS_API.Features.Repositories
                 }
                 if (element.items[0].NameAlias.Substring(0, 2) == "MB")
                 {
-                    etiqueta += $"^FO{position},50^A0R,60,60^FD{element.items[0].NameAlias} *{element.items[0].INVENTCOLORID}^FS";
+                    etiqueta += $"^FO{position},50^A0R,45,45^FD{element.items[0].NameAlias} *{element.items[0].INVENTCOLORID}^FS";
                     position -= 45;
-                    etiqueta += $"^FO{position},50^A0R,40,40^FD{element.items[0].ITEMID}^FS";
+                    etiqueta += $"^FO{position},50^A0R,45,45^FD{element.items[0].ITEMID}^FS";
                     position -= 45;
                 }
                 else
                 {
-                    etiqueta += $"^FO{position},50^A0R,60,60^FD{element.items[0].ITEMID} *{element.items[0].INVENTCOLORID}^FS";
+                    etiqueta += $"^FO{position},50^A0R,45,45^FD{element.items[0].ITEMID} *{element.items[0].INVENTCOLORID}^FS";
                     position -= 45;
                 }
                 
-                etiqueta += $"^FO{position},50^A0R,40,40^FDTalla: ";
+                etiqueta += $"^FO{position},50^A0R,45,45^FDTalla: ";
 
                 element.items.ForEach( x=>
                 {
@@ -931,7 +931,7 @@ namespace WMS_API.Features.Repositories
                 });
                 etiqueta += "^FS";
                 position -= 45;
-                etiqueta += $"^FO{position},50^A0R,40,40^FDQTY: ";
+                etiqueta += $"^FO{position},50^A0R,45,45^FDQTY: ";
                 int totalLinea = 0;
                 element.items.ForEach(x =>
                 {
@@ -947,7 +947,7 @@ namespace WMS_API.Features.Repositories
                 subtotal += totalLinea;
                 position -= 70;
                 cont++;
-                if(cont== 2)
+                if(cont== 3)
                 {
                     etiqueta += $"^FO100,700^A0R,40,40^FDTotal: {subtotal} / {totalUnidades}^FS";
                     etiqueta += pie;
@@ -972,7 +972,7 @@ namespace WMS_API.Features.Repositories
                 
                 
             }
-            if (cont != 2 && cont != 0)
+            if (cont != 3 && cont != 0)
             {
                 etiqueta += $"^FO100,700^A0R,40,40^FDTotal: {subtotal} / {totalUnidades}^FS";
                 etiqueta += pie;
@@ -1163,6 +1163,23 @@ namespace WMS_API.Features.Repositories
         }
 
         //obtenre informacion del detalle que se colocara en el archivo de excel Despacho PT Contratistas
+        public async Task<IM_WMS_ObtenerSecuencia_PL_PT_DTO> getSecuencia_PL_PT(int despachoID, string user,int almacenTo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID),
+                new SqlParameter("@user", user),
+                new SqlParameter("@AlmacenTO", almacenTo)
+
+
+            };
+
+            IM_WMS_ObtenerSecuencia_PL_PT_DTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_ObtenerSecuencia_PL_PT_DTO>("[IM_WMS_ObtenerSecuencia_PL_PT]", parametros);
+
+            return result;
+        }
         public async Task<List<IM_WMS_Detalle_Despacho_Excel>> getDetalle_Despacho_Excel(int DespachoID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1204,12 +1221,15 @@ namespace WMS_API.Features.Repositories
 
                     if (data.Count() > 0)
                     {
-                        if(cont1 == 0)
+                        if (cont1 == 0)
                         {
                             var tmp = new IM_WMS_Detalle_Despacho_Excel();
                             tmp.CajasSegundas = cajasSegundas;
                             tmp.CajasTerceras = cajasTerceras;
                             data.Add(tmp);
+                            cont1++;
+                        }
+                        else {
                             cont1++;
                         }
                         try
@@ -1223,7 +1243,7 @@ namespace WMS_API.Features.Repositories
                                 int fila = 12;
 
                                 var rangeEncabezado = worksheet.Cells[2, 1, 5, 1];
-                                rangeEncabezado.Style.Font.Size = 16;
+                                rangeEncabezado.Style.Font.Size = 20;
                                 rangeEncabezado.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 rangeEncabezado.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
@@ -1254,12 +1274,14 @@ namespace WMS_API.Features.Repositories
 
 
                                 worksheet.Row(fila).Height = 57;
-                                var range = worksheet.Cells[12, 1, 12, 28];
-                                range.Style.Font.Size = 12;
+                                var range = worksheet.Cells[12, 1, 12, 30];
+                                range.Style.Font.Size = 20;
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                                 range.Style.WrapText = true;
 
+                                range = worksheet.Cells[8, 1, 11, 7];
+                                range.Style.Font.Size = 20;
                                 worksheet.Cells[8, 2].Value = "Cliente:";
                                 worksheet.Cells[8, 3].Value = "INTERMODA";
                                 worksheet.Cells[8, 6].Value = "Entrega A:";
@@ -1267,7 +1289,8 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[9, 2].Value = "Fecha:";
                                 worksheet.Cells[9, 3].Value = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
                                 worksheet.Cells[9, 6].Value = "Packing List: ";
-                                worksheet.Cells[9, 7].Value = DespachoID.ToString().PadLeft(8, '0');
+                                var packing = await getSecuencia_PL_PT(DespachoID, user,cont);
+                                worksheet.Cells[9, 7].Value = packing.Secuencia + "."+packing.Anio;
 
                                 //Encabezado de la tabla
                                 worksheet.Cells[fila, 1].Value = "#";
@@ -1282,43 +1305,47 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila, 4].Value = "Nombre Producto";
                                 worksheet.Column(4).Width = 27.67;
 
-                                worksheet.Cells[fila, 5].Value = "Nombre Color";
-                                worksheet.Column(5).Width = 43.11;
+                                //Agregando si es Lateral o Tubular
+                                worksheet.Cells[fila, 5].Value = "L/T";
+                                worksheet.Column(5).Width = 6.67;
 
-                                worksheet.Cells[fila, 6].Value = "Talla";
-                                worksheet.Column(6).Width = 11.67;
+                                worksheet.Cells[fila, 6].Value = "Nombre Color";
+                                worksheet.Column(6).Width = 43.11;
 
-                                worksheet.Cells[fila, 7].Value = "Numero Orden Produccion";
-                                worksheet.Column(7).Width = 38.22;
+                                worksheet.Cells[fila, 7].Value = "Talla";
+                                worksheet.Column(7).Width = 11.67;
 
-                                worksheet.Cells[fila, 8].Value = "PC";
-                                worksheet.Column(8).Width = 43.11;
+                                worksheet.Cells[fila, 8].Value = "Numero Orden Produccion";
+                                worksheet.Column(8).Width = 38.22;
 
-                                worksheet.Cells[fila, 9].Value = "Unidades Planificadas";
-                                worksheet.Column(9).Width = 21.67;
+                                worksheet.Cells[fila, 9].Value = "PC";
+                                worksheet.Column(9).Width = 43.11;
 
-                                worksheet.Cells[fila, 10].Value = "Unidades Cortadas";
-                                worksheet.Column(10).Width = 15.11;
+                                worksheet.Cells[fila, 10].Value = "Unidades Planificadas";
+                                worksheet.Column(10).Width = 21.67;
 
-                                worksheet.Cells[fila, 11].Value = "Und. De Primeras";
-                                worksheet.Column(11).Width = 12.56;
+                                worksheet.Cells[fila, 11].Value = "Unidades Cortadas";
+                                worksheet.Column(11).Width = 15.11;
 
-                                worksheet.Cells[fila - 1, 12].Value = "Irregulares";
-                                range = worksheet.Cells[fila - 1, 12, fila - 1, 13];
+                                worksheet.Cells[fila, 12].Value = "Und. De Primeras";
+                                worksheet.Column(12).Width = 12.56;
+
+                                worksheet.Cells[fila - 1, 13].Value = "Irregulares";
+                                range = worksheet.Cells[fila - 1, 13, fila - 1, 14];
                                 range.Merge = true;
                                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
 
-                                worksheet.Cells[fila, 12].Value = "Costura1";
-                                worksheet.Column(12).Width = 10.56;
+                                worksheet.Cells[fila, 13].Value = "Costura1";
+                                worksheet.Column(13).Width = 10.56;
 
-                                worksheet.Cells[fila, 13].Value = "Textil1";
-                                worksheet.Column(13).Width = 8.56;
+                                worksheet.Cells[fila, 14].Value = "Textil1";
+                                worksheet.Column(14).Width = 8.56;
 
-                                worksheet.Cells[fila - 1, 14].Value = "Terceras";
-                                range = worksheet.Cells[fila - 1, 14, fila - 1, 15];
+                                worksheet.Cells[fila - 1, 15].Value = "Terceras";
+                                range = worksheet.Cells[fila - 1, 15, fila - 1, 16];
                                 range.Merge = true;
                                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
@@ -1326,59 +1353,59 @@ namespace WMS_API.Features.Repositories
                                 range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
 
 
-                                worksheet.Cells[fila, 14].Value = "Costura2";
-                                worksheet.Column(14).Width = 11.89;
+                                worksheet.Cells[fila, 15].Value = "Costura2";
+                                worksheet.Column(15).Width = 11.89;
 
-                                worksheet.Cells[fila, 15].Value = "Textil2";
-                                worksheet.Column(15).Width = 9.89;
+                                worksheet.Cells[fila, 16].Value = "Textil2";
+                                worksheet.Column(16).Width = 9.89;
 
-                                worksheet.Cells[fila, 16].Value = "Total de Unidades por Orden";
-                                worksheet.Column(16).Width = 18.56;
+                                worksheet.Cells[fila, 17].Value = "Total de Unidades por Orden";
+                                worksheet.Column(17).Width = 18.56;
 
-                                worksheet.Cells[fila, 17].Value = "Dif Prd vrs Plan";
-                                worksheet.Column(17).Width = 13.67;
+                                worksheet.Cells[fila, 18].Value = "Dif Prd vrs Plan";
+                                worksheet.Column(18).Width = 13.67;
 
-                                worksheet.Cells[fila, 18].Value = "Dif Cortado vrs Exportado";
-                                worksheet.Column(18).Width = 20.11;
+                                worksheet.Cells[fila, 19].Value = "Dif Cortado vrs Exportado";
+                                worksheet.Column(19).Width = 20.11;
 
-                                worksheet.Cells[fila - 1, 19].Value = "% de Irregular y Tercera";
-                                range = worksheet.Cells[fila - 1, 19, fila - 1, 20];
+                                worksheet.Cells[fila - 1, 20].Value = "% de Irregular y Tercera";
+                                range = worksheet.Cells[fila - 1, 20, fila - 1, 21];
                                 range.Merge = true;
                                 range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                                range = worksheet.Cells[fila - 1, 19, fila - 1, 24];
+                                range = worksheet.Cells[fila - 1, 20, fila - 1, 25];
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
 
-                                worksheet.Cells[fila, 19].Value = "Por Costura";
-                                worksheet.Column(19).Width = 14.78;
+                                worksheet.Cells[fila, 20].Value = "Por Costura";
+                                worksheet.Column(20).Width = 14.78;
 
-                                worksheet.Cells[fila, 20].Value = "Por Textil";
-                                worksheet.Column(20).Width = 12.78;
+                                worksheet.Cells[fila, 21].Value = "Por Textil";
+                                worksheet.Column(21).Width = 12.78;
 
-                                worksheet.Cells[fila, 21].Value = "Irregulares Permitidos del 1% por Costura";
-                                worksheet.Column(21).Width = 15.56;
-
-                                worksheet.Cells[fila, 22].Value = "Irregulares arriba del 1% Por Costura";
+                                worksheet.Cells[fila, 22].Value = "Irregulares Permitidos del 1% por Costura";
                                 worksheet.Column(22).Width = 15.56;
 
-                                worksheet.Cells[fila, 23].Value = "Irregulares Permitidas del 1% por Defecto Textil";
+                                worksheet.Cells[fila, 23].Value = "Irregulares arriba del 1% Por Costura";
                                 worksheet.Column(23).Width = 15.56;
 
-                                worksheet.Cells[fila, 24].Value = "Irregulares arriba del 1% por Defecto Textil";
+                                worksheet.Cells[fila, 24].Value = "Irregulares Permitidas del 1% por Defecto Textil";
                                 worksheet.Column(24).Width = 15.56;
 
-                                worksheet.Cells[fila, 25].Value = "Cajas de Primeras";
-                                worksheet.Column(25).Width = 17.56;
+                                worksheet.Cells[fila, 25].Value = "Irregulares arriba del 1% por Defecto Textil";
+                                worksheet.Column(25).Width = 15.56;
 
-                                worksheet.Cells[fila, 26].Value = "Cajas de Segundas";
+                                worksheet.Cells[fila, 26].Value = "Cajas de Primeras";
                                 worksheet.Column(26).Width = 17.56;
 
-                                worksheet.Cells[fila, 27].Value = "Cajas de Terceras";
+                                worksheet.Cells[fila, 27].Value = "Cajas de Segundas";
                                 worksheet.Column(27).Width = 17.56;
 
-                                worksheet.Cells[fila, 28].Value = "Total de Docenas";
-                                worksheet.Column(28).Width = 14.78;
+                                worksheet.Cells[fila, 28].Value = "Cajas de Terceras";
+                                worksheet.Column(28).Width = 17.56;
+
+                                worksheet.Cells[fila, 29].Value = "Total de Docenas";
+                                worksheet.Column(29).Width = 14.78;
 
 
                                 fila++;
@@ -1390,56 +1417,57 @@ namespace WMS_API.Features.Repositories
                                     worksheet.Cells[fila, 2].Value = element.Base;
                                     worksheet.Cells[fila, 3].Value = element.ItemID;
                                     worksheet.Cells[fila, 4].Value = element.Nombre;
-                                    worksheet.Cells[fila, 5].Value = element.Color;
-                                    worksheet.Cells[fila, 6].Value = element.Size;
-                                    worksheet.Cells[fila, 7].Value = element.ProdID;
-                                    worksheet.Cells[fila, 8].Value = element.InventRefId;
-                                    worksheet.Cells[fila, 9].Value = element.Planificado;
-                                    worksheet.Cells[fila, 10].Value = element.Cortado;
-                                    worksheet.Cells[fila, 11].Value = element.Primeras;
-                                    worksheet.Cells[fila, 12].Value = element.Costura1;
-                                    worksheet.Cells[fila, 13].Value = element.Textil1;
-                                    worksheet.Cells[fila, 14].Value = element.Costura2;
-                                    worksheet.Cells[fila, 15].Value = element.Textil2;
-                                    worksheet.Cells[fila, 16].Value = element.TotalUnidades;
-                                    worksheet.Cells[fila, 17].Value = element.DifPrdVrsPlan;
-                                    worksheet.Cells[fila, 18].Value = element.DifCortVrsExport;
-                                    worksheet.Cells[fila, 19].Value = Math.Round(element.PorCostura, 2) / 100;
-                                    worksheet.Cells[fila, 19].Style.Numberformat.Format = "0.00%";
-                                    worksheet.Cells[fila, 20].Value = Math.Round(element.PorTextil, 2) / 100;
+                                    worksheet.Cells[fila, 5].Value = element.Tl;
+                                    worksheet.Cells[fila, 6].Value = element.Color;
+                                    worksheet.Cells[fila, 7].Value = element.Size;
+                                    worksheet.Cells[fila, 8].Value = element.ProdID;
+                                    worksheet.Cells[fila, 9].Value = element.InventRefId;
+                                    worksheet.Cells[fila, 10].Value = element.Planificado;
+                                    worksheet.Cells[fila, 11].Value = element.Cortado;
+                                    worksheet.Cells[fila, 12].Value = element.Primeras;
+                                    worksheet.Cells[fila, 13].Value = element.Costura1;
+                                    worksheet.Cells[fila, 14].Value = element.Textil1;
+                                    worksheet.Cells[fila, 15].Value = element.Costura2;
+                                    worksheet.Cells[fila, 16].Value = element.Textil2;
+                                    worksheet.Cells[fila, 17].Value = element.TotalUnidades;
+                                    worksheet.Cells[fila, 18].Value = element.DifPrdVrsPlan;
+                                    worksheet.Cells[fila, 19].Value = element.DifCortVrsExport;
+                                    worksheet.Cells[fila, 20].Value = Math.Round(element.PorCostura, 2) / 100;
                                     worksheet.Cells[fila, 20].Style.Numberformat.Format = "0.00%";
-                                    worksheet.Cells[fila, 21].Value = element.Irregulares1PorcCostura;
-                                    worksheet.Cells[fila, 22].Value = element.IrregularesCobrarCostura;
-                                    worksheet.Cells[fila, 23].Value = element.Irregulares1PorcTextil;
-                                    worksheet.Cells[fila, 24].Value = element.IrregularesCobrarTextil;
-                                    worksheet.Cells[fila, 25].Value = element.Cajas;
-                                    worksheet.Cells[fila, 26].Value = element.CajasSegundas;
-                                    worksheet.Cells[fila, 27].Value = element.CajasTerceras;
-                                    worksheet.Cells[fila, 28].Value = element.TotalDocenas;
+                                    worksheet.Cells[fila, 21].Value = Math.Round(element.PorTextil, 2) / 100;
+                                    worksheet.Cells[fila, 21].Style.Numberformat.Format = "0.00%";
+                                    worksheet.Cells[fila, 22].Value = element.Irregulares1PorcCostura;
+                                    worksheet.Cells[fila, 23].Value = element.IrregularesCobrarCostura;
+                                    worksheet.Cells[fila, 24].Value = element.Irregulares1PorcTextil;
+                                    worksheet.Cells[fila, 25].Value = element.IrregularesCobrarTextil;
+                                    worksheet.Cells[fila, 26].Value = element.Cajas;
+                                    worksheet.Cells[fila, 27].Value = element.CajasSegundas;
+                                    worksheet.Cells[fila, 28].Value = element.CajasTerceras;
+                                    worksheet.Cells[fila, 29].Value = element.TotalDocenas;
 
                                     fila++;
                                     cont++;
                                 });
 
-                                var range2 = worksheet.Cells[13, 1, fila, 28];
-                                range2.Style.Font.Size = 16;
+                                var range2 = worksheet.Cells[13, 1, fila, 29];
+                                range2.Style.Font.Size = 20;
                                 range2.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range2.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                                 range2.Style.WrapText = true;
 
                                 fila--;
-                                var rangeTable = worksheet.Cells[12, 1, fila, 28];
+                                var rangeTable = worksheet.Cells[12, 1, fila, 29];
                                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
                                 table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
-                                int col = 11;
-                                for (char c = 'K'; c <= 'Z'; c++)
+                                int col = 12;
+                                for (char c = 'L'; c <= 'Z'; c++)
                                 {
                                     worksheet.Cells[fila + 1, col].Formula = "sum(" + c + "13:" + c + fila + ")";
                                     col++;
                                 }
 
-                                for (char c = 'A'; c <= 'B'; c++)
+                                for (char c = 'A'; c <= 'C'; c++)
                                 {
                                     worksheet.Cells[fila + 1, col].Formula = "sum(A" + c + "13:A" + c + fila + ")";
                                     col++;
@@ -1450,37 +1478,37 @@ namespace WMS_API.Features.Repositories
                                 range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
 
                                 //pie de pagina 
-                                worksheet.HeaderFooter.OddFooter.LeftAlignedText = "___________________________";
-
-                                worksheet.HeaderFooter.OddFooter.LeftAlignedText = "___________________________\nFIRMA DEL AUDITOR INTERMODA";
-                                worksheet.HeaderFooter.OddFooter.CenteredText = "___________________________\nFIRMA DEL TRANSPORTISTA";
-                                worksheet.HeaderFooter.OddFooter.RightAlignedText = "___________________________\nFIRMA DE CONTROL DE INVENTARIO";
+                                string fontSizeCode = "&20";
+                                worksheet.HeaderFooter.OddFooter.LeftAlignedText = fontSizeCode + "___________________________\nFIRMA DEL AUDITOR INTERMODA";
+                                worksheet.HeaderFooter.OddFooter.CenteredText = fontSizeCode + "___________________________\nFIRMA DEL TRANSPORTISTA";
+                                worksheet.HeaderFooter.OddFooter.RightAlignedText = fontSizeCode + "___________________________\nFIRMA DE CONTROL DE INVENTARIO";
                                 fila += 3;
 
-                                range = worksheet.Cells[fila, 26, fila, 27];
+                                range = worksheet.Cells[fila, 27, fila, 28];
                                 range.Merge = true;
-                                worksheet.Cells[fila, 26].Value = "Total Cajas Primera";
-                                worksheet.Cells[fila, 28].Value = data.Sum(x => x.Cajas);
+                                worksheet.Cells[fila, 27].Value = "Total Cajas Primera";
+                                worksheet.Cells[fila, 29].Value = data.Sum(x => x.Cajas);
 
                                 fila++;
-                                range = worksheet.Cells[fila, 26, fila, 27];
+                                range = worksheet.Cells[fila, 27, fila, 28];
                                 range.Merge = true;
-                                worksheet.Cells[fila, 26].Value = "Total Cajas Irregulares";
-                                worksheet.Cells[fila, 28].Value = cajasSegundas;
+                                worksheet.Cells[fila, 27].Value = "Total Cajas Irregulares";
+                                worksheet.Cells[fila, 29].Value = cajasSegundas;
 
                                 fila++;
-                                range = worksheet.Cells[fila, 26, fila, 27];
+                                range = worksheet.Cells[fila, 27, fila, 28];
                                 range.Merge = true;
-                                worksheet.Cells[fila, 26].Value = "Total Cajas Terceras";
-                                worksheet.Cells[fila, 28].Value = cajasTerceras;
+                                worksheet.Cells[fila, 27].Value = "Total Cajas Terceras";
+                                worksheet.Cells[fila, 29].Value = cajasTerceras;
 
                                 fila++;
-                                range = worksheet.Cells[fila, 26, fila, 27];
+                                range = worksheet.Cells[fila, 27, fila, 28];
                                 range.Merge = true;
-                                worksheet.Cells[fila, 26].Value = "Total Cajas";
-                                worksheet.Cells[fila, 28].Value = data.Sum(x => x.Cajas) + cajasTerceras + cajasSegundas;
+                                worksheet.Cells[fila, 27].Value = "Total Cajas";
+                                worksheet.Cells[fila, 29].Value = data.Sum(x => x.Cajas) + cajasTerceras + cajasSegundas;
 
-                                range = worksheet.Cells[fila - 3, 26, fila, 28];
+                                range = worksheet.Cells[fila - 3, 27, fila, 29];
+                                range.Style.Font.Size = 20;
                                 range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
                                 range.Style.Border.Top.Color.SetColor(Color.Black);
 
@@ -1502,11 +1530,13 @@ namespace WMS_API.Features.Repositories
 
                                     var correos = await getCorreosDespachoPT(user);
 
-                                    foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
-                                    {
-                                        mail.To.Add(correo.Correo);
-                                    }
-                                    mail.Subject = "Despacho PT No." + DespachoID.ToString().PadLeft(8, '0');
+                                    /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                                     {
+                                         mail.To.Add(correo.Correo);
+                                     }*/
+
+                                    mail.To.Add("bavila@intermoda.com.hn");
+                                    mail.Subject = "Despacho PT No." + DespachoID.ToString().PadLeft(8, '0') + ", " + packing.Secuencia + "." + packing.Anio;
                                     mail.IsBodyHtml = false;
 
                                     mail.Body = "Despacho de PT desde " + encabezado.NAME + " a " + data[0].InventLocation;
@@ -1872,5 +1902,7 @@ namespace WMS_API.Features.Repositories
 
             return response;            
         }
+
+        
     }
 }

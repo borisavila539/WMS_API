@@ -59,6 +59,8 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes(string ProdCutSheetID, int DespachoID);
         public Task<List<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID);
 
+        public Task<IM_WMS_ObtenerSecuencia_PL_PT_DTO> getSecuencia_PL_PT(int despachoID, string user, int almacenTo);
+
         //==========================Transferir
         public Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID);
         public Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro);

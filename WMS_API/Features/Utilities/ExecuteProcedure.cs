@@ -103,7 +103,7 @@ namespace WMS_API.Features.Utilities
                 }
                 else if (prop.PropertyType == typeof(bool))
                 {
-                    prop.SetValue(obj, reader[prop.Name].ToString() != "0");
+                    prop.SetValue(obj, Convert.ToInt32(reader[prop.Name])== 0 ? false:true);
                 }
                 else if (prop.PropertyType == typeof(string))
                 {

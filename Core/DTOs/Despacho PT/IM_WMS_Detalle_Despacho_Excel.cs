@@ -12,6 +12,7 @@ namespace Core.DTOs.Despacho_PT
         public string Base { get; set; }
         public string ItemID { get; set; }
         public string Nombre {get;set;}
+        public string Tl { get; set; }
         public string Color {get;set;}
         public string Size {get;set;}
         public string ProdID {get;set;}
