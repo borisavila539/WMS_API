@@ -39,5 +39,7 @@ namespace Core.DTOs.Despacho_PT
         public int CajasTerceras { get; set; }
 
         public decimal TotalDocenas { get; set; }
+        public string Programa { get; set; }
+
     }
 }

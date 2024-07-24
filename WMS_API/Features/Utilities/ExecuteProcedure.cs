@@ -17,7 +17,7 @@ namespace WMS_API.Features.Utilities
             _connectionString = connectionString;
         }
 
-        public async Task<List<T>> ExecuteStoredProcedureList<T>(string storedProcedureName, List<SqlParameter> parameters) where T : new()
+        public async Task<List<T>> ExecuteStoredProcedureList<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 180) where T : new()
         {
             try
             {
@@ -30,6 +30,7 @@ namespace WMS_API.Features.Utilities
                         {
                             cmd.Parameters.AddRange(parameters.ToArray());
                         }
+                        cmd.CommandTimeout = timeoutInSeconds;
 
                         List<T> response = new List<T>();
                         await sql.OpenAsync();
@@ -53,7 +54,7 @@ namespace WMS_API.Features.Utilities
             }
         }
 
-        public async Task<T> ExecuteStoredProcedure<T>(string storedProcedureName, List<SqlParameter> parameters) where T : new()
+        public async Task<T> ExecuteStoredProcedure<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 120) where T : new()
         {
             try
             {
@@ -66,6 +67,8 @@ namespace WMS_API.Features.Utilities
                         {
                             cmd.Parameters.AddRange(parameters.ToArray());
                         }
+                        cmd.CommandTimeout = timeoutInSeconds;
+
 
                         T response = new T();
                         await sql.OpenAsync();

@@ -713,7 +713,7 @@ namespace WMS_API.Features.Repositories
             {
                 MailMessage mail = new MailMessage();
 
-                mail.From = new MailAddress("sistema@intermoda.com.hn");
+                mail.From = new MailAddress(VariablesGlobales.Correo);
 
                 var correos = await getCorreosDespacho();
 
@@ -733,7 +733,7 @@ namespace WMS_API.Features.Repositories
                 oSmtpClient.EnableSsl = true;
                 oSmtpClient.UseDefaultCredentials = false;
 
-                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
+                NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
 
                 oSmtpClient.Credentials = userCredential;
 
@@ -1208,6 +1208,7 @@ namespace WMS_API.Features.Repositories
 
             if(response.Descripcion == "Enviado")
             {
+                
                 var Despacho = await getDetalle_Despacho_Excel(DespachoID);
               
 
@@ -1407,6 +1408,9 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila, 29].Value = "Total de Docenas";
                                 worksheet.Column(29).Width = 14.78;
 
+                                worksheet.Cells[fila, 30].Value = "Programa";
+                                worksheet.Column(30).Width = 20.22;
+
 
                                 fila++;
 
@@ -1444,19 +1448,21 @@ namespace WMS_API.Features.Repositories
                                     worksheet.Cells[fila, 27].Value = element.CajasSegundas;
                                     worksheet.Cells[fila, 28].Value = element.CajasTerceras;
                                     worksheet.Cells[fila, 29].Value = element.TotalDocenas;
+                                    worksheet.Cells[fila, 30].Value = element.Programa;
+
 
                                     fila++;
                                     cont++;
                                 });
 
-                                var range2 = worksheet.Cells[13, 1, fila, 29];
+                                var range2 = worksheet.Cells[13, 1, fila, 30];
                                 range2.Style.Font.Size = 20;
                                 range2.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range2.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
                                 range2.Style.WrapText = true;
 
                                 fila--;
-                                var rangeTable = worksheet.Cells[12, 1, fila, 29];
+                                var rangeTable = worksheet.Cells[12, 1, fila, 30];
                                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
                                 table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
@@ -1526,16 +1532,16 @@ namespace WMS_API.Features.Repositories
                                 {
                                     MailMessage mail = new MailMessage();
 
-                                    mail.From = new MailAddress("sistema@intermoda.com.hn");
+                                    mail.From = new MailAddress(VariablesGlobales.Correo);
 
                                     var correos = await getCorreosDespachoPT(user);
 
-                                    /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
-                                     {
-                                         mail.To.Add(correo.Correo);
-                                     }*/
+                                    foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                                    {
+                                        mail.To.Add(correo.Correo);
+                                    }
 
-                                    mail.To.Add("bavila@intermoda.com.hn");
+                                    //mail.To.Add("bavila@intermoda.com.hn");
                                     mail.Subject = "Despacho PT No." + DespachoID.ToString().PadLeft(8, '0') + ", " + packing.Secuencia + "." + packing.Anio;
                                     mail.IsBodyHtml = false;
 
@@ -1555,7 +1561,7 @@ namespace WMS_API.Features.Repositories
                                         oSmtpClient.EnableSsl = true;
                                         oSmtpClient.UseDefaultCredentials = false;
 
-                                        NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
+                                        NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
 
                                         oSmtpClient.Credentials = userCredential;
 
@@ -1831,7 +1837,7 @@ namespace WMS_API.Features.Repositories
                 MailMessage mail = new MailMessage();
 
 
-                mail.From = new MailAddress("sistema@intermoda.com.hn");
+                mail.From = new MailAddress(VariablesGlobales.Correo);
 
                 var correos = await getCorreosDespachoTransferir();
 
@@ -1851,7 +1857,7 @@ namespace WMS_API.Features.Repositories
                 oSmtpClient.EnableSsl = true;
                 oSmtpClient.UseDefaultCredentials = false;
 
-                NetworkCredential userCredential = new NetworkCredential("sistema@intermoda.com.hn", "1nT3rM0d@.Syt3ma1l");
+                NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
 
                 oSmtpClient.Credentials = userCredential;
 
