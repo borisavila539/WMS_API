@@ -1290,7 +1290,7 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[9, 2].Value = "Fecha:";
                                 worksheet.Cells[9, 3].Value = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
                                 worksheet.Cells[9, 6].Value = "Packing List: ";
-                                var packing = await getSecuencia_PL_PT(DespachoID, user,cont);
+                                var packing = await getSecuencia_PL_PT(DespachoID, user,cont1);
                                 worksheet.Cells[9, 7].Value = packing.Secuencia + "."+packing.Anio;
 
                                 //Encabezado de la tabla
