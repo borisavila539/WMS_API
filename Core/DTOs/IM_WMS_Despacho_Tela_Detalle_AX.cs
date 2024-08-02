@@ -11,5 +11,8 @@
         public string INVENTBATCHID { get; set; }
         public string ITEMID { get; set; }
         public string BFPITEMNAME { get; set; }
+        public string wmslocationid { get; set; }
+
+
     }
 }

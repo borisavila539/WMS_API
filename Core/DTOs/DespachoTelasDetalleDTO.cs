@@ -14,6 +14,7 @@
         public bool Picking { get; set; }
         public bool Packing { get; set; }
         public bool receive { get; set; }
+        public string wmslocationid { get; set; }
 
     }
 }

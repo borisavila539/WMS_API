@@ -311,6 +311,7 @@ namespace WMS_API.Features.Repositories
                     tmp.Picking = detalle[0].Picking;
                     tmp.Packing = detalle[0].Packing;
                     tmp.receive = detalle[0].Receive;
+                    tmp.wmslocationid = element.wmslocationid;
                     response.Add(tmp);
                 }
 
@@ -744,7 +745,7 @@ namespace WMS_API.Features.Repositories
             }
             catch(Exception err)
             {
-
+                string error = err.ToString();
             }
 
 
