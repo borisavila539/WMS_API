@@ -891,7 +891,7 @@ namespace WMS_API.Features.Repositories
 
             string encabezado = @"^XA^FO700,50^FWN^A0R,30,30^FDFecha: "+hoy+@"^FS^FO670,50^A0R,30,30^FDEmpacador: "+empleado.Nombre+@"^FS";
 
-            string pie = @"^A0R,30,30^BY3,2,100^FO50,50^BC^FD"+IMBOXCODE+ @"^FS^FO50,700^A0R,40,40^FDUbicacion: "+ubicacion+ @"^FS^XZ";
+            string pie = @"^A0R,30,30^BY2,2,100^FO50,50^BC^FD"+IMBOXCODE+ @"^FS^FO50,700^A0R,40,40^FDUbicacion: "+ubicacion+ @"^FS^XZ";
 
             int cont = 0;
             string etiqueta = "";
