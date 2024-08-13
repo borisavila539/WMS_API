@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.DiarioTransferir;
 
@@ -48,8 +49,11 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEstado(string estado);
         public Task<List<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int despachoID);
         public Task<IM_WMS_DespachoPT_RecibirDTO> GetRecibir_DespachoPT(string ProdID, string userCreated, int Box);
+
+        //Adutoria de cajas
         public Task<List<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int despachoID);
         public Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box);
+
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID);
         public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user);
         
@@ -65,6 +69,9 @@ namespace Core.Interfaces
         public Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID);
         public Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro);
 
+        //busqueda de rollos en ax
+
+        public Task<List<IM_WMS_BusquedaRollosAXDTO>> GetBusquedaRollosAX(string INVENTLOCATIONID,string INVENTSERIALID,string INVENTBATCHID,string INVENTCOLORID,string WMSLOCATIONID, string REFERENCE);
 
     }
 }

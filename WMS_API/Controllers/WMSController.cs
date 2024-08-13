@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.DiarioTransferir;
 using Core.Interfaces;
@@ -340,6 +341,14 @@ namespace WMS_API.Controllers
         {
             var resp = await _WMS.getObtenerDiarioTransferir(user, filtro);
             return Ok(resp);
+        }
+
+        //busqueda de rollos en ax
+        [HttpGet("BusquedaRollosAX/{INVENTLOCATIONID}/{INVENTSERIALID}/{INVENTBATCHID}/{INVENTCOLORID}/{WMSLOCATIONID}/{REFERENCE}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_BusquedaRollosAXDTO>>> getBusquedaRolloAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID,string REFERENCE)
+        {
+            var resp = await _WMS.GetBusquedaRollosAX(INVENTLOCATIONID, INVENTSERIALID, INVENTBATCHID, INVENTCOLORID, WMSLOCATIONID, REFERENCE);
+            return resp;
         }
 
 

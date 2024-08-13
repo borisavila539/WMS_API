@@ -18,6 +18,7 @@ using System.Drawing;
 using OfficeOpenXml.Style;
 using Core.DTOs.DiarioTransferir;
 using WMS_API.Features.Utilities;
+using Core.DTOs.BusquedaRolloAX;
 
 namespace WMS_API.Features.Repositories
 {
@@ -1910,6 +1911,35 @@ namespace WMS_API.Features.Repositories
             return response;            
         }
 
-        
+        public async Task<List<IM_WMS_BusquedaRollosAXDTO>> GetBusquedaRollosAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID,string REFERENCE)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            INVENTLOCATIONID = INVENTLOCATIONID == "-" ? "" : INVENTLOCATIONID;
+            INVENTSERIALID = INVENTSERIALID == "-" ? "" : INVENTSERIALID;
+            INVENTBATCHID = INVENTBATCHID == "-" ? "" : INVENTBATCHID;
+            INVENTCOLORID = INVENTCOLORID == "-" ? "" : INVENTCOLORID;
+            WMSLOCATIONID = WMSLOCATIONID == "-" ? "" : WMSLOCATIONID;
+            REFERENCE = REFERENCE == "-" ? "" : REFERENCE;
+
+             
+
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@INVENTLOCATIONID", INVENTLOCATIONID),
+                new SqlParameter("@INVENTSERIALID", INVENTSERIALID),
+                new SqlParameter("@INVENTBATCHID", INVENTBATCHID),
+                new SqlParameter("@INVENTCOLORID", INVENTCOLORID),
+                new SqlParameter("@WMSLOCATIONID", WMSLOCATIONID),
+                new SqlParameter("@REFERENCE", REFERENCE)
+
+
+            };
+
+            List<IM_WMS_BusquedaRollosAXDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_BusquedaRollosAXDTO>("[IM_WMS_BusquedaRollosAX]", parametros);
+
+            return response;
+        }
     }
 }
