@@ -1,7 +1,9 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT;
+using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
+using Core.DTOs.InventarioCiclicoTela;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace WMS_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WMSController:ControllerBase
+    public class WMSController : ControllerBase
     {
         private readonly IWMSRepository _WMS;
         private readonly IAX _AX;
@@ -38,29 +40,29 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("InsertDeleteMovimiento/{JOURNALID}/{IMBOXCODE}/{ITEMBARCODE}/{PROCESO}")]
-        public string GetInsertMovimiento(string JOURNALID, string IMBOXCODE,string ITEMBARCODE,string PROCESO)
+        public string GetInsertMovimiento(string JOURNALID, string IMBOXCODE, string ITEMBARCODE, string PROCESO)
         {
-            var resp = _AX.InsertDeleteMovimientoLine(JOURNALID, ITEMBARCODE,PROCESO,IMBOXCODE);
+            var resp = _AX.InsertDeleteMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO, IMBOXCODE);
             return resp;
         }
 
         [HttpGet("EnviarRecibirtraslado/{TRANSFERID}/{ESTADO}")]
         public string getEnviarRecibirTraslado(string TRANSFERID, string ESTADO)
         {
-            var resp = _AX.EnviarRecibirTraslados(TRANSFERID,ESTADO);
+            var resp = _AX.EnviarRecibirTraslados(TRANSFERID, ESTADO);
             return resp;
         }
         [HttpGet("InsertDeleteRecuccionCajas/{IMBOXCODE}/{ITEMBARCODE}/{PROCESO}")]
-        public string GetinsertDeleteReduccionCajas( string IMBOXCODE, string ITEMBARCODE, string PROCESO)
+        public string GetinsertDeleteReduccionCajas(string IMBOXCODE, string ITEMBARCODE, string PROCESO)
         {
-            var resp = _AX.INsertDeleteReduccionCajas( ITEMBARCODE, PROCESO, IMBOXCODE);
+            var resp = _AX.INsertDeleteReduccionCajas(ITEMBARCODE, PROCESO, IMBOXCODE);
             return resp;
         }
 
         [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
         public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
         {
-            var resp = _WMS.GetImprimirEtiquetaMovimiento(JOURNALID,IMBOXCODE,PRINT);
+            var resp = _WMS.GetImprimirEtiquetaMovimiento(JOURNALID, IMBOXCODE, PRINT);
             return resp;
         }
 
@@ -72,16 +74,16 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("DespachotelasDetalle/{TRANSFERIDFROM}/{TRANSFERIDTO}/{INVENTLOCATIONIDTO}/{TIPO}")]
-        public async Task<ActionResult<IEnumerable<DespachoTelasDetalleDTO>>> GetDespachotelasDetalle(string TRANSFERIDFROM,string TRANSFERIDTO, string INVENTLOCATIONIDTO,string TIPO)
+        public async Task<ActionResult<IEnumerable<DespachoTelasDetalleDTO>>> GetDespachotelasDetalle(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO, string TIPO)
         {
-            var resp = await _WMS.GetDespacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO,TIPO);
+            var resp = await _WMS.GetDespacho_Telas(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO, TIPO);
             return resp;
         }
 
         [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{CAMION}/{CHOFER}/{InventTransID}/{USER}/{ID}")]
-        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID,string USER,int ID)
+        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID, string USER, int ID)
         {
-            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO,CAMION,CHOFER,InventTransID,USER,ID);
+            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO, CAMION, CHOFER, InventTransID, USER, ID);
             return resp;
         }
         [HttpGet("TrasladosAbiertos/{INVENTLOCATIONID}")]
@@ -93,7 +95,7 @@ namespace WMS_API.Controllers
         [HttpGet("Estadotraslados/{TRANSFERIDFROM}/{TRANSFERIDTO}/{INVENTLOCATIONIDTO}")]
         public async Task<IEnumerable<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
-            var resp = await _WMS.getEstadotraslados(TRANSFERIDFROM,TRANSFERIDTO,INVENTLOCATIONIDTO);
+            var resp = await _WMS.getEstadotraslados(TRANSFERIDFROM, TRANSFERIDTO, INVENTLOCATIONIDTO);
             return resp;
         }
         [HttpGet("EstadoTrasladoTipo/{TRANSFERIDFROM}/{TRANSFERIDTO}/{INVENTLOCATIONIDTO}")]
@@ -124,9 +126,9 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{EMPLEADO}/{CAMION}")]
-        public async Task<string> getNotaDespacho(int DESPACHOID,string RECID, string EMPLEADO,string CAMION)
+        public async Task<string> getNotaDespacho(int DESPACHOID, string RECID, string EMPLEADO, string CAMION)
         {
-            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO,CAMION);
+            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO, CAMION);
             return resp;
         }
         [HttpGet("RollosDespacho/{DespachoID}")]
@@ -144,12 +146,12 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("ImprimirEtiquetaReduccion/{IMBOXCODE}/{UBICACION}/{USER}/{PRINT}")]
-        public  Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE,string UBICACION,string USER, string PRINT)
+        public Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string UBICACION, string USER, string PRINT)
         {
-            var resp = _WMS.getImprimirEtiquetaReduccion(IMBOXCODE,UBICACION,USER,PRINT);
+            var resp = _WMS.getImprimirEtiquetaReduccion(IMBOXCODE, UBICACION, USER, PRINT);
             return resp;
         }
-       
+
         [HttpPost("Login")]
         public async Task<ActionResult<LoginDTO>> PostLogin(LoginDTO datos)
         {
@@ -159,16 +161,16 @@ namespace WMS_API.Controllers
         }
 
         [HttpPost("ImprimirEtiquetaRollo")]
-        public  Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
+        public Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
-            var resp =  _WMS.postImprimirEtiquetaRollo(data);
+            var resp = _WMS.postImprimirEtiquetaRollo(data);
             return resp;
         }
 
         //Despacho PT
 
         [HttpGet("InsertBoxesDespachoPT/{ProdID}/{UserCreated}/{Box}")]
-        public async Task<ActionResult<IEnumerable<IM_WMS_Insert_Boxes_Despacho_PT_DTO>>> GetInsert_Boxes_Despacho_PT(string ProdID,string UserCreated,int Box)
+        public async Task<ActionResult<IEnumerable<IM_WMS_Insert_Boxes_Despacho_PT_DTO>>> GetInsert_Boxes_Despacho_PT(string ProdID, string UserCreated, int Box)
         {
             var resp = await _WMS.GetInsert_Boxes_Despacho_PT(ProdID, UserCreated, Box);
             return resp;
@@ -196,9 +198,9 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("Crear_Despacho_PT/{driver}/{truck}/{userCreated}/{almacen}")]
-        public async Task<ActionResult<IM_WMS_Crear_Despacho_PT>> getCrear_Despacho_PT(string driver, string truck, string userCreated,int almacen)
+        public async Task<ActionResult<IM_WMS_Crear_Despacho_PT>> getCrear_Despacho_PT(string driver, string truck, string userCreated, int almacen)
         {
-            var resp = await _WMS.GetCrear_Despacho_PT(driver, truck, userCreated,almacen);
+            var resp = await _WMS.GetCrear_Despacho_PT(driver, truck, userCreated, almacen);
             return resp;
         }
 
@@ -232,9 +234,9 @@ namespace WMS_API.Controllers
 
         //Enviar despacho
         [HttpGet("EnviarDespachoPT/{DespachoID}/{user}/{cajasSegundas}/{cajasTerceras}")]
-        public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID,string user,int cajasSegundas,int cajasTerceras)
+        public async Task<ActionResult<IM_WMS_EnviarDespacho>> Get_EnviarDespachos(int DespachoID, string user, int cajasSegundas, int cajasTerceras)
         {
-            var resp = await _WMS.Get_EnviarDespachos(DespachoID,user,cajasSegundas,cajasTerceras);
+            var resp = await _WMS.Get_EnviarDespachos(DespachoID, user, cajasSegundas, cajasTerceras);
             return resp;
         }
 
@@ -266,7 +268,7 @@ namespace WMS_API.Controllers
         [HttpGet("DetalleAuditoriaCaja/{ProdID}/{Box}")]
         public async Task<IEnumerable<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int Box)
         {
-            var resp = await _WMS.getDetalleAuditoriaCaja(ProdID,Box);
+            var resp = await _WMS.getDetalleAuditoriaCaja(ProdID, Box);
             return resp;
         }
 
@@ -275,29 +277,29 @@ namespace WMS_API.Controllers
 
 
         [HttpGet("DespachosPTEstado/{DespachoID}")]
-        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado( int DespachoID)
+        public async Task<IEnumerable<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID)
         {
             var resp = await _WMS.getDespachosPTEstado(DespachoID);
             return resp;
         }
-        
+
         [HttpGet("DespachosPTConsultaOrdenes/{ProdCutSheetID}/{DespachoID}")]
-        public async Task<IEnumerable<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes( string ProdCutSheetID, int DespachoID)
+        public async Task<IEnumerable<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes(string ProdCutSheetID, int DespachoID)
         {
-            var resp = await _WMS.getConsultaOpOrdenes(ProdCutSheetID,DespachoID);
+            var resp = await _WMS.getConsultaOpOrdenes(ProdCutSheetID, DespachoID);
             return resp;
         }
         //Consulta OP Detalle
 
         [HttpGet("ConsultaOPDetalle/{ProdCutSheetID}")]
-        public async Task<IEnumerable<IM_WMS_Consulta_OP_DetalleDTO>> getConsultaOPDetalle( string ProdCutSheetID)
+        public async Task<IEnumerable<IM_WMS_Consulta_OP_DetalleDTO>> getConsultaOPDetalle(string ProdCutSheetID)
         {
             var resp = await _WMS.getConsultaOPDetalle(ProdCutSheetID);
             return resp;
         }
 
         //Consulta Op Detalle cajas
-        
+
         [HttpGet("ConsultaOPDetalleCajas/{ProdCutSheetID}/{DespachoID}")]
         public async Task<IEnumerable<IM_WMS_Consulta_OP_Detalle_CajasDTO>> getConsultaOPDetalleCajas(string ProdCutSheetID, int DespachoID)
         {
@@ -305,16 +307,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-
-
-
-
-
-
         //entrada de Diarios de movimiento
 
         [HttpGet("EntradaMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}")]
-       
+
         public string GetEntradaMovimiento(string JOURNALID, string ITEMBARCODE, string PROCESO)
         {
             var resp = _AX.InsertDeleteEntradaMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
@@ -332,7 +328,7 @@ namespace WMS_API.Controllers
         [HttpGet("EnviarCorreotransferir/{JOURNALID}/{USERID}")]
         public Task<IM_WMS_EnviarDiarioTransferirDTO> GetEnviarCorreotransferir(string JOURNALID, string USERID)
         {
-            var resp =  _WMS.getEnviarDiarioTransferir(JOURNALID, USERID);
+            var resp = _WMS.getEnviarDiarioTransferir(JOURNALID, USERID);
             return resp;
         }
 
@@ -345,12 +341,57 @@ namespace WMS_API.Controllers
 
         //busqueda de rollos en ax
         [HttpGet("BusquedaRollosAX/{INVENTLOCATIONID}/{INVENTSERIALID}/{INVENTBATCHID}/{INVENTCOLORID}/{WMSLOCATIONID}/{REFERENCE}")]
-        public async Task<ActionResult<IEnumerable<IM_WMS_BusquedaRollosAXDTO>>> getBusquedaRolloAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID,string REFERENCE)
+        public async Task<ActionResult<IEnumerable<IM_WMS_BusquedaRollosAXDTO>>> getBusquedaRolloAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID, string REFERENCE)
         {
             var resp = await _WMS.GetBusquedaRollosAX(INVENTLOCATIONID, INVENTSERIALID, INVENTBATCHID, INVENTCOLORID, WMSLOCATIONID, REFERENCE);
             return resp;
         }
 
+        //Liquidacion de la orden
+        //Despachos Recibidos
+        [HttpGet("DespachoRecibidoLiquidacion/{DespachoID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_DespachosRecibidosLiquidacionDTO>>> getDespachosRecibidosLiquidacion(int DespachoID)
+        {
+            var resp = await _WMS.GetDespachosRecibidosLiquidacion(DespachoID);
+            return resp;
+        }
 
+        //ordenes de los despachos recibidos
+        [HttpGet("OrdenesRecibidasDespachoLiquidacion/{DespachoID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>>> GetOrdenesRecibidasDepacho(int DespachoID)
+        {
+            var resp = await _WMS.GetOrdenesRecibidasDepacho(DespachoID);
+            return resp;
+        }
+
+        //obtener detalle de las ordenes recibidas por despacho
+        [HttpGet("DetalleOrdenesRecibidasliquidacion/{DespachoID}/{ProdCutSheetID}")]
+        public async Task<IEnumerable<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>> GetDetalleOrdenRecibidaLiquidacion(int DespachoID, string ProdCutSheetID)
+        {
+            var resp = await _WMS.GetDetalleOrdenRecibidaLiquidacion(DespachoID, ProdCutSheetID);
+            return resp;
+
+        }
+
+        //inventario ciclico de telas
+        [HttpGet("InventarioCiclicoTelasDiariosAbiertos")]
+        public async Task<IEnumerable<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos()
+        {
+            var resp = await _WMS.GetInventarioCiclicoTelasDiariosAbiertos();
+            return resp;
+        }
+        [HttpGet("InventarioCilicoTelaDiario/{JournalID}")]
+        public async Task<IEnumerable<IM_WMS_InventarioCilicoTelaDiario>> GetInventarioCilicoTelaDiarios(string JournalID)
+        {
+            var resp = await _WMS.Get_InventarioCilicoTelaDiarios(JournalID);
+            return resp;
+        }
+
+        [HttpGet("InventarioCiclicoTelaExist/{JournalID}/{InventSerialID}/{User}")]
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User)
+        {
+            var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID,InventSerialID,User);
+            return resp;
+        }
     }
 }

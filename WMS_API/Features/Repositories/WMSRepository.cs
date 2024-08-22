@@ -19,6 +19,8 @@ using OfficeOpenXml.Style;
 using Core.DTOs.DiarioTransferir;
 using WMS_API.Features.Utilities;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.Despacho_PT.Liquidacion;
+using Core.DTOs.InventarioCiclicoTela;
 
 namespace WMS_API.Features.Repositories
 {
@@ -706,10 +708,7 @@ namespace WMS_API.Features.Repositories
                                   <td>"+totalLY+ @"</td>      
                              </tr>
                             </tfoot>
-                        </table>";
-
-
-           
+                        </table>";          
 
             try
             {
@@ -749,7 +748,6 @@ namespace WMS_API.Features.Repositories
                 string error = err.ToString();
             }
 
-
             //colocar la tabla
 
             despacho += @"<p>
@@ -776,9 +774,7 @@ namespace WMS_API.Features.Repositories
                             </div>
                         </div>
                     </body>
-                    </html> ";
-
-            
+                    </html> ";            
 
            return despacho;
         }
@@ -1174,8 +1170,6 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@DespachoID", despachoID),
                 new SqlParameter("@user", user),
                 new SqlParameter("@AlmacenTO", almacenTo)
-
-
             };
 
             IM_WMS_ObtenerSecuencia_PL_PT_DTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_ObtenerSecuencia_PL_PT_DTO>("[IM_WMS_ObtenerSecuencia_PL_PT]", parametros);
@@ -1413,7 +1407,6 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila, 30].Value = "Programa";
                                 worksheet.Column(30).Width = 20.22;
 
-
                                 fila++;
 
                                 data.ForEach(element =>
@@ -1451,7 +1444,6 @@ namespace WMS_API.Features.Repositories
                                     worksheet.Cells[fila, 28].Value = element.CajasTerceras;
                                     worksheet.Cells[fila, 29].Value = element.TotalDocenas;
                                     worksheet.Cells[fila, 30].Value = element.Programa;
-
 
                                     fila++;
                                     cont++;
@@ -1575,8 +1567,6 @@ namespace WMS_API.Features.Repositories
                                 {
                                     response.Descripcion = err.ToString();
                                 }
-
-
                             }
                         }
                         catch (Exception err)
@@ -1584,11 +1574,8 @@ namespace WMS_API.Features.Repositories
                             response.Descripcion = err.ToString();
                         }
                     }
-                }
-
-                
+                }                
             }
-
             return response;
         }
         public async Task<IM_WMS_EncabezadoDespachoExcelDTO> GetEncabezadoDespachoExcel(string user)
@@ -1832,8 +1819,6 @@ namespace WMS_API.Features.Repositories
                             </tfoot>
                         </table></body></html>";
 
-
-
             try
             {
                 MailMessage mail = new MailMessage();
@@ -1920,10 +1905,7 @@ namespace WMS_API.Features.Repositories
             INVENTBATCHID = INVENTBATCHID == "-" ? "" : INVENTBATCHID;
             INVENTCOLORID = INVENTCOLORID == "-" ? "" : INVENTCOLORID;
             WMSLOCATIONID = WMSLOCATIONID == "-" ? "" : WMSLOCATIONID;
-            REFERENCE = REFERENCE == "-" ? "" : REFERENCE;
-
-             
-
+            REFERENCE = REFERENCE == "-" ? "" : REFERENCE; 
 
             var parametros = new List<SqlParameter>
             {
@@ -1933,11 +1915,90 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@INVENTCOLORID", INVENTCOLORID),
                 new SqlParameter("@WMSLOCATIONID", WMSLOCATIONID),
                 new SqlParameter("@REFERENCE", REFERENCE)
-
-
             };
 
             List<IM_WMS_BusquedaRollosAXDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_BusquedaRollosAXDTO>("[IM_WMS_BusquedaRollosAX]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_DespachosRecibidosLiquidacionDTO>> GetDespachosRecibidosLiquidacion(int despachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID)
+            };
+
+            List<IM_WMS_DespachosRecibidosLiquidacionDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DespachosRecibidosLiquidacionDTO>("[IM_WMS_DespachosRecibidosLiquidacion]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID)
+            };
+
+            List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>("[IM_WMS_DespachoPT_OrdenesRecibidasDepacho]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>> GetDetalleOrdenRecibidaLiquidacion(int despachoID, string ProdCutSheetID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID),
+                new SqlParameter("@ProdCutSheetID", ProdCutSheetID)
+
+            };
+
+            List<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>("[IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacion]", parametros);
+
+            return response;
+        }
+
+        //Inventario cicliclo de telas
+        public async Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {};
+
+            List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>("[IM_WMS_InventarioCiclicoTelasDiariosAbiertos]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_InventarioCilicoTelaDiario>> Get_InventarioCilicoTelaDiarios(string JournalID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", JournalID)
+            };
+
+            List<IM_WMS_InventarioCilicoTelaDiario> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_InventarioCilicoTelaDiario]", parametros);
+
+            return response;
+        }
+
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", JournalID),
+                new SqlParameter("@inventSerialID", InventSerialID),
+                new SqlParameter("@UserID", user)
+            };
+
+            IM_WMS_InventarioCilicoTelaDiario response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_InventarioCiclicoTelaExist]", parametros);
 
             return response;
         }

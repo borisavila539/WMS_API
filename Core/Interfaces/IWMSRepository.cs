@@ -1,8 +1,9 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT;
+using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
-
+using Core.DTOs.InventarioCiclicoTela;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -73,5 +74,15 @@ namespace Core.Interfaces
 
         public Task<List<IM_WMS_BusquedaRollosAXDTO>> GetBusquedaRollosAX(string INVENTLOCATIONID,string INVENTSERIALID,string INVENTBATCHID,string INVENTCOLORID,string WMSLOCATIONID, string REFERENCE);
 
+        //Liquidacion de la orden
+        //Buscar despachos que esten recibidos
+        public Task<List<IM_WMS_DespachosRecibidosLiquidacionDTO>> GetDespachosRecibidosLiquidacion(int despachoID);
+        public Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID);
+        public Task<List<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>> GetDetalleOrdenRecibidaLiquidacion(int despachoID, string ProdCutSheetID);
+
+        //inventario cliclico de telas
+        public Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos();
+        public Task<List<IM_WMS_InventarioCilicoTelaDiario>> Get_InventarioCilicoTelaDiarios(string JournalID);
+        public Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user);
     }
 }
