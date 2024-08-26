@@ -4,6 +4,7 @@ using IM_WMS_MoviminetoWS;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_Traslado_Enviar_Recibir;
 using ServiceReferenceIM_WMS_Trasferir_Inventario;
+using ServiceReferenceIM_WMS_InventarioCiclicoTela;
 using ServiceReference1;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml.Serialization;
+using Core.DTOs.InventarioCiclicoTela;
 
 namespace WMS_API.Features.Repositories
 {
@@ -51,7 +53,6 @@ namespace WMS_API.Features.Repositories
 
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE)
         {
-            object obj = new object();
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
             List<MOVIMIENTOLINE> LIST = new List<MOVIMIENTOLINE>();
 
@@ -121,7 +122,6 @@ namespace WMS_API.Features.Repositories
         //Entrada en diarios de movimiento
         public string InsertDeleteEntradaMovimientoLine (string JOURNALID, string ITEMBARCODE, string PROCESO )
         {
-            object obj = new object();
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
             List<MOVIMIENTOLINE> LIST = new List<MOVIMIENTOLINE>();
 
@@ -157,7 +157,6 @@ namespace WMS_API.Features.Repositories
         //InsertDeleteTransferirMovimientoLine
         public string InsertDeleteTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO)
         {
-            object obj = new object();
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
             List<MOVIMIENTOLINE> LIST = new List<MOVIMIENTOLINE>();
 
@@ -187,6 +186,31 @@ namespace WMS_API.Features.Repositories
             {
                 return ex.ToString();
             }
+        }
+
+        public string InsertAddInventarioCiclicoTelaLine(List<INVENTARIOCICLICOTELALINE> LIST)
+        {
+            INVENTARIOCICLICOTELAHEADER HEADER = new INVENTARIOCICLICOTELAHEADER();
+
+            HEADER.LINES = LIST.ToArray();
+            string InventarioCiclicoTelaLine = SerializationService.Serialize(HEADER);
+            ServiceReferenceIM_WMS_InventarioCiclicoTela.CallContext context = new ServiceReferenceIM_WMS_InventarioCiclicoTela.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_InventarioCiclicoTelaClient(GetBinding(), GetEndpointInventarioCiclicotela());
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, InventarioCiclicoTelaLine);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+
         }
 
         private NetTcpBinding GetBinding()
@@ -260,6 +284,21 @@ namespace WMS_API.Features.Repositories
             var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
             return endpointAddr;
         }
+
+        private EndpointAddress GetEndpointInventarioCiclicotela()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_InventarioCiclicoTelaGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+
+
     }
     public static class SerializationService
     {

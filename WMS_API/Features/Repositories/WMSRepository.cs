@@ -21,16 +21,20 @@ using WMS_API.Features.Utilities;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionUbicacionCajas;
 
 namespace WMS_API.Features.Repositories
 {
     public class WMSRepository : IWMSRepository
     {
         private readonly string _connectionString;
+        private readonly string _connectionStringPiso;
 
         public WMSRepository(IConfiguration configuracion)
         {
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
+
         }
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
@@ -1999,6 +2003,47 @@ namespace WMS_API.Features.Repositories
             };
 
             IM_WMS_InventarioCilicoTelaDiario response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_InventarioCiclicoTelaExist]", parametros);
+
+            return response;
+        }
+
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> Get_AgregarInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string ubicacion, decimal QTY)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", JournalID),
+                new SqlParameter("@inventSerialID", InventSerialID),
+                new SqlParameter("@Ubicacion", ubicacion),
+                new SqlParameter("@QTY", QTY)
+            };
+
+            IM_WMS_InventarioCilicoTelaDiario response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_AgregarInventarioCiclicoTela]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreoCiclicoTela()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_Correos_DespachoPTDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_ObtenerCorreosCiclicotela]", parametros);
+
+            return result;
+        }
+
+        public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@opBoxNum", opBoxNum),
+                new SqlParameter("@ubicacion", ubicacion)               
+            };
+
+            SP_GetBoxesReceived response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
 
             return response;
         }

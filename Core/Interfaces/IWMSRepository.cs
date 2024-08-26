@@ -4,6 +4,7 @@ using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionUbicacionCajas;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -84,5 +85,11 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos();
         public Task<List<IM_WMS_InventarioCilicoTelaDiario>> Get_InventarioCilicoTelaDiarios(string JournalID);
         public Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user);
+        public Task<IM_WMS_InventarioCilicoTelaDiario> Get_AgregarInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string ubicacion, decimal QTY);
+        public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreoCiclicoTela();
+
+        //Recepcion y ubicacion de cajas
+        public Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion);
+
     }
 }

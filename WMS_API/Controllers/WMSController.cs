@@ -4,11 +4,15 @@ using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionUbicacionCajas;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
-
+using WMS_API.Features.Utilities;
 
 namespace WMS_API.Controllers
 {
@@ -391,6 +395,102 @@ namespace WMS_API.Controllers
         public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User)
         {
             var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID,InventSerialID,User);
+            return resp;
+        }
+
+        [HttpGet("AgregarInventarioCilicoTela/{JournalID}/{InventSerialID}/{ubicacion}/{QTY}")]
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> Get_AgregarInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string ubicacion, decimal QTY)
+        {
+            var resp = await _WMS.Get_AgregarInventarioCilicoTelaDiario(JournalID, InventSerialID, ubicacion, QTY);
+            return resp;
+        }
+        [HttpGet("EnviarInventarioCilcicoTela/{JournalID}")]
+        public async Task<string> getEnviarInventarioCiclicoTela( string JournalID)
+        {
+            var Detalle = await _WMS.Get_InventarioCilicoTelaDiarios(JournalID);
+
+            List<INVENTARIOCICLICOTELALINE> lines = new List<INVENTARIOCICLICOTELALINE>();
+
+            Detalle = Detalle.FindAll(x => x.Exist);
+
+            Detalle.ForEach(element =>
+            {
+                INVENTARIOCICLICOTELALINE line = new INVENTARIOCICLICOTELALINE();
+                line.JOURNALID = element.JournalID;
+                line.INVENTSERIALID = element.InventSerialID;
+                line.WMSLOCATIONID = element.WMSLocationID;
+                line.INVENTLOCATIONID = element.InventLocationID;
+                line.QTY = element.InventOnHand.ToString();
+                if (element.Exist && !element.New)
+                {
+                    line.PROCESO = "UPDATE";
+                }else if (element.New)
+                {
+                    line.PROCESO = "ADD";
+                }
+                lines.Add(line);
+            });
+
+            var resp = _AX.InsertAddInventarioCiclicoTelaLine(lines);
+
+            //enviar correo
+            string []texto = resp.Split(";");
+            string htmlCorreo = "";
+
+            htmlCorreo += @"<h1>"+JournalID+@"</h1>";
+            htmlCorreo += @"<p>" + texto[1] + @"</p>";
+            htmlCorreo += @"<p>" + texto[2] + @"</p>";
+            htmlCorreo += @"<p>" + texto[3] + @"</p>";
+
+
+            try
+            {
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                var correos = await _WMS.getCorreoCiclicoTela();
+
+
+                foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                {
+                    mail.To.Add(correo.Correo);
+                }
+                mail.Subject = "Inventario Cilico Tela, Diario: " + JournalID;
+                mail.IsBodyHtml = true;
+
+                mail.Body = htmlCorreo;
+
+                SmtpClient oSmtpClient = new SmtpClient();
+
+                oSmtpClient.Host = "smtp.office365.com";
+                oSmtpClient.Port = 587;
+                oSmtpClient.EnableSsl = true;
+                oSmtpClient.UseDefaultCredentials = false;
+
+                NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                oSmtpClient.Credentials = userCredential;
+
+                oSmtpClient.Send(mail);
+                oSmtpClient.Dispose();
+
+
+            }
+            catch (Exception err)
+            {
+                string error = err.ToString();
+            }
+
+
+            return resp;
+        }
+
+        //recepcion y ubicacion de cajas
+        [HttpGet("RecepcionUbicacionCajas/{opBoxNum}/{ubicacion}")]
+        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum,string ubicacion)
+        {
+            var resp = await _WMS.getBoxesReceived(opBoxNum, ubicacion);
             return resp;
         }
     }
