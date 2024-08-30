@@ -487,10 +487,30 @@ namespace WMS_API.Controllers
         }
 
         //recepcion y ubicacion de cajas
-        [HttpGet("RecepcionUbicacionCajas/{opBoxNum}/{ubicacion}")]
-        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum,string ubicacion)
+        [HttpGet("RecepcionUbicacionCajas/{opBoxNum}/{ubicacion}/{Tipo}")]
+        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum,string ubicacion,string Tipo)
         {
-            var resp = await _WMS.getBoxesReceived(opBoxNum, ubicacion);
+            var resp = await _WMS.getBoxesReceived(opBoxNum, ubicacion,Tipo);
+            return resp;
+        }
+
+        [HttpPost("RecepcionUbicacionCajas")]
+        public async Task<IEnumerable<SP_GetAllBoxesReceived>> GetAllBoxesReceived(Filtros filtro)
+        {
+            var resp = await _WMS.getAllBoxesReceived(filtro);
+            return resp;
+        }
+
+        [HttpPost("RecepcionUbicacionCajasCorreo")]
+        public async Task<string> postEnviarRecepcionUbicacionCajas(List<Ubicaciones> data)
+        {
+            var resp = await _WMS.postEnviarRecepcionUbicacionCajas(data);
+            return resp;
+        }
+        [HttpGet("RecepcionUbicacionCajasSync/{TIPO}")]
+        public async Task<IEnumerable<SP_GetAllBoxesReceived>> GetAllBoxesReceived(string TIPO)
+        {
+            var resp = await _WMS.getAllBoxesReceived(TIPO);
             return resp;
         }
     }

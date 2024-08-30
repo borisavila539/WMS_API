@@ -2034,7 +2034,7 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
-        public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion)
+        public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion,string Tipo)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
             var parametros = new List<SqlParameter>
@@ -2042,8 +2042,233 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@opBoxNum", opBoxNum),
                 new SqlParameter("@ubicacion", ubicacion)               
             };
+            SP_GetBoxesReceived response;
+            if (Tipo == "DENIM")
+            {
+                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
 
-            SP_GetBoxesReceived response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
+            }
+            else
+            {
+                response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceivedTP]", parametros);
+
+            }
+
+            return response;
+        }
+
+        public async Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(Filtros filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@Lote", filtro.Lote),
+                new SqlParameter("@Orden", filtro.Orden),
+                new SqlParameter("@articulo", filtro.Articulo),
+                new SqlParameter("@talla", filtro.Talla),
+                new SqlParameter("@color", filtro.Color),
+                new SqlParameter("@ubicacion", filtro.Ubicacion),
+                new SqlParameter("@page", filtro.page),
+                new SqlParameter("@size", filtro.size)
+            };
+            List<SP_GetAllBoxesReceived> result;
+            if (filtro.Tipo == "DENIM")
+            {
+                 result= await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2]", parametros);
+
+            }
+            else
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP_V2]", parametros);
+
+            }
+
+
+            return result;
+        }
+
+        public async Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(string TIPO)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+
+            var parametros = new List<SqlParameter> {};
+            List<SP_GetAllBoxesReceived> result;
+            if (TIPO == "DENIM")
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived]", parametros);
+            }
+            else
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP]", parametros);
+
+            }
+            return result;
+        }
+
+        public async Task<string> postEnviarRecepcionUbicacionCajas(List<Ubicaciones> data)
+        {
+            await getAllBoxesReceived("DENIM");
+            List<SP_GetAllBoxesReceived> list = new List<SP_GetAllBoxesReceived>();
+
+            DateTime date = DateTime.Now;
+            string fecha = date.Day + "-" + date.Month + "-" + date.Year;
+
+            data.ForEach(async element =>
+            {
+                Filtros filtro = new Filtros();
+                filtro.Ubicacion = element.ubicacion;
+                filtro.size = 200000;
+                filtro.Articulo = "";
+                filtro.Lote = "";
+                filtro.Orden = "";
+                filtro.Talla = "";
+                filtro.Color = "";
+                filtro.page = 0;
+                filtro.Tipo = "DENIM";
+
+                var datos = getAllBoxesReceived(filtro).Result;
+                datos.ForEach(x =>
+                {
+                    string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
+                    if(fecha == fechatmp)
+                    {
+                        list.Add(x);
+                    }
+                });
+            });
+            try
+            {
+                Byte[] fileContents;
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (ExcelPackage package = new ExcelPackage())
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Hoja1");
+                    worksheet.Cells[1, 1].Value = "Lote";
+                    worksheet.Cells[1, 2].Value = "OP";
+                    worksheet.Cells[1, 3].Value = "Articulo";
+                    worksheet.Cells[1, 4].Value = "NumeroCaja";
+                    worksheet.Cells[1, 5].Value = "Talla";
+                    worksheet.Cells[1, 6].Value = "Cantidad";
+                    worksheet.Cells[1, 7].Value = "FechaEnvio";
+                    worksheet.Cells[1, 8].Value = "FechaRecepcion";
+                    worksheet.Cells[1, 9].Value = "Color";
+                    worksheet.Cells[1, 10].Value = "Ubicacion";
+
+                    int fila = 2;
+                    list.ForEach(x =>
+                    {
+                        worksheet.Cells[fila, 1].Value = x.Lote;
+                        worksheet.Cells[fila, 2].Value = x.OP;
+                        worksheet.Cells[fila, 3].Value = x.Articulo;
+                        worksheet.Cells[fila, 4].Value = x.NumeroDeCaja;
+                        worksheet.Cells[fila, 5].Value = x.Talla;
+                        worksheet.Cells[fila, 6].Value = x.CantidadEnCaja;
+                        worksheet.Cells[fila, 7].Value = x.FechaDeEnvio;
+                        worksheet.Cells[fila, 8].Value = x.FechaDeRecepcion;
+                        worksheet.Cells[fila, 9].Value = x.Color;
+                        worksheet.Cells[fila, 10].Value = x.ubicacion;
+                        fila++;
+
+                    });
+                    var rangeTable = worksheet.Cells[1, 1, fila, 10];
+                    var table = worksheet.Tables.Add(rangeTable, "MyTable");
+                    table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+                    //sacar resumen
+                    var listagrupada = list
+                        .GroupBy(caja=> caja.Lote)
+                        .Select( grupo =>new SP_GetAllBoxesReceived
+                        {
+                            Lote = grupo.Key,
+                            CantidadEnCaja = grupo.Sum(caja => caja.CantidadEnCaja)
+                        }).ToList();
+
+                    ExcelWorksheet worksheet2 = package.Workbook.Worksheets.Add("Hoja2");
+                    worksheet2.Cells[1, 1].Value = "Lote";
+                    worksheet2.Cells[1, 2].Value = "Cantidad";
+                    int fila2 = 2;
+                    listagrupada.ForEach(x =>
+                    {
+                        worksheet2.Cells[fila2, 1].Value = x.Lote;
+                        worksheet2.Cells[fila2, 2].Value = x.CantidadEnCaja;
+                        fila2++;
+                    });
+
+                    var rangeTable2 = worksheet2.Cells[1, 1, fila2, 2];
+                    var table2 = worksheet2.Tables.Add(rangeTable2, "MyTable2");
+                    table2.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+
+                    fileContents = package.GetAsByteArray();
+                    try
+                    {
+                        MailMessage mail = new MailMessage();
+
+                        mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                        var correos = await getCorreosRecepcionUbicacionCajas();
+
+                        correos.ForEach(x =>
+                        {
+                            mail.To.Add(x.Correo);
+
+                        });
+
+                        TimeSpan tiempo = list[0].FechaDeRecepcion - list[list.Count-1].FechaDeRecepcion;
+                        
+
+                        mail.Subject = "Recepcion Producto Terminado DENIM "  + fecha;
+                        mail.IsBodyHtml = false;
+
+                        mail.Body = "Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en "+tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos "+tiempo.Seconds +  " Segundos";
+
+                        using (MemoryStream ms = new MemoryStream(fileContents))
+                        {
+                            
+                            Attachment attachment = new Attachment(ms, "Recepcion Cajas Bodega "+fecha+".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                            mail.Attachments.Add(attachment);
+
+                            SmtpClient oSmtpClient = new SmtpClient();
+
+                            oSmtpClient.Host = "smtp.office365.com";
+                            oSmtpClient.Port = 587;
+                            oSmtpClient.EnableSsl = true;
+                            oSmtpClient.UseDefaultCredentials = false;
+
+                            NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                            oSmtpClient.Credentials = userCredential;
+
+                            oSmtpClient.Send(mail);
+                            oSmtpClient.Dispose();
+                        }
+                    }
+                    catch (Exception err)
+                    {
+                        return err.ToString();
+                    }
+
+
+
+
+                }
+            }
+            catch(Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+        }
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosRecepcionUbicacionCajas()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+            };
+
+            List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_CorreosRecepcionUbicacionCajas]", parametros);
 
             return response;
         }

@@ -89,7 +89,12 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreoCiclicoTela();
 
         //Recepcion y ubicacion de cajas
-        public Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion);
+        public Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion,string TIPO);
+        public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived( Filtros filtro);
+        public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(string TIPO);
+        public Task<string> postEnviarRecepcionUbicacionCajas(List<Ubicaciones> data);
+
+
 
     }
 }
