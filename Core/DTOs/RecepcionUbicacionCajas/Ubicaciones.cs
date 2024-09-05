@@ -11,5 +11,7 @@ namespace Core.DTOs.RecepcionUbicacionCajas
         public string ubicacion { get; set; }
         public string Camion { get; set; }
         public string Usuario { get; set; }
+        public string[] Ordenes { get; set; }
+
     }
 }

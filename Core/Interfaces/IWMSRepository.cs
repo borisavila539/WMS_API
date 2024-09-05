@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
@@ -84,15 +85,23 @@ namespace Core.Interfaces
         //inventario cliclico de telas
         public Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos();
         public Task<List<IM_WMS_InventarioCilicoTelaDiario>> Get_InventarioCilicoTelaDiarios(string JournalID);
-        public Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user);
+        public Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user, decimal QTY);
         public Task<IM_WMS_InventarioCilicoTelaDiario> Get_AgregarInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string ubicacion, decimal QTY);
         public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreoCiclicoTela();
+        public Task<IM_WMS_InventarioCilicoTelaDiario> UpdateQTYInventSerialID(string InventserialID, decimal QTY);
 
         //Recepcion y ubicacion de cajas
         public Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion,string TIPO);
         public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived( Filtros filtro);
         public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(string TIPO);
         public Task<string> postEnviarRecepcionUbicacionCajas(List<Ubicaciones> data);
+
+        //Declaracion de envio
+
+        public Task<SP_GetBoxesReceived> getBoxesReserved(string opBoxNum, string ubicacion);
+        public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2(FiltroDeclaracionEnvio data);
+        public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved();
+
 
 
 

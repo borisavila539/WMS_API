@@ -22,6 +22,7 @@ using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.DeclaracionEnvio;
 
 namespace WMS_API.Features.Repositories
 {
@@ -1992,14 +1993,15 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        public async Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user)
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user,decimal QTY)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@JournalID", JournalID),
                 new SqlParameter("@inventSerialID", InventSerialID),
-                new SqlParameter("@UserID", user)
+                new SqlParameter("@UserID", user),
+                new SqlParameter("@QTY", QTY)
             };
 
             IM_WMS_InventarioCilicoTelaDiario response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_InventarioCiclicoTelaExist]", parametros);
@@ -2033,6 +2035,22 @@ namespace WMS_API.Features.Repositories
 
             return result;
         }
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> UpdateQTYInventSerialID(string InventserialID, decimal QTY)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> { 
+                new SqlParameter("@inventSerialID", InventserialID),
+                new SqlParameter("@QTY", QTY)
+
+            };
+
+            IM_WMS_InventarioCilicoTelaDiario result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InventarioCilicoTelaDiario>("[IM_WMS_Update_QTY_InventSerialID]", parametros);
+
+            return result;
+        }
+
+        //Recepcion y ubicacion cajas
 
         public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion,string Tipo)
         {
@@ -2109,11 +2127,12 @@ namespace WMS_API.Features.Repositories
         {
             await getAllBoxesReceived("DENIM");
             List<SP_GetAllBoxesReceived> list = new List<SP_GetAllBoxesReceived>();
+            List<IM_ObtenerTrasladoRecepcion> traslados = new List<IM_ObtenerTrasladoRecepcion>(); 
 
             DateTime date = DateTime.Now;
             string fecha = date.Day + "-" + date.Month + "-" + date.Year;
 
-            data.ForEach(async element =>
+            data.ForEach( element =>
             {
                 Filtros filtro = new Filtros();
                 filtro.Ubicacion = element.ubicacion;
@@ -2127,15 +2146,24 @@ namespace WMS_API.Features.Repositories
                 filtro.Tipo = "DENIM";
 
                 var datos = getAllBoxesReceived(filtro).Result;
-                datos.ForEach(x =>
+                datos.ForEach( x =>
                 {
                     string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
-                    if(fecha == fechatmp)
+                    if(fecha == fechatmp &&  element.Ordenes.Contains(x.OP + "," + x.NumeroDeCaja))
                     {
-                        list.Add(x);
+                        if (!list.Any(l => l.OP == x.OP && l.NumeroDeCaja == x.NumeroDeCaja))
+                        {
+                            list.Add(x);
+                        }
+                        var TrasTmp = this.gettrasladosRecepcion(x.OP, x.NumeroDeCaja).Result;
+                        if (traslados.Find(el => el.TransferIdAx1 == TrasTmp.TransferIdAx1 && el.TransferIdAx1 == TrasTmp.TransferIdAx1)?.TransferIdAx1 == null)
+                        {
+                            traslados.Add(TrasTmp);
+                        }
                     }
                 });
             });
+
             try
             {
                 Byte[] fileContents;
@@ -2155,6 +2183,7 @@ namespace WMS_API.Features.Repositories
                     worksheet.Cells[1, 10].Value = "Ubicacion";
 
                     int fila = 2;
+                    list = list.Distinct().ToList();
                     list.ForEach(x =>
                     {
                         worksheet.Cells[fila, 1].Value = x.Lote;
@@ -2218,10 +2247,13 @@ namespace WMS_API.Features.Repositories
                         
 
                         mail.Subject = "Recepcion Producto Terminado DENIM "  + fecha;
-                        mail.IsBodyHtml = false;
+                        mail.IsBodyHtml = true;
 
-                        mail.Body = "Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en "+tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos "+tiempo.Seconds +  " Segundos";
-
+                        mail.Body = "<p>Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en "+tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos "+tiempo.Seconds +  " Segundos</p><h2>Traslados:</h2>";
+                        traslados.ForEach(x =>
+                        {
+                            mail.Body += "<p>Primeras: " + x.TransferIdAx1 + " S/T: " + x.TransferIdAx2 + "</p>";
+                        });
                         using (MemoryStream ms = new MemoryStream(fileContents))
                         {
                             
@@ -2272,5 +2304,71 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
+        public async Task<IM_ObtenerTrasladoRecepcion> gettrasladosRecepcion(string WorkOrderID , string BoxNum)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@WorkOrderID",WorkOrderID),
+                new SqlParameter("@BoxNum",BoxNum)
+
+            };
+
+            IM_ObtenerTrasladoRecepcion result = await executeProcedure.ExecuteStoredProcedure<IM_ObtenerTrasladoRecepcion>("[IM_ObtenerTrasladoRecepcion]", parametros);
+
+            return result;
+        }
+
+        public async Task<SP_GetBoxesReceived> getBoxesReserved(string opBoxNum, string ubicacion)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@opBoxNum", opBoxNum),
+                new SqlParameter("@ubicacion", ubicacion)
+            };
+            SP_GetBoxesReceived response;
+            
+            response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReserved]", parametros);     
+            
+            return response;
+        }
+
+        public async Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2(FiltroDeclaracionEnvio data)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@caja", data.Caja),
+                new SqlParameter("@pais", data.Pais),
+                new SqlParameter("@cuentaCliente", data.CuentaCliente),
+                new SqlParameter("@nombreCliente", data.NombreCliente),
+                new SqlParameter("@pedidoVenta", data.PedidoVenta),
+                new SqlParameter("@ListaEmpaque", data.ListaEmpaque),
+                new SqlParameter("@Albaran", data.Albaran),
+                new SqlParameter("@Ubicacion", data.Ubicacion),
+                new SqlParameter("@Factura", data.Factura),
+                new SqlParameter("@page", data.Page),
+                new SqlParameter("@size", data.Size)
+            };
+            List<SP_GetAllBoxesReserved_V2> response;
+
+            response = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReserved_V2>("[SP_GetAllBoxesReserved_V2]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            var parametros = new List<SqlParameter>{};
+            List<SP_GetAllBoxesReserved_V2> response;
+
+            response = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReserved_V2>("[SP_GetAllBoxesReserved]", parametros);
+
+            return response;
+        }
+
+        
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
@@ -391,10 +392,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("InventarioCiclicoTelaExist/{JournalID}/{InventSerialID}/{User}")]
-        public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User)
+        [HttpGet("InventarioCiclicoTelaExist/{JournalID}/{InventSerialID}/{User}/{QTY}")]
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User,decimal QTY)
         {
-            var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID,InventSerialID,User);
+            var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID,InventSerialID,User,QTY);
             return resp;
         }
 
@@ -486,6 +487,13 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("ActuallizarQTYCiclicoTela/{InventserialID}/{QTY}")]
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> UpdateQTYInventSerialID(string InventserialID, decimal QTY)
+        {
+            var resp = await _WMS.UpdateQTYInventSerialID(InventserialID, QTY);
+            return resp;
+        }
+
         //recepcion y ubicacion de cajas
         [HttpGet("RecepcionUbicacionCajas/{opBoxNum}/{ubicacion}/{Tipo}")]
         public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum,string ubicacion,string Tipo)
@@ -511,6 +519,27 @@ namespace WMS_API.Controllers
         public async Task<IEnumerable<SP_GetAllBoxesReceived>> GetAllBoxesReceived(string TIPO)
         {
             var resp = await _WMS.getAllBoxesReceived(TIPO);
+            return resp;
+        }
+
+        //Declaracion de envio
+        [HttpGet("DeclaracionEnvio/{opBoxNum}/{ubicacion}")]
+        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum, string ubicacion)
+        {
+            var resp = await _WMS.getBoxesReserved(opBoxNum, ubicacion);
+            return resp;
+        }
+
+        [HttpPost("DeclaracionEnvio")]
+        public async Task<IEnumerable<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2(FiltroDeclaracionEnvio filtro)
+        {
+            var resp = await _WMS.GetAllBoxesReserved_V2(filtro);
+            return resp;
+        }
+        [HttpGet("DeclaracionEnvioSync")]
+        public async Task<IEnumerable<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2()
+        {
+            var resp = await _WMS.GetAllBoxesReserved();
             return resp;
         }
     }
