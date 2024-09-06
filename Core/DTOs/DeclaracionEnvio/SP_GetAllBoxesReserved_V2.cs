@@ -25,6 +25,10 @@ namespace Core.DTOs.DeclaracionEnvio
         public string ciudad { get; set; }
         public string departamento { get; set; }
         public int paginas { get; set; }
+        public int Cajas { get; set; }
+        public int Unidades { get; set; }
+
+
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
@@ -101,6 +102,11 @@ namespace Core.Interfaces
         public Task<SP_GetBoxesReceived> getBoxesReserved(string opBoxNum, string ubicacion);
         public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2(FiltroDeclaracionEnvio data);
         public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved();
+
+        //Control cajas etiquetado
+
+        public Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja, string empleado);
+        public Task<List<IM_WMS_Control_Cajas_Etiquetado_Detalle>> Get_Control_Cajas_Etiquetado_Detalles(IM_WMS_Control_Cajas_Etiquetado_Detalle_Filtro filtro);
 
 
 

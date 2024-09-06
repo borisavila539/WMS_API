@@ -23,6 +23,7 @@ using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.DeclaracionEnvio;
+using Core.DTOs.ControCajasEtiquetado;
 
 namespace WMS_API.Features.Repositories
 {
@@ -2349,7 +2350,9 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@Ubicacion", data.Ubicacion),
                 new SqlParameter("@Factura", data.Factura),
                 new SqlParameter("@page", data.Page),
-                new SqlParameter("@size", data.Size)
+                new SqlParameter("@size", data.Size),
+                new SqlParameter("@fecha", data.fecha)
+
             };
             List<SP_GetAllBoxesReserved_V2> response;
 
@@ -2369,6 +2372,36 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        
+        public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja, string empleado)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Boxnum", caja),
+                new SqlParameter("@Employee", empleado)
+            };
+            IM_WMS_Insert_Control_Cajas_Etiquetado response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Insert_Control_Cajas_Etiquetado>("[IM_WMS_Insert_Control_Cajas_Etiquetado]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_Control_Cajas_Etiquetado_Detalle>> Get_Control_Cajas_Etiquetado_Detalles(IM_WMS_Control_Cajas_Etiquetado_Detalle_Filtro filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@pedido", filtro.Pedido),
+                new SqlParameter("@ruta", filtro.Ruta),
+                new SqlParameter("@Boxnum", filtro.BoxNum),
+                new SqlParameter("@lote", filtro.Lote),
+                new SqlParameter("@empleado", filtro.Empleado),
+                new SqlParameter("@page", filtro.Page),
+                new SqlParameter("@size", filtro.Size)
+            };
+
+            List<IM_WMS_Control_Cajas_Etiquetado_Detalle> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Control_Cajas_Etiquetado_Detalle>("[IM_WMS_Control_Cajas_Etiquetado_Detalle]", parametros);
+
+            return response;
+        }
     }
 }

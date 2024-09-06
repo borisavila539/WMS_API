@@ -1,5 +1,6 @@
 ﻿using Core.DTOs;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
@@ -542,5 +543,20 @@ namespace WMS_API.Controllers
             var resp = await _WMS.GetAllBoxesReserved();
             return resp;
         }
+
+        [HttpGet("ControlCajasEtiquetadoAgregar/{caja}/{empleado}")]
+        public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja,string empleado)
+        {
+            var resp = await _WMS.GetControl_Cajas_Etiquetado(caja, empleado);
+            return resp;
+        }
+
+        [HttpPost("ControlCajasEtiquetado")]
+        public async Task<IEnumerable<IM_WMS_Control_Cajas_Etiquetado_Detalle>> Get_Control_Cajas_Etiquetado_Detalles(IM_WMS_Control_Cajas_Etiquetado_Detalle_Filtro filtro)
+        {
+            var resp = await _WMS.Get_Control_Cajas_Etiquetado_Detalles(filtro);
+            return resp;
+        }
+
     }
 }

@@ -19,5 +19,6 @@ namespace Core.DTOs.DeclaracionEnvio
         public string Factura { get; set; }
         public int Page { get; set; }
         public int Size { get; set; }
+        public string fecha { get; set; }
     }
 }
