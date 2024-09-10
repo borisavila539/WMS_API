@@ -24,6 +24,8 @@ using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.ControCajasEtiquetado;
+using OfficeOpenXml.Table.PivotTable;
+using Core.DTOs.GeneracionPrecios;
 
 namespace WMS_API.Features.Repositories
 {
@@ -2228,6 +2230,20 @@ namespace WMS_API.Features.Repositories
                     var table2 = worksheet2.Tables.Add(rangeTable2, "MyTable2");
                     table2.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
+                    //resumen tallas
+                    var pivoteSheet = package.Workbook.Worksheets.Add("Hoja3");
+                    var pivotTable = pivoteSheet.PivotTables.Add(pivoteSheet.Cells[1, 1], rangeTable, "PivotTable");
+
+                    //fila
+                    pivotTable.RowFields.Add(pivotTable.Fields["Lote"]);
+
+                    //Columna
+                    pivotTable.ColumnFields.Add(pivotTable.Fields["Talla"]);
+
+                    //valores                
+                    var cantidadField = pivotTable.DataFields.Add(pivotTable.Fields["Cantidad"]);
+                    cantidadField.Function = DataFieldFunctions.Sum;
+
 
                     fileContents = package.GetAsByteArray();
                     try
@@ -2372,6 +2388,23 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
+        public async Task<List<IMDeclaracionEnvio>> GetDeclaracionEnvio(string pais, string ubicacion, string fecha)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@pais", pais),
+                new SqlParameter("@ubicacion", ubicacion),
+                new SqlParameter("@fecha", fecha)
+
+            };
+            List<IMDeclaracionEnvio> response = await executeProcedure.ExecuteStoredProcedureList<IMDeclaracionEnvio>("[IMDeclaracionEnvio]", parametros);
+
+            return response;
+        }
+
+        //control cajas etiquetado
+
         public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja, string empleado)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -2400,6 +2433,53 @@ namespace WMS_API.Features.Repositories
             };
 
             List<IM_WMS_Control_Cajas_Etiquetado_Detalle> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Control_Cajas_Etiquetado_Detalle>("[IM_WMS_Control_Cajas_Etiquetado_Detalle]", parametros);
+
+            return response;
+        }
+        //generacion de precios y codigos
+        public async Task<List<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@pedido", pedido),
+                new SqlParameter("@empresa", empresa),
+                
+            };
+
+            List<IM_WMS_ObtenerDetalleGeneracionPrecios> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerDetalleGeneracionPrecios>("[IM_WMS_ObtenerDetalleGeneracionPrecios]", parametros);
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_ObtenerPreciosCodigos>> GetObtenerPreciosCodigos(string cuentaCliente)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@cuentaCliente", cuentaCliente),
+
+            };
+
+            List<IM_WMS_ObtenerPreciosCodigos> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerPreciosCodigos>("[IM_WMS_ObtenerPreciosCodigos]", parametros);
+
+            return response;
+        }
+
+        public async Task<IM_WMS_ObtenerPreciosCodigos> postInsertUpdatePrecioCodigos(IM_WMS_ObtenerPreciosCodigos data)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@CuentaCliente", data.CuentaCliente),
+                new SqlParameter("@Estilo", data.Estilo),
+                new SqlParameter("@IDColor", data.IDColor),
+                new SqlParameter("@talla", data.Talla),
+                new SqlParameter("@Costo", data.Costo),
+                new SqlParameter("@precio", data.Precio)
+            };
+
+            IM_WMS_ObtenerPreciosCodigos response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_ObtenerPreciosCodigos>("[IM_WMS_InsertUpdatePreciosCodigos]", parametros);
 
             return response;
         }

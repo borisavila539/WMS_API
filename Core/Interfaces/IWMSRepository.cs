@@ -5,6 +5,7 @@ using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
+using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using System.Collections.Generic;
@@ -102,12 +103,17 @@ namespace Core.Interfaces
         public Task<SP_GetBoxesReceived> getBoxesReserved(string opBoxNum, string ubicacion);
         public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved_V2(FiltroDeclaracionEnvio data);
         public Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved();
+        public Task<List<IMDeclaracionEnvio>> GetDeclaracionEnvio(string pais, string ubicacion, string fecha);
 
         //Control cajas etiquetado
 
         public Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja, string empleado);
         public Task<List<IM_WMS_Control_Cajas_Etiquetado_Detalle>> Get_Control_Cajas_Etiquetado_Detalles(IM_WMS_Control_Cajas_Etiquetado_Detalle_Filtro filtro);
 
+        //generacion de precios y codigos
+        public Task<List<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa);
+        public Task<List<IM_WMS_ObtenerPreciosCodigos>> GetObtenerPreciosCodigos(string cuentaCliente);
+        public Task<IM_WMS_ObtenerPreciosCodigos> postInsertUpdatePrecioCodigos(IM_WMS_ObtenerPreciosCodigos data);
 
 
 

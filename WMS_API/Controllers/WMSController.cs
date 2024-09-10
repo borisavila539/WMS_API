@@ -5,10 +5,12 @@ using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.DiarioTransferir;
+using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -544,7 +546,32 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("ControlCajasEtiquetadoAgregar/{caja}/{empleado}")]
+        [HttpGet("DeclaracionEnvio/{pais}/{ubicacion}/{fecha}")]
+        public async Task<IActionResult> GetDeclaracionEnvioDownload(string pais, string ubicacion, string fecha)
+        {
+            var data = await _WMS.GetDeclaracionEnvio(pais, ubicacion, fecha);
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Hoja1");
+            int fila = 5;
+            //agregar Encabezados
+            worksheet.Cells[4, 1].Value = "Departamento";
+
+            data.ForEach(element =>
+            {
+                worksheet.Cells[fila, 1].Value = element.Departamento;
+                fila++;
+            });
+
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Declaracion Envio.xlsx");
+
+        }
+
+
+            //control cajas etiquetado
+            [HttpGet("ControlCajasEtiquetadoAgregar/{caja}/{empleado}")]
         public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja,string empleado)
         {
             var resp = await _WMS.GetControl_Cajas_Etiquetado(caja, empleado);
@@ -555,6 +582,84 @@ namespace WMS_API.Controllers
         public async Task<IEnumerable<IM_WMS_Control_Cajas_Etiquetado_Detalle>> Get_Control_Cajas_Etiquetado_Detalles(IM_WMS_Control_Cajas_Etiquetado_Detalle_Filtro filtro)
         {
             var resp = await _WMS.Get_Control_Cajas_Etiquetado_Detalles(filtro);
+            return resp;
+        }
+        //generaicon de precios y codigos
+        [HttpGet("ObtenerDetalleGeneracionPrecios/{pedido}/{empresa}")]
+        public async Task<IEnumerable<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido,string empresa)
+        {
+            var resp = await _WMS.GetObtenerDetalleGeneracionPrecios(pedido, empresa);
+            return resp;
+        }
+
+        [HttpGet("DescargarDetalleGeneracionPrecios/{pedido}/{empresa}")]
+        public async Task<IActionResult> GetDescargarDetalleGeneracionPrecios(string pedido, string empresa)
+        {
+            var data = await _WMS.GetObtenerDetalleGeneracionPrecios(pedido, empresa);
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Hoja1");
+            int fila = 1;
+            //agregar Encabezados
+            worksheet.Cells[fila, 1].Value = "CodigoBarra";
+            worksheet.Cells[fila, 2].Value = "Articulo";
+            worksheet.Cells[fila, 3].Value = "Base";
+            worksheet.Cells[fila, 4].Value = "Estilo";
+            worksheet.Cells[fila, 5].Value = "IDColor";
+            worksheet.Cells[fila, 6].Value = "Referencia";
+            worksheet.Cells[fila, 7].Value = "Descripcion";
+            worksheet.Cells[fila, 8].Value = "ColorDescripcion";
+            worksheet.Cells[fila, 9].Value = "Talla";
+            worksheet.Cells[fila, 10].Value = "Descripcion2";
+            worksheet.Cells[fila, 11].Value = "Categoria";
+            worksheet.Cells[fila, 12].Value = "Cantidad";
+            worksheet.Cells[fila, 13].Value = "Costo;";
+            worksheet.Cells[fila, 14].Value = "Departamento";
+            worksheet.Cells[fila, 15].Value = "SubCategoria";
+            fila++;
+
+            data.ForEach(element =>
+            {
+                worksheet.Cells[fila, 1].Value = element.CodigoBarra;
+                worksheet.Cells[fila, 2].Value = element.Articulo;
+                worksheet.Cells[fila, 3].Value = element.Base;
+                worksheet.Cells[fila, 4].Value = element.Estilo;
+                worksheet.Cells[fila, 5].Value = element.IDColor;
+                worksheet.Cells[fila, 6].Value = element.Referencia;
+                worksheet.Cells[fila, 7].Value = element.Descripcion;
+                worksheet.Cells[fila, 8].Value = element.ColorDescripcion;
+                worksheet.Cells[fila, 9].Value = element.Talla;
+                worksheet.Cells[fila, 10].Value = element.Descripcion2;
+                worksheet.Cells[fila, 11].Value = element.Categoria;
+                worksheet.Cells[fila, 12].Value = element.Cantidad;
+                worksheet.Cells[fila, 13].Value = element.Costo;
+                worksheet.Cells[fila, 14].Value = element.Departamento;
+                worksheet.Cells[fila, 15].Value = element.SubCategoria;
+                fila++;
+            });
+            fila--;
+            var rangeTable = worksheet.Cells[1, 1, fila, 15];
+            var table = worksheet.Tables.Add(rangeTable, "MyTable");
+            table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Plantilla.xlsx");
+
+        }
+
+        [HttpGet("ObtenerPreciosCodigos/{cuentaCliente}")]
+        public async Task<IEnumerable<IM_WMS_ObtenerPreciosCodigos>> GetObtenerPreciosCodigos(string cuentaCliente)
+        {
+            var resp = await _WMS.GetObtenerPreciosCodigos(cuentaCliente);
+            return resp;
+        }
+
+        [HttpPost("ObtenerPreciosCodigos")]
+        public async Task<IM_WMS_ObtenerPreciosCodigos> postInsertUpdatePrecioCodigos(IM_WMS_ObtenerPreciosCodigos data)
+        {
+            var resp = await _WMS.postInsertUpdatePrecioCodigos(data);
             return resp;
         }
 
