@@ -2472,9 +2472,8 @@ namespace WMS_API.Features.Repositories
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@CuentaCliente", data.CuentaCliente),
-                new SqlParameter("@Estilo", data.Estilo),
+                new SqlParameter("@Base", data.Base),
                 new SqlParameter("@IDColor", data.IDColor),
-                new SqlParameter("@talla", data.Talla),
                 new SqlParameter("@Costo", data.Costo),
                 new SqlParameter("@precio", data.Precio)
             };

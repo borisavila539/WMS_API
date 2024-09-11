@@ -9,10 +9,13 @@ using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -396,9 +399,9 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("InventarioCiclicoTelaExist/{JournalID}/{InventSerialID}/{User}/{QTY}")]
-        public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User,decimal QTY)
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> getInventarioCiclicoTelaExist(string JournalID, string InventSerialID, string User, decimal QTY)
         {
-            var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID,InventSerialID,User,QTY);
+            var resp = await _WMS.GetInventarioCilicoTelaDiario(JournalID, InventSerialID, User, QTY);
             return resp;
         }
 
@@ -409,7 +412,7 @@ namespace WMS_API.Controllers
             return resp;
         }
         [HttpGet("EnviarInventarioCilcicoTela/{JournalID}")]
-        public async Task<string> getEnviarInventarioCiclicoTela( string JournalID)
+        public async Task<string> getEnviarInventarioCiclicoTela(string JournalID)
         {
             var Detalle = await _WMS.Get_InventarioCilicoTelaDiarios(JournalID);
 
@@ -428,7 +431,8 @@ namespace WMS_API.Controllers
                 if (element.Exist && !element.New)
                 {
                     line.PROCESO = "UPDATE";
-                }else if (element.New)
+                }
+                else if (element.New)
                 {
                     line.PROCESO = "ADD";
                 }
@@ -438,10 +442,10 @@ namespace WMS_API.Controllers
             var resp = _AX.InsertAddInventarioCiclicoTelaLine(lines);
 
             //enviar correo
-            string []texto = resp.Split(";");
+            string[] texto = resp.Split(";");
             string htmlCorreo = "";
 
-            htmlCorreo += @"<h1>"+JournalID+@"</h1>";
+            htmlCorreo += @"<h1>" + JournalID + @"</h1>";
             htmlCorreo += @"<p>" + texto[1] + @"</p>";
             htmlCorreo += @"<p>" + texto[2] + @"</p>";
             htmlCorreo += @"<p>" + texto[3] + @"</p>";
@@ -499,9 +503,9 @@ namespace WMS_API.Controllers
 
         //recepcion y ubicacion de cajas
         [HttpGet("RecepcionUbicacionCajas/{opBoxNum}/{ubicacion}/{Tipo}")]
-        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum,string ubicacion,string Tipo)
+        public async Task<SP_GetBoxesReceived> GetBoxesReceived(string opBoxNum, string ubicacion, string Tipo)
         {
-            var resp = await _WMS.getBoxesReceived(opBoxNum, ubicacion,Tipo);
+            var resp = await _WMS.getBoxesReceived(opBoxNum, ubicacion, Tipo);
             return resp;
         }
 
@@ -570,9 +574,9 @@ namespace WMS_API.Controllers
         }
 
 
-            //control cajas etiquetado
-            [HttpGet("ControlCajasEtiquetadoAgregar/{caja}/{empleado}")]
-        public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja,string empleado)
+        //control cajas etiquetado
+        [HttpGet("ControlCajasEtiquetadoAgregar/{caja}/{empleado}")]
+        public async Task<IM_WMS_Insert_Control_Cajas_Etiquetado> GetControl_Cajas_Etiquetado(string caja, string empleado)
         {
             var resp = await _WMS.GetControl_Cajas_Etiquetado(caja, empleado);
             return resp;
@@ -586,7 +590,7 @@ namespace WMS_API.Controllers
         }
         //generaicon de precios y codigos
         [HttpGet("ObtenerDetalleGeneracionPrecios/{pedido}/{empresa}")]
-        public async Task<IEnumerable<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido,string empresa)
+        public async Task<IEnumerable<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa)
         {
             var resp = await _WMS.GetObtenerDetalleGeneracionPrecios(pedido, empresa);
             return resp;
@@ -614,9 +618,10 @@ namespace WMS_API.Controllers
             worksheet.Cells[fila, 10].Value = "Descripcion2";
             worksheet.Cells[fila, 11].Value = "Categoria";
             worksheet.Cells[fila, 12].Value = "Cantidad";
-            worksheet.Cells[fila, 13].Value = "Costo;";
-            worksheet.Cells[fila, 14].Value = "Departamento";
-            worksheet.Cells[fila, 15].Value = "SubCategoria";
+            worksheet.Cells[fila, 13].Value = "Costo";
+            worksheet.Cells[fila, 14].Value = "Precio";
+            worksheet.Cells[fila, 15].Value = "Departamento";
+            worksheet.Cells[fila, 16].Value = "SubCategoria";
             fila++;
 
             data.ForEach(element =>
@@ -634,18 +639,68 @@ namespace WMS_API.Controllers
                 worksheet.Cells[fila, 11].Value = element.Categoria;
                 worksheet.Cells[fila, 12].Value = element.Cantidad;
                 worksheet.Cells[fila, 13].Value = element.Costo;
-                worksheet.Cells[fila, 14].Value = element.Departamento;
-                worksheet.Cells[fila, 15].Value = element.SubCategoria;
+                worksheet.Cells[fila, 14].Value = element.Precio;
+                worksheet.Cells[fila, 15].Value = element.Departamento;
+                worksheet.Cells[fila, 16].Value = element.SubCategoria;
                 fila++;
             });
             fila--;
-            var rangeTable = worksheet.Cells[1, 1, fila, 15];
+            var rangeTable = worksheet.Cells[1, 1, fila, 16];
             var table = worksheet.Tables.Add(rangeTable, "MyTable");
             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
             var excelBytes = package.GetAsByteArray();
 
             return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Plantilla.xlsx");
+
+        }
+
+        [HttpGet("DescargarConfiguracionGeneracionPrecios/{pedido}/{empresa}")]
+        public async Task<IActionResult> GetDescargarConfiguracionGeneracionPrecios(string pedido, string empresa)
+        {
+            List<IM_WMS_ObtenerDetalleGeneracionPrecios> data = await _WMS.GetObtenerDetalleGeneracionPrecios(pedido, empresa);
+
+            List<IM_WMS_ObtenerPreciosCodigos> lista = data.GroupBy(g => new { g.CuentaCliente, g.Base, g.IDColor, g.Costo, g.Precio })
+                .Select(grupo => new IM_WMS_ObtenerPreciosCodigos
+                {
+                    ID = 0,
+                    CuentaCliente = grupo.Key.CuentaCliente,
+                    Base = grupo.Key.Base,
+                    IDColor = grupo.Key.IDColor,
+                    Costo = grupo.Key.Costo,
+                    Precio = grupo.Key.Precio
+
+                }).ToList();
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Hoja1");
+            int fila = 1;
+            //agregar Encabezados
+            worksheet.Cells[fila, 1].Value = "CuentaCliente";
+            worksheet.Cells[fila, 2].Value = "Base";
+            worksheet.Cells[fila, 3].Value = "IDColor";
+            worksheet.Cells[fila, 4].Value = "Costo";
+            worksheet.Cells[fila, 5].Value = "Precio";
+            fila++;
+
+            lista.ForEach(element =>
+            {
+                worksheet.Cells[fila, 1].Value = element.CuentaCliente;
+                worksheet.Cells[fila, 2].Value = element.Base;
+                worksheet.Cells[fila, 3].Value = element.IDColor;
+                worksheet.Cells[fila, 4].Value = element.Costo;
+                worksheet.Cells[fila, 5].Value = element.Precio;
+                fila++;
+            });
+            fila--;
+            var rangeTable = worksheet.Cells[1, 1, fila, 5];
+            var table = worksheet.Tables.Add(rangeTable, "MyTable");
+            table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+            var excelBytes = package.GetAsByteArray();
+
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PlantillaConfiguracionPrecio.xlsx");
 
         }
 
@@ -662,6 +717,51 @@ namespace WMS_API.Controllers
             var resp = await _WMS.postInsertUpdatePrecioCodigos(data);
             return resp;
         }
+        [HttpPost("UploadExcelPreciosCodigos")]
+        public async Task<string> UploadExcel(IFormFile file)
+        {
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets[0]; // Primer hoja del archivo Excel
+                        int rowCount = worksheet.Dimension.Rows;
+                        int colCount = worksheet.Dimension.Columns;
+
+
+                        // Recorre las filas y columnas
+                        for (int row = 2; row <= rowCount; row++) // Empieza en la fila 2, omitiendo el encabezado
+                        {                           
+
+                            var configuracion = new IM_WMS_ObtenerPreciosCodigos
+                            {
+                                CuentaCliente = worksheet.Cells[row, 1].Text,
+                                Base = worksheet.Cells[row, 2].Text,
+                                IDColor = worksheet.Cells[row, 3].Text,
+                                Costo = Convert.ToDecimal(worksheet.Cells[row, 4].Text),
+                                Precio = worksheet.Cells[row, 5].Text == "0"?0: Convert.ToDecimal(worksheet.Cells[row, 5].Text),
+                            };
+
+                            await this.postInsertUpdatePrecioCodigos(configuracion);
+
+                        }
+                        // Lógica adicional para guardar los datos o procesarlos
+                        // return Ok(data); // Si quieres devolver los datos
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+
+        }
     }
 }
