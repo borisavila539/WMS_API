@@ -70,9 +70,13 @@ namespace Core.Interfaces
 
         public Task<IM_WMS_ObtenerSecuencia_PL_PT_DTO> getSecuencia_PL_PT(int despachoID, string user, int almacenTo);
 
-        //==========================Transferir
+        //Transferir
         public Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID);
         public Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro);
+        public Task<IM_WMS_InsertTransferirCajaDetalle> GetInsertTransferirCajaDetalle(string journalID, string ItemBarcode, string BoxNum,string Proceso);
+        public Task<List<LineasDTO>> GetLineasDiarioTransferir(string diario);
+        public Task<string> GetImprimirEtiquetaTransferir(string diario, string IMBoxCode, string PRINT);
+
 
         //busqueda de rollos en ax
 

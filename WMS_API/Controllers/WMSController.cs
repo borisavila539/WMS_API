@@ -336,6 +336,20 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("TransferirMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}/{BoxCode}")]
+        public async Task<string> GetTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO,string BoxCode)
+        {
+            var resp = _AX.InsertDeleteTransferirMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
+            if(resp == "OK")
+            {
+               await _WMS.GetInsertTransferirCajaDetalle(JOURNALID, ITEMBARCODE, BoxCode, PROCESO);
+            }
+
+            return resp;
+
+          
+        }
+
         [HttpGet("EnviarCorreotransferir/{JOURNALID}/{USERID}")]
         public Task<IM_WMS_EnviarDiarioTransferirDTO> GetEnviarCorreotransferir(string JOURNALID, string USERID)
         {
@@ -348,6 +362,20 @@ namespace WMS_API.Controllers
         {
             var resp = await _WMS.getObtenerDiarioTransferir(user, filtro);
             return Ok(resp);
+        }
+
+        [HttpGet("LineasDiarioTransferir/{diario}")]
+        public async Task<ActionResult<IEnumerable<LineasDTO>>> GetLienasDiarioTransferir(string diario)
+        {
+            var resp = await _WMS.GetLineasDiarioTransferir(diario);
+            return Ok(resp);
+        }
+
+        [HttpGet("ImprimirEtiquetaTransferir/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
+        public Task<string> GetImprimirEtiquetaTransferir(string JOURNALID, string IMBOXCODE, string PRINT)
+        {
+            var resp = _WMS.GetImprimirEtiquetaTransferir(JOURNALID, IMBOXCODE, PRINT);
+            return resp;
         }
 
         //busqueda de rollos en ax

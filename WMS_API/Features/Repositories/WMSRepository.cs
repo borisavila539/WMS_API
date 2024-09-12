@@ -54,7 +54,7 @@ namespace WMS_API.Features.Repositories
             LoginDTO result = await executeProcedure.ExecuteStoredProcedure<LoginDTO>("[IM_Login_WMS]", parametros);
 
             return result;
-        }       
+        }
 
         //Diarios de salida
 
@@ -84,8 +84,8 @@ namespace WMS_API.Features.Repositories
             List<LineasDTO> result = await executeProcedure.ExecuteStoredProcedureList<LineasDTO>("[IM_ObtenerLineasDiario]", parametros);
 
             return result;
-           
-        }      
+
+        }
         public async Task<List<EtiquetaDTO>> GetDatosEtiquetaMovimiento(string diario, string IMBoxCode)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -98,7 +98,7 @@ namespace WMS_API.Features.Repositories
 
             List<EtiquetaDTO> result = await executeProcedure.ExecuteStoredProcedureList<EtiquetaDTO>("[IM_Movimiento_Diario_Etiqueta]", parametros);
 
-            return result;           
+            return result;
         }
         public async Task<string> GetImprimirEtiquetaMovimiento(string diario, string IMBoxCode, string PRINT)
         {
@@ -265,7 +265,7 @@ namespace WMS_API.Features.Repositories
             List<ImpresoraDTO> result = await executeProcedure.ExecuteStoredProcedureList<ImpresoraDTO>("[IM_Impresoras_SanBernardo]", parametros);
 
             return result;
-            
+
         }
         //Despacho de Tela
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_AX>> GetIM_WMS_Despacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
@@ -282,7 +282,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Despacho_Tela_Detalle_AX> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_AX>("[IM_WMS_Despacho_Tela_Detalle_AX]", parametros);
 
-            return result;            
+            return result;
         }
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> Get_Despacho_Tela_Detalle_Rollo(string INVENTSERIALID, string InventTransID)
         {
@@ -296,8 +296,8 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Despacho_Tela_Detalle_Rollo> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_Rollo>("[IM_WMS_Despacho_Tela_Detalle_Rollo]", parametros);
 
-            return result;            
-        }       
+            return result;
+        }
         public async Task<List<DespachoTelasDetalleDTO>> GetDespacho_Telas(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO, string tipo)
         {
             var response = new List<DespachoTelasDetalleDTO>();
@@ -327,7 +327,7 @@ namespace WMS_API.Features.Repositories
                 }
 
             }
-            
+
             return response;
         }
         public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID, string USER, int IDremision)
@@ -348,7 +348,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Despacho_Tela_Detalle_Rollo> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Despacho_Tela_Detalle_Rollo>("[IM_WMS_Despacho_Tela_Picking_Packing]", parametros);
 
-            return result;          
+            return result;
         }
         public async Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
@@ -393,8 +393,8 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_TrasladosAbiertos> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_TrasladosAbiertos>("[IM_WMS_TrasladosAbiertos]", parametros);
 
-            return result;           
-        }       
+            return result;
+        }
         public async Task<List<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -408,8 +408,8 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_EstadoTrasladosDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_EstadoTrasladosDTO>("[IM_WMS_EstadoTraslados]", parametros);
 
-            return result;       
-        }       
+            return result;
+        }
         public async Task<List<EstadoTrasladoTipoDTO>> gteEstadoTrasladoTipo(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO)
         {
             var response = new List<EstadoTrasladoTipoDTO>();
@@ -503,8 +503,8 @@ namespace WMS_API.Features.Repositories
 
             List<CrearDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_CrearDespacho]", parametros);
 
-            return result;            
-        }     
+            return result;
+        }
         public async Task<List<CrearDespachoDTO>> GetObtenerDespachos(string RecIDTraslados)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -516,7 +516,7 @@ namespace WMS_API.Features.Repositories
 
             List<CrearDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_ObtenerDespachos]", parametros);
 
-            return result;           
+            return result;
         }
         public async Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id)
         {
@@ -529,8 +529,8 @@ namespace WMS_API.Features.Repositories
 
             List<CerrarDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CerrarDespachoDTO>("[IM_CerrarDespacho]", parametros);
 
-            return result;           
-        }        
+            return result;
+        }
         public async Task<string> getNotaDespacho(int DespachoID, string recid, string empleado, string camion)
         {
             string despacho = "";
@@ -569,8 +569,8 @@ namespace WMS_API.Features.Repositories
             var encabezado = await getEncabezadoDespacho(empleado, recid);
             despacho += @"
                      <p>
-                        <strong>Fecha: </strong>"+encabezado[0].fecha.ToString("dd/MM/yyyy HH:mm:ss") + @" <br>
-  	                    <strong>Motorista: </strong>" + encabezado[0].Motorista +" / "+camion+ @" <br>
+                        <strong>Fecha: </strong>" + encabezado[0].fecha.ToString("dd/MM/yyyy HH:mm:ss") + @" <br>
+  	                    <strong>Motorista: </strong>" + encabezado[0].Motorista + " / " + camion + @" <br>
                         <strong>Traslado Inicial: </strong>" + encabezado[0].TRANSFERIDFROM + @" <br>
                         <strong>Traslado Final: </strong>" + encabezado[0].TRANSFERIDTO + @" <br>
                         <strong>Destino: </strong>" + encabezado[0].Destino + @" <br>
@@ -581,7 +581,7 @@ namespace WMS_API.Features.Repositories
             List<RollosDespachoDTO> data = new List<RollosDespachoDTO>();
 
             //colocar encabezado de la tabla correo
-           
+
             string htmlCorreo = despacho + @"<table style='width: 100%'>
                                <thead> 
                                  <tr> 
@@ -599,11 +599,11 @@ namespace WMS_API.Features.Repositories
                                   </tr>  
                                   </thead>  
                                 <tbody> ";
-           
 
-            
+
+
             //obtener informacionn de ax de los rollos
-            foreach (var element in rollos)                
+            foreach (var element in rollos)
             {
                 RollosDespachoDTO tmp = new RollosDespachoDTO();
                 tmp.INVENTSERIALID = element.INVENTSERIALID;
@@ -617,13 +617,14 @@ namespace WMS_API.Features.Repositories
                 tmp.LibrasYardas = RolloAX[0].LibrasYardas;
                 tmp.inventBatchId = RolloAX[0].inventBatchId;
                 tmp.NameAlias = RolloAX[0].NameAlias;
-                data.Add(tmp);               
+                data.Add(tmp);
 
             }
 
             var ordenar = data.Where(x => x.NameAlias != null && x.inventBatchId != null)
-                            .OrderBy(x => x.inventBatchId).ThenBy(x=> x.NameAlias)
-                            .Select(x => new RollosDespachoDTO{
+                            .OrderBy(x => x.inventBatchId).ThenBy(x => x.NameAlias)
+                            .Select(x => new RollosDespachoDTO
+                            {
                                 Color = x.Color,
                                 Config = x.Config,
                                 inventBatchId = x.inventBatchId,
@@ -669,7 +670,7 @@ namespace WMS_API.Features.Repositories
             //agrupar por color y configuracion la catnidad de rollos
             var resumen = data
                     .GroupBy(x => new { x.Color, x.Config })
-                    .Select(g => new 
+                    .Select(g => new
                     {
                         Color = g.Key.Color,
                         Config = g.Key.Config,
@@ -694,15 +695,15 @@ namespace WMS_API.Features.Repositories
                                 <tbody> ";
             int totalRollo = 0;
             decimal totalLY = 0;
-            foreach(var element in resumen)
+            foreach (var element in resumen)
             {
                 totalRollo += element.Cantidad;
                 totalLY += element.Total;
                 despacho += @"<tr>
-                              <td>"+element.Color+@"</td>
-                              <td>"+element.Config+@"</td>
-                              <td>"+element.Cantidad+ @"</td>
-                              <td>"+element.Total + @"</td>      
+                              <td>" + element.Color + @"</td>
+                              <td>" + element.Config + @"</td>
+                              <td>" + element.Cantidad + @"</td>
+                              <td>" + element.Total + @"</td>      
                             </tr>";
             }
 
@@ -713,10 +714,10 @@ namespace WMS_API.Features.Repositories
                                   <td></td>
                                   <td>Total</td>
                                   <td>" + totalRollo + @"</td>
-                                  <td>"+totalLY+ @"</td>      
+                                  <td>" + totalLY + @"</td>      
                              </tr>
                             </tfoot>
-                        </table>";          
+                        </table>";
 
             try
             {
@@ -726,11 +727,11 @@ namespace WMS_API.Features.Repositories
 
                 var correos = await getCorreosDespacho();
 
-                foreach( IM_WMS_Correos_Despacho correo in correos)
+                foreach (IM_WMS_Correos_Despacho correo in correos)
                 {
                     mail.To.Add(correo.Correo);
                 }
-                mail.Subject = "Despacho No."+ DespachoID.ToString().PadLeft(8, '0');
+                mail.Subject = "Despacho No." + DespachoID.ToString().PadLeft(8, '0');
                 mail.IsBodyHtml = true;
 
                 mail.Body = htmlCorreo;
@@ -751,7 +752,7 @@ namespace WMS_API.Features.Repositories
 
 
             }
-            catch(Exception err)
+            catch (Exception err)
             {
                 string error = err.ToString();
             }
@@ -782,9 +783,9 @@ namespace WMS_API.Features.Repositories
                             </div>
                         </div>
                     </body>
-                    </html> ";            
+                    </html> ";
 
-           return despacho;
+            return despacho;
         }
         public async Task<List<EncabezadoNotaDespachoDTO>> getEncabezadoDespacho(string empleado, string recid)
         {
@@ -811,9 +812,9 @@ namespace WMS_API.Features.Repositories
 
             List<RollosDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RollosDespachoDTO>("[IM_WMS_RolloDespacho]", parametros);
 
-            return result;           
+            return result;
         }
-        public async Task<List<RollosDespachoDTO>> getRolloDespachoAX(string InventTransID,string INVENTSERIALID)
+        public async Task<List<RollosDespachoDTO>> getRolloDespachoAX(string InventTransID, string INVENTSERIALID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -825,13 +826,13 @@ namespace WMS_API.Features.Repositories
 
             List<RollosDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RollosDespachoDTO>("[IM_WMS_NotaDespachoDetalleAX]", parametros);
 
-            return result;         
-        }     
+            return result;
+        }
         public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespacho()
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            var parametros = new List<SqlParameter>{};
+            var parametros = new List<SqlParameter> { };
 
             List<IM_WMS_Correos_Despacho> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_Despacho>("[IM_WMS_ObtenerCorreosDespachotela]", parametros);
 
@@ -841,15 +842,15 @@ namespace WMS_API.Features.Repositories
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            var parametros = new List<SqlParameter> 
+            var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@DespachoId", despachoID)
             };
 
             List<RolloDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<RolloDespachoDTO>("[IM_ObtenerRollosDespacho]", parametros);
 
-            return result;           
-        }     
+            return result;
+        }
         //Reduccion de cajas
         public async Task<List<LineasDTO>> GetLineasReducionCajas(string IMBOXCODE)
         {
@@ -894,18 +895,18 @@ namespace WMS_API.Features.Repositories
                 items = x.Value
             }).ToArray();
 
-            string encabezado = @"^XA^FO700,50^FWN^A0R,30,30^FDFecha: "+hoy+@"^FS^FO670,50^A0R,30,30^FDEmpacador: "+empleado.Nombre+@"^FS";
+            string encabezado = @"^XA^FO700,50^FWN^A0R,30,30^FDFecha: " + hoy + @"^FS^FO670,50^A0R,30,30^FDEmpacador: " + empleado.Nombre + @"^FS";
 
-            string pie = @"^A0R,30,30^BY2,2,100^FO50,50^BC^FD"+IMBOXCODE+ @"^FS^FO50,700^A0R,40,40^FDUbicacion: "+ubicacion+ @"^FS^XZ";
+            string pie = @"^A0R,30,30^BY2,2,100^FO50,50^BC^FD" + IMBOXCODE + @"^FS^FO50,700^A0R,40,40^FDUbicacion: " + ubicacion + @"^FS^XZ";
 
             int cont = 0;
             string etiqueta = "";
             int position = 600;
             int subtotal = 0;
 
-            foreach(var element in groupArray)
+            foreach (var element in groupArray)
             {
-                if(cont == 0)
+                if (cont == 0)
                 {
                     etiqueta = encabezado;
                     subtotal = 0;
@@ -923,18 +924,18 @@ namespace WMS_API.Features.Repositories
                     etiqueta += $"^FO{position},50^A0R,45,45^FD{element.items[0].ITEMID} *{element.items[0].INVENTCOLORID}^FS";
                     position -= 45;
                 }
-                
+
                 etiqueta += $"^FO{position},50^A0R,45,45^FDTalla: ";
 
-                element.items.ForEach( x=>
-                {
-                    for(int i = 1; i <= 5 - x.INVENTSIZEID.Length; i++)
-                    {
-                        etiqueta += "_";
-                        
-                    }
-                    etiqueta += x.INVENTSIZEID;
-                });
+                element.items.ForEach(x =>
+               {
+                   for (int i = 1; i <= 5 - x.INVENTSIZEID.Length; i++)
+                   {
+                       etiqueta += "_";
+
+                   }
+                   etiqueta += x.INVENTSIZEID;
+               });
                 etiqueta += "^FS";
                 position -= 45;
                 etiqueta += $"^FO{position},50^A0R,45,45^FDQTY: ";
@@ -953,7 +954,7 @@ namespace WMS_API.Features.Repositories
                 subtotal += totalLinea;
                 position -= 70;
                 cont++;
-                if(cont== 3)
+                if (cont == 3)
                 {
                     etiqueta += $"^FO100,700^A0R,40,40^FDTotal: {subtotal} / {totalUnidades}^FS";
                     etiqueta += pie;
@@ -968,15 +969,15 @@ namespace WMS_API.Features.Repositories
                                 byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
                                 stream.Write(bytes, 0, bytes.Length);
                             }
-                        }                        
+                        }
                     }
                     catch (Exception err)
                     {
                         return err.ToString();
                     };
                 }
-                
-                
+
+
             }
             if (cont != 3 && cont != 0)
             {
@@ -1001,7 +1002,7 @@ namespace WMS_API.Features.Repositories
                 };
             }
 
-                return "OK";
+            return "OK";
 
 
         }
@@ -1009,15 +1010,15 @@ namespace WMS_API.Features.Repositories
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            var parametros = new List<SqlParameter> 
+            var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@empleado", empleado)
             };
 
             EmpleadoDTO result = await executeProcedure.ExecuteStoredProcedure<EmpleadoDTO>("[IM_ObtenerNombreEmpleado]", parametros);
 
-            return result;            
-        }       
+            return result;
+        }
         public async Task<List<EtiquetaReduccionDTO>> GetDatosEtiquetaReduccion(string IMBoxCode)
         {
 
@@ -1046,7 +1047,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Insert_Boxes_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Insert_Boxes_Despacho_PT_DTO>("[IM_WMS_Insert_Boxes_Despacho_PT]", parametros);
 
-            return result;            
+            return result;
         }
         public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetPicking_Despacho_PT(int Almacen)
         {
@@ -1059,7 +1060,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Picking_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Picking_Despacho_PT_DTO>("[IM_WMS_Picking_Despacho_PT]", parametros);
 
-            return result;            
+            return result;
         }
         public async Task<List<IM_WMS_Get_EstatusOP_PT_DTO>> get_EstatusOP_PT(int almacen)
         {
@@ -1072,7 +1073,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Get_EstatusOP_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_EstatusOP_PT_DTO>("[IM_WMS_Get_EstatusOP]", parametros);
 
-            return result;           
+            return result;
         }
         public async Task<IM_WMS_Insert_Estatus_Unidades_OP_DTO> GetM_WMS_Insert_Estatus_Unidades_OPs(IM_WMS_Insert_Estatus_Unidades_OP_DTO data)
         {
@@ -1108,7 +1109,7 @@ namespace WMS_API.Features.Repositories
             IM_WMS_Crear_Despacho_PT result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Crear_Despacho_PT>("[IM_WMS_Crear_Despacho_PT]", parametros);
 
             return result;
-        }     
+        }
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> Get_Despachos_PT_DTOs(string estado, int almacen, int DespachoId)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1122,9 +1123,9 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Get_Despachos_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_Get_Despachos_PT]", parametros);
 
-            return result;        
+            return result;
         }
-        public async Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box,int DespachoID)
+        public async Task<IM_WMS_Packing_DespachoPTDTO> GetPacking_DespachoPT(string ProdID, string userCreated, int Box, int DespachoID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -1138,7 +1139,7 @@ namespace WMS_API.Features.Repositories
 
             IM_WMS_Packing_DespachoPTDTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Packing_DespachoPTDTO>("[IM_WMS_Packing_DespachoPT]", parametros);
 
-            return result;            
+            return result;
         }
         public async Task<List<IM_WMS_Picking_Despacho_PT_DTO>> GetDetalleDespachoPT(int DespachoID)
         {
@@ -1151,7 +1152,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Picking_Despacho_PT_DTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Picking_Despacho_PT_DTO>("[IM_WMS_ObtenerDetalleDespachoPT]", parametros);
 
-            return result;            
+            return result;
         }
         public async Task<List<DiariosAbiertosDTO>> getObtenerDiarioTransferir(string user, string filtro)
         {
@@ -1169,7 +1170,7 @@ namespace WMS_API.Features.Repositories
         }
 
         //obtenre informacion del detalle que se colocara en el archivo de excel Despacho PT Contratistas
-        public async Task<IM_WMS_ObtenerSecuencia_PL_PT_DTO> getSecuencia_PL_PT(int despachoID, string user,int almacenTo)
+        public async Task<IM_WMS_ObtenerSecuencia_PL_PT_DTO> getSecuencia_PL_PT(int despachoID, string user, int almacenTo)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -1197,7 +1198,7 @@ namespace WMS_API.Features.Repositories
 
             return result;
         }
-        public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID,string user, int cajasSegundas, int cajasTerceras)
+        public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID, string user, int cajasSegundas, int cajasTerceras)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -1208,21 +1209,21 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@cajasTerceras", cajasTerceras)
             };
 
-            IM_WMS_EnviarDespacho response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EnviarDespacho>("[IM_WMS_EnviarDespacho]", parametros);           
+            IM_WMS_EnviarDespacho response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EnviarDespacho>("[IM_WMS_EnviarDespacho]", parametros);
 
-            if(response.Descripcion == "Enviado")
+            if (response.Descripcion == "Enviado")
             {
-                
+
                 var Despacho = await getDetalle_Despacho_Excel(DespachoID);
-              
+
 
                 var almacenes = Despacho.Select(x => x.InventLocation).Distinct().ToList();
                 var encabezado = await GetEncabezadoDespachoExcel(user);
                 int cont1 = 0;
                 foreach (var almacen in almacenes)
                 {
-                   
-                    var data = Despacho.Where(x=> x.InventLocation == almacen).ToList();
+
+                    var data = Despacho.Where(x => x.InventLocation == almacen).ToList();
 
                     if (data.Count() > 0)
                     {
@@ -1234,7 +1235,8 @@ namespace WMS_API.Features.Repositories
                             data.Add(tmp);
                             cont1++;
                         }
-                        else {
+                        else
+                        {
                             cont1++;
                         }
                         try
@@ -1253,7 +1255,7 @@ namespace WMS_API.Features.Repositories
                                 rangeEncabezado.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
                                 //encabezado del libro
-                               
+
                                 for (int x = 2; x <= 5; x++)
                                 {
                                     var rangeMerge = worksheet.Cells[x, 1, x, 26];
@@ -1294,8 +1296,8 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[9, 2].Value = "Fecha:";
                                 worksheet.Cells[9, 3].Value = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
                                 worksheet.Cells[9, 6].Value = "Packing List: ";
-                                var packing = await getSecuencia_PL_PT(DespachoID, user,cont1);
-                                worksheet.Cells[9, 7].Value = packing.Secuencia + "."+packing.Anio;
+                                var packing = await getSecuencia_PL_PT(DespachoID, user, cont1);
+                                worksheet.Cells[9, 7].Value = packing.Secuencia + "." + packing.Anio;
 
                                 //Encabezado de la tabla
                                 worksheet.Cells[fila, 1].Value = "#";
@@ -1582,7 +1584,7 @@ namespace WMS_API.Features.Repositories
                             response.Descripcion = err.ToString();
                         }
                     }
-                }                
+                }
             }
             return response;
         }
@@ -1597,7 +1599,7 @@ namespace WMS_API.Features.Repositories
 
             IM_WMS_EncabezadoDespachoExcelDTO response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_EncabezadoDespachoExcelDTO>("[IM_WMS_EncabezadoDespachoExcel]", parametros);
             return response;
-        }  
+        }
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> GetDespachosEstado(string estado)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1609,7 +1611,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Get_Despachos_PT_DTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_DespachosEstado]", parametros);
 
-            return response;            
+            return response;
         }
         public async Task<List<IM_WMS_ObtenerDespachoPTEnviados>> GetObtenerDespachoPTEnviados(int despachoID)
         {
@@ -1650,7 +1652,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_DespachoPT_CajasAuditarDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DespachoPT_CajasAuditarDTO>("[IM_WMS_DespachoPT_CajasAuditar]", parametros);
 
-            return response;           
+            return response;
         }
         public async Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box)
         {
@@ -1664,7 +1666,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Detalle_Auditoria_CajaDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Detalle_Auditoria_CajaDTO>("[IM_WMS_Detalle_Auditoria_Caja]", parametros);
 
-            return response;            
+            return response;
         }
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID)
         {
@@ -1692,7 +1694,7 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_Consulta_OP_DetalleDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Consulta_OP_DetalleDTO>("[IM_WMS_Consulta_OP_Detalle]", parametros);
 
             return response;
-        }      
+        }
         public async Task<List<IM_WMS_ConsultaOP_OrdenesDTO>> getConsultaOpOrdenes(string ProdCutSheetID, int DespachoID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1719,7 +1721,7 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Consulta_OP_Detalle_CajasDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Consulta_OP_Detalle_CajasDTO>("[IM_WMS_Consulta_OP_Detalle_Cajas]", parametros);
 
-            return response;         
+            return response;
         }
         public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user)
         {
@@ -1732,8 +1734,9 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_Correos_DespachoPTDTO]", parametros);
 
-            return response;            
+            return response;
         }
+        //transferir
         public async Task<IM_WMS_EnviarDiarioTransferirDTO> getEnviarDiarioTransferir(string JournalID, string userID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1773,7 +1776,7 @@ namespace WMS_API.Features.Repositories
                             <body>
                               <h3> Diario Transferir</h3>
    
-                                 <h4>"+ JournalID + @"</h4>";
+                                 <h4>" + JournalID + @"</h4>";
             //colocar en encabezado el almacen hacia donde va
             var encabezado = await GetEncabezadoTransferir(JournalID);
 
@@ -1788,7 +1791,7 @@ namespace WMS_API.Features.Repositories
                    ";
             //tabla
 
-            html +=@"<table style='width: 100%'>
+            html += @"<table style='width: 100%'>
                                <thead> 
                                  <tr> 
                                    <th colspan = '7'> Detalle </th>  
@@ -1840,7 +1843,7 @@ namespace WMS_API.Features.Repositories
                 {
                     mail.To.Add(correo.Correo);
                 }
-                mail.Subject = "Diario Transferir "+JournalID + " desde almacen "+ encabezado.INVENTLOCATIONID + " a "+ encabezado.IM_INVENTLOCATIONID_TO;
+                mail.Subject = "Diario Transferir " + JournalID + " desde almacen " + encabezado.INVENTLOCATIONID + " a " + encabezado.IM_INVENTLOCATIONID_TO;
                 mail.IsBodyHtml = true;
 
                 mail.Body = html;
@@ -1876,20 +1879,220 @@ namespace WMS_API.Features.Repositories
 
             IM_Encabezado_Diario_TransferirDTO response = await executeProcedure.ExecuteStoredProcedure<IM_Encabezado_Diario_TransferirDTO>("[IM_Encabezado_Diario_Transferir]", parametros);
 
-            return response;            
-        }       
+            return response;
+        }
         public async Task<List<IM_WMS_Correos_Despacho>> getCorreosDespachoTransferir()
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
             var parametros = new List<SqlParameter>
-            {                
+            {
             };
 
             List<IM_WMS_Correos_Despacho> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_Despacho>("[IM_WMS_Correos_Transferirsp]", parametros);
 
             return response;
         }
+        public async Task<IM_WMS_InsertTransferirCajaDetalle> GetInsertTransferirCajaDetalle(string journalID, string ItemBarcode, string BoxNum, string Proceso)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", journalID),
+                new SqlParameter("@itemBarCode", ItemBarcode),
+                new SqlParameter("@BoxCode", BoxNum),
+                new SqlParameter("@proceso", Proceso),
+
+            };
+
+            IM_WMS_InsertTransferirCajaDetalle response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InsertTransferirCajaDetalle>("[IM_WMS_InsertTransferirCajaDetalle]", parametros);
+
+            return response;
+        }
+        public async Task<List<LineasDTO>> GetLineasDiarioTransferir(string diario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@journalID", diario)
+            };
+
+            List<LineasDTO> response = await executeProcedure.ExecuteStoredProcedureList<LineasDTO>("[IM_WMS_GetLineasDiarioTransferir]", parametros);
+
+            return response;
+        }
+        public async Task<List<EtiquetaTransferir>> GetDatosEtiquetaTransferir(string diario, string BoxCode)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalID", diario),
+                new SqlParameter("@BoxCode", BoxCode)
+            };
+
+            List<EtiquetaTransferir> response = await executeProcedure.ExecuteStoredProcedureList<EtiquetaTransferir>("[IM_WMS_EtiquetaDiarioTransferir]", parametros);
+
+            return response;
+        }
+        public async Task<string> GetImprimirEtiquetaTransferir(string diario, string IMBoxCode, string PRINT)
+        {
+            var data = await GetDatosEtiquetaTransferir(diario, IMBoxCode);
+
+            //creacion de encabezado de la etiqueta
+            string encabezado = "";
+            encabezado += "^XA";
+            encabezado += "^CF0,50";
+            encabezado += "^FO280,50^FD" + diario + "^FS";
+            encabezado += "^CF0,24";
+            encabezado += "^FO50,115^FDFecha: " + DateTime.Now.Day + "/" + DateTime.Now.Month + "/" + DateTime.Now.Year + "^FS";
+            encabezado += "^FO50,140^FDSoliciante: " + data[0].Solicitante + "^FS";
+            encabezado += "^FO480,165^FDTipo Diario: " + data[0].JOURNALNAMEID + "^FS";
+            encabezado += "^FO50,190^GB700,3,3^FS";
+
+            //creacion del pie de pagina de la etiqueta
+            string pie = "";
+            pie += "^BY2,2,100";
+            pie += "^FO50,1060^BC^FD" + IMBoxCode + "^FS";
+
+            pie += "^FO430,1060^FDEmpacador: " + data[0].Empacador + "^FS";
+            pie += "^CF0,40";
+
+
+            string etiqueta = encabezado;
+            int totalUnidades = 0;
+
+            var groupData = new Dictionary<string, List<EtiquetaTransferir>>();
+
+            foreach (var element in data)
+            {
+                totalUnidades += element.QTY;
+                var key = $"{element.ITEMID}-{element.INVENTCOLORID}";
+
+                if (!groupData.ContainsKey(key))
+                {
+                    groupData[key] = new List<EtiquetaTransferir>();
+                }
+
+                groupData[key].Add(element);
+            }
+
+            var groupArray = groupData.Select(x => new EtiquetaGrupoTransferir
+            {
+                key = x.Key,
+                items = x.Value
+            }).ToArray();
+
+            int lineaArticulo = 210;
+            int total = 0;
+
+            foreach (var element in groupArray)
+            {
+                etiqueta += $"^FO50,{lineaArticulo}^FD{element.items[0].ITEMID}*{element.items[0].INVENTCOLORID}^FS";
+                etiqueta += $"^FO50,{lineaArticulo + 30}^FDTalla: ";
+                element.items.ForEach(x =>
+                {
+                    for (int i = 1; i <= 5 - x.INVENTSIZEID.Length; i++)
+                    {
+                        etiqueta += "_";
+                    }
+                    etiqueta += x.INVENTSIZEID;
+
+                });
+
+                etiqueta += "^FS";
+                etiqueta += $"^FO50,{lineaArticulo + 60}^FDQTY:  ";
+                int totalLinea = 0;
+                element.items.ForEach(x =>
+                {
+                    for (int i = 1; i <= 5 - x.QTY.ToString().Length; i++)
+                    {
+                        etiqueta += "_";
+                    }
+                    etiqueta += x.QTY;
+                    total += x.QTY;
+                    totalLinea += x.QTY;
+                });
+
+                etiqueta += $" ={totalLinea}^FS";
+
+
+                if (lineaArticulo == 910)
+                {
+
+                    etiqueta += pie;
+                    etiqueta += $"^FO430,1090^FDTotal: {total}/{totalUnidades}^FS";
+                    etiqueta += "^XZ";
+
+                    try
+                    {
+                        using (TcpClient client = new TcpClient(PRINT, 9100))
+                        {
+                            using (NetworkStream stream = client.GetStream())
+                            {
+                                byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                                stream.Write(bytes, 0, bytes.Length);
+
+                            }
+
+                        }
+
+                    }
+                    catch (Exception err)
+                    {
+                        return err.ToString();
+                    }
+
+
+                    etiqueta = encabezado;
+                    lineaArticulo = 210;
+                    total = 0;
+
+                }
+                else
+                {
+                    lineaArticulo += 100;
+                }
+
+            }
+
+            if (lineaArticulo != 910)
+            {
+                etiqueta += pie;
+                etiqueta += $"^FO430,1090^FDTotal: {total}/{totalUnidades}^FS";
+                etiqueta += "^XZ";
+            }
+
+
+
+            try
+            {
+                using (TcpClient client = new TcpClient(PRINT, 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+
+                    }
+
+                }
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+            //mandar imprimir 
+            return etiqueta;
+
+
+        }
+
+        //
+
         public async Task<List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>> getDetalle_Diario_Transferir_Correo(string JournalID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1901,10 +2104,10 @@ namespace WMS_API.Features.Repositories
 
             List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>("[IM_WMS_Detalle_Diario_Transferir_Correo]", parametros);
 
-            return response;            
+            return response;
         }
 
-        public async Task<List<IM_WMS_BusquedaRollosAXDTO>> GetBusquedaRollosAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID,string REFERENCE)
+        public async Task<List<IM_WMS_BusquedaRollosAXDTO>> GetBusquedaRollosAX(string INVENTLOCATIONID, string INVENTSERIALID, string INVENTBATCHID, string INVENTCOLORID, string WMSLOCATIONID, string REFERENCE)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -1913,7 +2116,7 @@ namespace WMS_API.Features.Repositories
             INVENTBATCHID = INVENTBATCHID == "-" ? "" : INVENTBATCHID;
             INVENTCOLORID = INVENTCOLORID == "-" ? "" : INVENTCOLORID;
             WMSLOCATIONID = WMSLOCATIONID == "-" ? "" : WMSLOCATIONID;
-            REFERENCE = REFERENCE == "-" ? "" : REFERENCE; 
+            REFERENCE = REFERENCE == "-" ? "" : REFERENCE;
 
             var parametros = new List<SqlParameter>
             {
@@ -1976,7 +2179,7 @@ namespace WMS_API.Features.Repositories
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter>
-            {};
+            { };
 
             List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>("[IM_WMS_InventarioCiclicoTelasDiariosAbiertos]", parametros);
 
@@ -1996,7 +2199,7 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        public async Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user,decimal QTY)
+        public async Task<IM_WMS_InventarioCilicoTelaDiario> GetInventarioCilicoTelaDiario(string JournalID, string InventSerialID, string user, decimal QTY)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter>
@@ -2042,7 +2245,7 @@ namespace WMS_API.Features.Repositories
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            var parametros = new List<SqlParameter> { 
+            var parametros = new List<SqlParameter> {
                 new SqlParameter("@inventSerialID", InventserialID),
                 new SqlParameter("@QTY", QTY)
 
@@ -2055,18 +2258,18 @@ namespace WMS_API.Features.Repositories
 
         //Recepcion y ubicacion cajas
 
-        public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion,string Tipo)
+        public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion, string Tipo)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@opBoxNum", opBoxNum),
-                new SqlParameter("@ubicacion", ubicacion)               
+                new SqlParameter("@ubicacion", ubicacion)
             };
             SP_GetBoxesReceived response;
             if (Tipo == "DENIM")
             {
-                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
+                response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
 
             }
             else
@@ -2095,7 +2298,7 @@ namespace WMS_API.Features.Repositories
             List<SP_GetAllBoxesReceived> result;
             if (filtro.Tipo == "DENIM")
             {
-                 result= await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2]", parametros);
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2]", parametros);
 
             }
             else
@@ -2112,7 +2315,7 @@ namespace WMS_API.Features.Repositories
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
 
-            var parametros = new List<SqlParameter> {};
+            var parametros = new List<SqlParameter> { };
             List<SP_GetAllBoxesReceived> result;
             if (TIPO == "DENIM")
             {
@@ -2130,42 +2333,42 @@ namespace WMS_API.Features.Repositories
         {
             await getAllBoxesReceived("DENIM");
             List<SP_GetAllBoxesReceived> list = new List<SP_GetAllBoxesReceived>();
-            List<IM_ObtenerTrasladoRecepcion> traslados = new List<IM_ObtenerTrasladoRecepcion>(); 
+            List<IM_ObtenerTrasladoRecepcion> traslados = new List<IM_ObtenerTrasladoRecepcion>();
 
             DateTime date = DateTime.Now;
             string fecha = date.Day + "-" + date.Month + "-" + date.Year;
 
-            data.ForEach( element =>
-            {
-                Filtros filtro = new Filtros();
-                filtro.Ubicacion = element.ubicacion;
-                filtro.size = 200000;
-                filtro.Articulo = "";
-                filtro.Lote = "";
-                filtro.Orden = "";
-                filtro.Talla = "";
-                filtro.Color = "";
-                filtro.page = 0;
-                filtro.Tipo = "DENIM";
+            data.ForEach(element =>
+           {
+               Filtros filtro = new Filtros();
+               filtro.Ubicacion = element.ubicacion;
+               filtro.size = 200000;
+               filtro.Articulo = "";
+               filtro.Lote = "";
+               filtro.Orden = "";
+               filtro.Talla = "";
+               filtro.Color = "";
+               filtro.page = 0;
+               filtro.Tipo = "DENIM";
 
-                var datos = getAllBoxesReceived(filtro).Result;
-                datos.ForEach( x =>
-                {
-                    string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
-                    if(fecha == fechatmp &&  element.Ordenes.Contains(x.OP + "," + x.NumeroDeCaja))
-                    {
-                        if (!list.Any(l => l.OP == x.OP && l.NumeroDeCaja == x.NumeroDeCaja))
-                        {
-                            list.Add(x);
-                        }
-                        var TrasTmp = this.gettrasladosRecepcion(x.OP, x.NumeroDeCaja).Result;
-                        if (traslados.Find(el => el.TransferIdAx1 == TrasTmp.TransferIdAx1 && el.TransferIdAx1 == TrasTmp.TransferIdAx1)?.TransferIdAx1 == null)
-                        {
-                            traslados.Add(TrasTmp);
-                        }
-                    }
-                });
-            });
+               var datos = getAllBoxesReceived(filtro).Result;
+               datos.ForEach(x =>
+               {
+                   string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
+                   if (fecha == fechatmp && element.Ordenes.Contains(x.OP + "," + x.NumeroDeCaja))
+                   {
+                       if (!list.Any(l => l.OP == x.OP && l.NumeroDeCaja == x.NumeroDeCaja))
+                       {
+                           list.Add(x);
+                       }
+                       var TrasTmp = this.gettrasladosRecepcion(x.OP, x.NumeroDeCaja).Result;
+                       if (traslados.Find(el => el.TransferIdAx1 == TrasTmp.TransferIdAx1 && el.TransferIdAx1 == TrasTmp.TransferIdAx1)?.TransferIdAx1 == null)
+                       {
+                           traslados.Add(TrasTmp);
+                       }
+                   }
+               });
+           });
 
             try
             {
@@ -2208,8 +2411,8 @@ namespace WMS_API.Features.Repositories
 
                     //sacar resumen
                     var listagrupada = list
-                        .GroupBy(caja=> caja.Lote)
-                        .Select( grupo =>new SP_GetAllBoxesReceived
+                        .GroupBy(caja => caja.Lote)
+                        .Select(grupo => new SP_GetAllBoxesReceived
                         {
                             Lote = grupo.Key,
                             CantidadEnCaja = grupo.Sum(caja => caja.CantidadEnCaja)
@@ -2260,21 +2463,21 @@ namespace WMS_API.Features.Repositories
 
                         });
 
-                        TimeSpan tiempo = list[0].FechaDeRecepcion - list[list.Count-1].FechaDeRecepcion;
-                        
+                        TimeSpan tiempo = list[0].FechaDeRecepcion - list[list.Count - 1].FechaDeRecepcion;
 
-                        mail.Subject = "Recepcion Producto Terminado DENIM "  + fecha;
+
+                        mail.Subject = "Recepcion Producto Terminado DENIM " + fecha;
                         mail.IsBodyHtml = true;
 
-                        mail.Body = "<p>Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en "+tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos "+tiempo.Seconds +  " Segundos</p><h2>Traslados:</h2>";
+                        mail.Body = "<p>Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en " + tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos " + tiempo.Seconds + " Segundos</p><h2>Traslados:</h2>";
                         traslados.ForEach(x =>
                         {
                             mail.Body += "<p>Primeras: " + x.TransferIdAx1 + " S/T: " + x.TransferIdAx2 + "</p>";
                         });
                         using (MemoryStream ms = new MemoryStream(fileContents))
                         {
-                            
-                            Attachment attachment = new Attachment(ms, "Recepcion Cajas Bodega "+fecha+".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                            Attachment attachment = new Attachment(ms, "Recepcion Cajas Bodega " + fecha + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                             mail.Attachments.Add(attachment);
 
                             SmtpClient oSmtpClient = new SmtpClient();
@@ -2302,7 +2505,7 @@ namespace WMS_API.Features.Repositories
 
                 }
             }
-            catch(Exception err)
+            catch (Exception err)
             {
                 return err.ToString();
             }
@@ -2321,7 +2524,7 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
-        public async Task<IM_ObtenerTrasladoRecepcion> gettrasladosRecepcion(string WorkOrderID , string BoxNum)
+        public async Task<IM_ObtenerTrasladoRecepcion> gettrasladosRecepcion(string WorkOrderID, string BoxNum)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
 
@@ -2345,9 +2548,9 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@ubicacion", ubicacion)
             };
             SP_GetBoxesReceived response;
-            
-            response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReserved]", parametros);     
-            
+
+            response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReserved]", parametros);
+
             return response;
         }
 
@@ -2380,7 +2583,7 @@ namespace WMS_API.Features.Repositories
         public async Task<List<SP_GetAllBoxesReserved_V2>> GetAllBoxesReserved()
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
-            var parametros = new List<SqlParameter>{};
+            var parametros = new List<SqlParameter> { };
             List<SP_GetAllBoxesReserved_V2> response;
 
             response = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReserved_V2>("[SP_GetAllBoxesReserved]", parametros);
@@ -2444,7 +2647,7 @@ namespace WMS_API.Features.Repositories
             {
                 new SqlParameter("@pedido", pedido),
                 new SqlParameter("@empresa", empresa),
-                
+
             };
 
             List<IM_WMS_ObtenerDetalleGeneracionPrecios> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerDetalleGeneracionPrecios>("[IM_WMS_ObtenerDetalleGeneracionPrecios]", parametros);
@@ -2482,5 +2685,7 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
+
+       
     }
 }
