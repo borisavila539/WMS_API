@@ -616,6 +616,7 @@ namespace WMS_API.Controllers
             var resp = await _WMS.Get_Control_Cajas_Etiquetado_Detalles(filtro);
             return resp;
         }
+        
         //generaicon de precios y codigos
         [HttpGet("ObtenerDetalleGeneracionPrecios/{pedido}/{empresa}")]
         public async Task<IEnumerable<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa)
@@ -650,6 +651,8 @@ namespace WMS_API.Controllers
             worksheet.Cells[fila, 14].Value = "Precio";
             worksheet.Cells[fila, 15].Value = "Departamento";
             worksheet.Cells[fila, 16].Value = "SubCategoria";
+            worksheet.Cells[fila, 17].Value = "Pedido";
+
             fila++;
 
             data.ForEach(element =>
@@ -670,10 +673,13 @@ namespace WMS_API.Controllers
                 worksheet.Cells[fila, 14].Value = element.Precio;
                 worksheet.Cells[fila, 15].Value = element.Departamento;
                 worksheet.Cells[fila, 16].Value = element.SubCategoria;
+                worksheet.Cells[fila, 17].Value = element.Pedido;
+
+
                 fila++;
             });
             fila--;
-            var rangeTable = worksheet.Cells[1, 1, fila, 16];
+            var rangeTable = worksheet.Cells[1, 1, fila, 17];
             var table = worksheet.Tables.Add(rangeTable, "MyTable");
             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 

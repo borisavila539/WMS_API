@@ -2643,15 +2643,23 @@ namespace WMS_API.Features.Repositories
         public async Task<List<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
-            var parametros = new List<SqlParameter>
+            var pedidos =pedido.Split(',');
+            List<IM_WMS_ObtenerDetalleGeneracionPrecios> response =  new List<IM_WMS_ObtenerDetalleGeneracionPrecios>();
+            for (int i = 0; i< pedidos.Length; i++)
             {
-                new SqlParameter("@pedido", pedido),
-                new SqlParameter("@empresa", empresa),
+                var parametros = new List<SqlParameter>
+                {
+                    new SqlParameter("@pedido", pedidos[i]),
+                    new SqlParameter("@empresa", empresa),
 
-            };
+                };
+                List<IM_WMS_ObtenerDetalleGeneracionPrecios> tmp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerDetalleGeneracionPrecios>("[IM_WMS_ObtenerDetalleGeneracionPrecios]", parametros);
+                tmp.ForEach(ele =>
+                {
+                    response.Add(ele);
 
-            List<IM_WMS_ObtenerDetalleGeneracionPrecios> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerDetalleGeneracionPrecios>("[IM_WMS_ObtenerDetalleGeneracionPrecios]", parametros);
-
+                });
+            }  
             return response;
         }
 

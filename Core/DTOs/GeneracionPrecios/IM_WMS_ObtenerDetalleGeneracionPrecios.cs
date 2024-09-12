@@ -9,6 +9,7 @@ namespace Core.DTOs.GeneracionPrecios
     public class IM_WMS_ObtenerDetalleGeneracionPrecios
     {
         public string CuentaCliente { get; set; }
+        public string Pedido { get; set; }
         public string CodigoBarra { get; set; }
         public string Articulo { get; set; }
         public string Base { get; set; }
