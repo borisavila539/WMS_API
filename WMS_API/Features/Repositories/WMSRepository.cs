@@ -2694,6 +2694,124 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-       
+        public async Task<List<IM_WMS_DetalleImpresionEtiquetasPrecio>> GetDetalleImpresionEtiquetasPrecio(string Pedido, string Ruta, string Caja)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            Pedido = Pedido == "-" ? "" : Pedido;
+            Ruta = Ruta == "-" ? "" : Ruta;
+            Caja = Caja == "-" ? "" : Caja;
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@SalesID", Pedido),
+                new SqlParameter("@Ruta", Ruta),
+                new SqlParameter("@boxCode", Caja)
+            };
+
+            List<IM_WMS_DetalleImpresionEtiquetasPrecio> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecio]", parametros);
+
+            return response;
+        }
+
+        public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha)
+        {
+            int fila = 915;
+            string etiqueta = @"^XA^FWN^PW1200^PR2";
+            for (int i = 1; i <= 3; i++)
+            {
+                etiqueta += @"^FO" + fila + ",175";
+                etiqueta += @"^A0R,50,50";
+                etiqueta += @"^FD"+data.Nombre+"^FS";
+                fila -= 25;
+
+                etiqueta += @"^FO" + fila + ",30";
+                etiqueta += @"^A0R,25,25";
+                etiqueta += @"^FD" + data.Estilo + "^FS";
+
+                if (data.Talla.Length > 2)
+                {
+                    etiqueta += @"^FO" + fila + ",300";
+                    etiqueta += @"^A0R,25,25";
+                    etiqueta += @"^FD" + data.Talla + "^FS";
+                }
+                else
+                {
+                    etiqueta += @"^FO" + fila + ",375";
+                    etiqueta += @"^A0R,50,50";
+                    etiqueta += @"^FD" + data.Talla + "^FS";
+                }
+
+                fila -= 25;
+                etiqueta += @"^FO" + fila + ",30";
+                etiqueta += @"^A0R,20,20";
+                etiqueta += @"^FD" + data.Articulo + "^FS";            
+                
+
+                fila -= 25;
+
+                etiqueta += @"^FO" + fila + ",30";
+                etiqueta += @"^A0R,20,20";
+                etiqueta += @"^FD" + data.Descripcion + "^FS";
+
+                fila -= 60;
+
+                etiqueta += @"^BY4,2,60";
+                etiqueta += @"^FO" + fila + ",60^BER";
+                etiqueta += @"^FD" + data.CodigoBarra + "^FS";
+
+                fila -= 70;
+
+                etiqueta += @"^FO" + fila + ",50";
+                etiqueta += @"^A0R,30,30";
+                etiqueta += @"^FD" + data.IDColor + "^FS";
+
+                fila -= 25;
+
+                etiqueta += @"^FO" + fila + ",50";
+                etiqueta += @"^A0R,25,25";
+                etiqueta += @"^FDIVA incluido^FS";
+
+                etiqueta += @"^FO" + fila + ",400";
+                etiqueta += @"^A0R,30,30";
+                var dia = DateTime.Now;
+                string fechatxt = dia.Month.ToString() + dia.Year.ToString().Substring(2,2);
+
+                etiqueta += @"^FD"+(fecha.Length != 1 ? fecha:fechatxt) +"^FS";                
+
+                etiqueta += @"^FO" + fila + ",235";
+                etiqueta += @"^A0R,60,60";
+                etiqueta += @"^FD" + data.Precio + "^FS";
+
+                fila -= 105;
+
+                if (faltante != 0 && faltante == i)
+                {
+                    i = 5;
+                }
+            }
+            if (multiplo > 0)
+            {
+                etiqueta += @"^PQ" + multiplo;
+            }
+
+            etiqueta += @"^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient("10.1.1.114", 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            };
+            return "ok";
+        }
     }
 }

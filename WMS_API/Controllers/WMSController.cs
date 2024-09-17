@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using WMS_API.Features.Utilities;
 
@@ -797,5 +798,43 @@ namespace WMS_API.Controllers
             return "OK";
 
         }
+
+        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}")]
+        public async Task<IEnumerable<IM_WMS_DetalleImpresionEtiquetasPrecio>> getDatosPrecioCodigos(string pedido, string ruta, string caja)
+        {
+            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
+            return data;
+        }
+
+        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}")]
+        public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha)
+        {
+            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
+            if(data.Find(x => x.Precio == 0).Precio == 0)
+            {
+                return "Existen articulos sin precio";
+            }
+            else
+            {
+                data.ForEach(element =>
+                {
+                    int multiplo = element.QTY / 3;
+                    int restante = element.QTY - multiplo * 3;
+                    if (multiplo > 0)
+                    {
+                        _WMS.imprimirEtiquetaprecios(element, multiplo, 0, fecha);
+                    }
+                    if (restante > 0)
+                    {
+                        _WMS.imprimirEtiquetaprecios(element, 0, restante, fecha);
+                    }
+                });
+            }
+            
+           
+            return "OK";
+
+        }
+        
     }
 }
