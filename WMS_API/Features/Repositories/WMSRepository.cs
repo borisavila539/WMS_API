@@ -2340,34 +2340,38 @@ namespace WMS_API.Features.Repositories
 
             data.ForEach(element =>
            {
-               Filtros filtro = new Filtros();
-               filtro.Ubicacion = element.ubicacion;
-               filtro.size = 200000;
-               filtro.Articulo = "";
-               filtro.Lote = "";
-               filtro.Orden = "";
-               filtro.Talla = "";
-               filtro.Color = "";
-               filtro.page = 0;
-               filtro.Tipo = "DENIM";
-
-               var datos = getAllBoxesReceived(filtro).Result;
-               datos.ForEach(x =>
+               for(int i= 0; i < element.Ordenes.Length;i++)
                {
-                   string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
-                   if (fecha == fechatmp && element.Ordenes.Contains(x.OP + "," + x.NumeroDeCaja))
+                   var orden = element.Ordenes[i].Split(",");
+                   Filtros filtro = new Filtros();
+                   filtro.Ubicacion = "";
+                   filtro.size = 200000;
+                   filtro.Articulo = "";
+                   filtro.Lote = "";
+                   filtro.Orden = orden[0];
+                   filtro.Talla = "";
+                   filtro.Color = "";
+                   filtro.page = 0;
+                   filtro.Tipo = "DENIM";
+                   var datos = getAllBoxesReceived(filtro).Result;
+                   datos = datos.FindAll(x => element.Ordenes[i].Contains(x.OP + "," + x.NumeroDeCaja));
+                   datos.ForEach(x =>
                    {
-                       if (!list.Any(l => l.OP == x.OP && l.NumeroDeCaja == x.NumeroDeCaja))
+                       string fechatmp = x.FechaDeRecepcion.Day + "-" + x.FechaDeRecepcion.Month + "-" + x.FechaDeRecepcion.Year;
+                       if (fecha == fechatmp && element.Ordenes.Contains(x.OP + "," + x.NumeroDeCaja))
                        {
-                           list.Add(x);
+                           if (!list.Any(l => l.OP == x.OP && l.NumeroDeCaja == x.NumeroDeCaja))
+                           {
+                               list.Add(x);
+                           }
+                           var TrasTmp = this.gettrasladosRecepcion(x.OP, x.NumeroDeCaja).Result;
+                           if (traslados.Find(el => el.TransferIdAx1 == TrasTmp.TransferIdAx1 && el.TransferIdAx1 == TrasTmp.TransferIdAx1)?.TransferIdAx1 == null)
+                           {
+                               traslados.Add(TrasTmp);
+                           }
                        }
-                       var TrasTmp = this.gettrasladosRecepcion(x.OP, x.NumeroDeCaja).Result;
-                       if (traslados.Find(el => el.TransferIdAx1 == TrasTmp.TransferIdAx1 && el.TransferIdAx1 == TrasTmp.TransferIdAx1)?.TransferIdAx1 == null)
-                       {
-                           traslados.Add(TrasTmp);
-                       }
-                   }
-               });
+                   });
+               }  
            });
 
             try
@@ -2462,6 +2466,8 @@ namespace WMS_API.Features.Repositories
                             mail.To.Add(x.Correo);
 
                         });
+                        //mail.To.Add("bavila@intermoda.com.hn");
+
 
                         TimeSpan tiempo = list[0].FechaDeRecepcion - list[list.Count - 1].FechaDeRecepcion;
 
@@ -2713,6 +2719,34 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
+        public string imprimirEtiquetaCajaDividir(string caja)
+        {
+            
+            string etiqueta = @"^XA^FWN^PW1200^PR2";
+
+            etiqueta += @"^FO915,25";
+            etiqueta += @"^A0R,50,50";
+            etiqueta += @"^FD" + caja + "^FS";
+
+            etiqueta += @"^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient("10.1.1.114", 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            };
+            return "ok";
+        }
         public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha)
         {
             int fila = 915;
@@ -2778,9 +2812,9 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD"+(fecha.Length != 1 ? fecha:fechatxt) +"^FS";                
 
-                etiqueta += @"^FO" + fila + ",235";
-                etiqueta += @"^A0R,60,60";
-                etiqueta += @"^FD" + data.Precio + "^FS";
+                etiqueta += @"^FO" + fila + ","+(data.Decimal || data.Moneda != ""? "190": "210");
+                etiqueta += @"^A0R,55,55";
+                etiqueta += @"^FD" + (data.Moneda !="" ?data.Moneda:"")+(data.Decimal ? data.Precio.ToString("F2"):data.Precio.ToString("F0")) + "^FS";
 
                 fila -= 105;
 
@@ -2812,6 +2846,33 @@ namespace WMS_API.Features.Repositories
                 return err.ToString();
             };
             return "ok";
+        }
+
+        public async Task<List<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+            
+
+            List<IM_WMS_ClientesGeneracionprecios> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ClientesGeneracionprecios>("[IM_WMS_ObtenerClientesGeneracionPrecio]", parametros);
+
+            return response;
+        }
+
+        public async Task<IM_WMS_ClientesGeneracionprecios> postClienteGeneracionPrecio(IM_WMS_ClientesGeneracionprecios data)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@CuentaCliente", data.CuentaCliente),
+                new SqlParameter("@Nombre", data.Nombre),
+                new SqlParameter("@Moneda", data.Moneda),
+                new SqlParameter("@Decimal", data.Decimal)
+            };
+
+            IM_WMS_ClientesGeneracionprecios response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_ClientesGeneracionprecios>("[IM_WMS_UpdateClientesGeneracionPrecio]", parametros);
+
+            return response;
         }
     }
 }

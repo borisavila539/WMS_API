@@ -17,5 +17,8 @@ namespace Core.DTOs.GeneracionPrecios
         public string IDColor { get; set; }
         public decimal Precio { get; set; }
         public int QTY { get; set; }
+        public string Moneda { get; set; }
+        public Boolean Decimal { get; set; }
+        public string IMIB_BOXCODE { get; set; }
     }
 }

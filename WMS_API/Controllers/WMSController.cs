@@ -779,7 +779,7 @@ namespace WMS_API.Controllers
                                 Base = worksheet.Cells[row, 2].Text,
                                 IDColor = worksheet.Cells[row, 3].Text,
                                 Costo = Convert.ToDecimal(worksheet.Cells[row, 4].Text),
-                                Precio = worksheet.Cells[row, 5].Text == "0"?0: Convert.ToDecimal(worksheet.Cells[row, 5].Text),
+                                Precio =  Convert.ToDecimal(worksheet.Cells[row, 5].Text),
                             };
 
                             await this.postInsertUpdatePrecioCodigos(configuracion);
@@ -810,7 +810,9 @@ namespace WMS_API.Controllers
         public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha)
         {
             var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
-            if(data.Find(x => x.Precio == 0).Precio == 0)
+            var tmp = data.FindAll(x => x.Precio == 0);
+            string cajas = "";
+            if (tmp.Count() != 0)
             {
                 return "Existen articulos sin precio";
             }
@@ -818,6 +820,17 @@ namespace WMS_API.Controllers
             {
                 data.ForEach(element =>
                 {
+                    if (cajas == "")
+                    {
+                        cajas = element.IMIB_BOXCODE;
+                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE);
+
+                    }
+                    else if(cajas != element.IMIB_BOXCODE)
+                    {
+                        cajas = element.IMIB_BOXCODE;
+                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE);
+                    }
                     int multiplo = element.QTY / 3;
                     int restante = element.QTY - multiplo * 3;
                     if (multiplo > 0)
@@ -835,6 +848,19 @@ namespace WMS_API.Controllers
             return "OK";
 
         }
-        
+        [HttpGet("ObtenerClientesGeneracionPrecio")]
+        public async Task<IEnumerable<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
+        {
+            var resp = await _WMS.GetClientesGeneracionprecios();
+            return resp;
+        }
+
+        [HttpPost("ClientesGeneracionPrecio")]
+        public async Task<IM_WMS_ClientesGeneracionprecios> postClientesGeneracionprecios(IM_WMS_ClientesGeneracionprecios data)
+        {
+            var resp = await _WMS.postClienteGeneracionPrecio(data);
+            return resp;
+        }
+
     }
 }
