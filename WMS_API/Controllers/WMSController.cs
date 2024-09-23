@@ -806,8 +806,8 @@ namespace WMS_API.Controllers
             return data;
         }
 
-        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}")]
-        public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha)
+        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
+        public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha,string impresora)
         {
             var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
             var tmp = data.FindAll(x => x.Precio == 0);
@@ -820,26 +820,22 @@ namespace WMS_API.Controllers
             {
                 data.ForEach(element =>
                 {
-                    if (cajas == "")
+                    if (cajas == "" || cajas != element.IMIB_BOXCODE)
                     {
                         cajas = element.IMIB_BOXCODE;
-                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE);
+                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE,impresora);
 
                     }
-                    else if(cajas != element.IMIB_BOXCODE)
-                    {
-                        cajas = element.IMIB_BOXCODE;
-                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE);
-                    }
+                    
                     int multiplo = element.QTY / 3;
                     int restante = element.QTY - multiplo * 3;
                     if (multiplo > 0)
                     {
-                        _WMS.imprimirEtiquetaprecios(element, multiplo, 0, fecha);
+                        _WMS.imprimirEtiquetaprecios(element, multiplo, 0, fecha,impresora);
                     }
                     if (restante > 0)
                     {
-                        _WMS.imprimirEtiquetaprecios(element, 0, restante, fecha);
+                        _WMS.imprimirEtiquetaprecios(element, 0, restante, fecha, impresora);
                     }
                 });
             }

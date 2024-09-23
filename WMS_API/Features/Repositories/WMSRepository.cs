@@ -2638,7 +2638,9 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@lote", filtro.Lote),
                 new SqlParameter("@empleado", filtro.Empleado),
                 new SqlParameter("@page", filtro.Page),
-                new SqlParameter("@size", filtro.Size)
+                new SqlParameter("@size", filtro.Size),
+                new SqlParameter("@Fecha", filtro.Fecha)
+
             };
 
             List<IM_WMS_Control_Cajas_Etiquetado_Detalle> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Control_Cajas_Etiquetado_Detalle>("[IM_WMS_Control_Cajas_Etiquetado_Detalle]", parametros);
@@ -2719,7 +2721,7 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        public string imprimirEtiquetaCajaDividir(string caja)
+        public string imprimirEtiquetaCajaDividir(string caja,string impresora)
         {
             
             string etiqueta = @"^XA^FWN^PW1200^PR2";
@@ -2732,7 +2734,7 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-                using (TcpClient client = new TcpClient("10.1.1.114", 9100))
+                using (TcpClient client = new TcpClient(impresora, 9100))
                 {
                     using (NetworkStream stream = client.GetStream())
                     {
@@ -2747,7 +2749,7 @@ namespace WMS_API.Features.Repositories
             };
             return "ok";
         }
-        public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha)
+        public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha,string impresora)
         {
             int fila = 915;
             string etiqueta = @"^XA^FWN^PW1200^PR2";
@@ -2832,7 +2834,7 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-                using (TcpClient client = new TcpClient("10.1.1.114", 9100))
+                using (TcpClient client = new TcpClient(impresora, 9100))
                 {
                     using (NetworkStream stream = client.GetStream())
                     {
