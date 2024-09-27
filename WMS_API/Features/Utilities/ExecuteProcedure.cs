@@ -17,7 +17,7 @@ namespace WMS_API.Features.Utilities
             _connectionString = connectionString;
         }
 
-        public async Task<List<T>> ExecuteStoredProcedureList<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 300) where T : new()
+        public async Task<List<T>> ExecuteStoredProcedureList<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 600) where T : new()
         {
             try
             {
@@ -54,7 +54,7 @@ namespace WMS_API.Features.Utilities
             }
         }
 
-        public async Task<T> ExecuteStoredProcedure<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 300) where T : new()
+        public async Task<T> ExecuteStoredProcedure<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 600) where T : new()
         {
             try
             {

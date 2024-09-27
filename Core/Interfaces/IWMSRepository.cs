@@ -124,6 +124,9 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios();
         public Task<IM_WMS_ClientesGeneracionprecios> postClienteGeneracionPrecio(IM_WMS_ClientesGeneracionprecios data);
 
+        //Tracking Pedidos
+        public Task<string> getEnviarCorreoTrackingPedidos( string fecha);
+       
 
 
     }

@@ -26,6 +26,8 @@ using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.ControCajasEtiquetado;
 using OfficeOpenXml.Table.PivotTable;
 using Core.DTOs.GeneracionPrecios;
+using Core.DTOs.TrackingPedidos;
+using System.Threading;
 
 namespace WMS_API.Features.Repositories
 {
@@ -2740,6 +2742,8 @@ namespace WMS_API.Features.Repositories
                     {
                         byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
                         stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep(500);
+
                     }
                 }
             }
@@ -2839,7 +2843,10 @@ namespace WMS_API.Features.Repositories
                     using (NetworkStream stream = client.GetStream())
                     {
                         byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
+                        
                         stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep((multiplo+faltante)*800);
+
                     }
                 }
             }
@@ -2876,5 +2883,288 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
+
+        //Tracking Pedido
+        public async Task<string> getEnviarCorreoTrackingPedidos(string fecha)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@fecha", fecha)
+
+            };
+            DateTime FechaVacia = new DateTime(1900, 01, 01);
+
+            List<IM_WMS_GenerarDetalleFacturas> Pedidos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GenerarDetalleFacturas>("[IM_WMS_GenerarDetalleFacturas]", parametros);
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var package = new ExcelPackage();
+            //Todo
+            var worksheet0 = package.Workbook.Worksheets.Add("Todo");
+            int fila = 1;
+
+            worksheet0.Cells[fila, 1].Value = "Cuenta Cliente";
+            worksheet0.Cells[fila, 2].Value = "Nombre Cliente";
+            worksheet0.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
+            worksheet0.Cells[fila, 4].Value = "Pedido Venta";
+            worksheet0.Cells[fila, 5].Value = "Estado Pedido";
+            worksheet0.Cells[fila, 6].Value = "Lista Empaque";
+            worksheet0.Cells[fila, 7].Value = "Fecha Generacion Lista Empaque";
+            worksheet0.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
+            worksheet0.Cells[fila, 9].Value = "Albaran";
+            worksheet0.Cells[fila, 10].Value = "Fecha Albaran";
+            worksheet0.Cells[fila, 11].Value = "Factura";
+            worksheet0.Cells[fila, 12].Value = "Fecha Factura";
+            worksheet0.Cells[fila, 13].Value = "Fecha Recepcion CD";
+            worksheet0.Cells[fila, 14].Value = "Fecha Despacho";
+            worksheet0.Cells[fila, 15].Value = "Ubicacion";
+            worksheet0.Cells[fila, 16].Value = "Cajas";
+            worksheet0.Cells[fila, 17].Value = "Cantidad";
+            fila++;
+
+            Pedidos.ForEach(element => {
+                    worksheet0.Cells[fila, 1].Value = element.CuentaCliente;
+                    worksheet0.Cells[fila, 2].Value = element.NombreCliente;
+                    worksheet0.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "" : element.FechaIngresoPedido;
+                    worksheet0.Cells[fila, 4].Value = element.PedidoVenta;
+                    worksheet0.Cells[fila, 5].Value = element.EstadoPedido;
+                    worksheet0.Cells[fila, 6].Value = element.ListaEmpaque;
+                    worksheet0.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
+                    worksheet0.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
+                    worksheet0.Cells[fila, 9].Value = element.Albaran;
+                    worksheet0.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
+                    worksheet0.Cells[fila, 11].Value = element.Factura;
+                    worksheet0.Cells[fila, 12].Value = element.FechaFactura == FechaVacia ? "" : element.FechaFactura;
+                    worksheet0.Cells[fila, 13].Value = element.FechaRececpcionCD == FechaVacia ? "" : element.FechaRececpcionCD;
+                    worksheet0.Cells[fila, 14].Value = element.FechaDespacho == FechaVacia ? "" : element.FechaDespacho;
+                    worksheet0.Cells[fila, 15].Value = element.Ubicacion;
+                    worksheet0.Cells[fila, 16].Value = element.Cajas;
+                    worksheet0.Cells[fila, 17].Value = element.QTY;
+                    fila++;
+                });
+
+            worksheet0.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet0.Cells[1, 7, fila - 1, 8].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet0.Cells[1, 10, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet0.Cells[1, 12, fila - 1, 14].Style.Numberformat.Format = "dd/MM/yyyy";
+
+            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 17];
+            var table0 = worksheet0.Tables.Add(rangeTable0, "Todo");
+            table0.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet0.Cells.AutoFitColumns();
+
+            //pendientes
+            var worksheet = package.Workbook.Worksheets.Add("Pendiente");
+            fila = 1;
+
+            worksheet.Cells[fila, 1].Value = "Cuenta Cliente";
+            worksheet.Cells[fila, 2].Value = "Nombre Cliente";
+            worksheet.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
+            worksheet.Cells[fila, 4].Value = "Pedido Venta";
+            worksheet.Cells[fila, 5].Value = "Estado Pedido";
+
+            fila++;
+
+
+            Pedidos.FindAll(x => x.ListaEmpaque == "" && x.Albaran == ""&& x.Factura == ""&& x.Ubicacion == "")
+                .ForEach(element =>{
+                    worksheet.Cells[fila, 1].Value = element.CuentaCliente;
+                    worksheet.Cells[fila, 2].Value = element.NombreCliente;
+                    worksheet.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "": element.FechaIngresoPedido;
+                    worksheet.Cells[fila, 4].Value = element.PedidoVenta;
+                    worksheet.Cells[fila, 5].Value = element.EstadoPedido;
+                    fila++;
+                });
+
+            worksheet.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
+
+            var rangeTable = worksheet.Cells[1, 1, fila-1, 5];
+            var table = worksheet.Tables.Add(rangeTable, "Pendiente");
+            table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet.Cells.AutoFitColumns();
+
+            //Lista Empaque
+            var worksheet2 = package.Workbook.Worksheets.Add("ListaEmpaque");
+             fila = 1;
+
+            worksheet2.Cells[fila, 1].Value = "Cuenta Cliente";
+            worksheet2.Cells[fila, 2].Value = "Nombre Cliente";
+            worksheet2.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
+            worksheet2.Cells[fila, 4].Value = "Pedido Venta";
+            worksheet2.Cells[fila, 5].Value = "Estado Pedido";
+            worksheet2.Cells[fila, 6].Value = "Lista Empaque";
+            worksheet2.Cells[fila, 7].Value = "Fecha Generacion Lista Empaque";
+            worksheet2.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
+
+            fila++;
+
+            Pedidos.FindAll(x => x.ListaEmpaque != "" && x.Albaran == "" && x.Factura == "" && x.Ubicacion == "")
+                .ForEach(element => {
+                    worksheet2.Cells[fila, 1].Value = element.CuentaCliente;
+                    worksheet2.Cells[fila, 2].Value = element.NombreCliente;
+                    worksheet2.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "" : element.FechaIngresoPedido;
+                    worksheet2.Cells[fila, 4].Value = element.PedidoVenta;
+                    worksheet2.Cells[fila, 5].Value = element.EstadoPedido;
+                    worksheet2.Cells[fila, 6].Value = element.ListaEmpaque;
+                    worksheet2.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
+                    worksheet2.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
+                    fila++;
+                });
+
+            worksheet2.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet2.Cells[1, 7, fila - 1, 8].Style.Numberformat.Format = "dd/MM/yyyy";
+
+
+            var rangeTable2 = worksheet2.Cells[1, 1, fila - 1, 8];
+            var table2 = worksheet2.Tables.Add(rangeTable2, "ListaEmpaque");
+            table2.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet2.Cells.AutoFitColumns();
+
+            //Albaran
+            var worksheet3 = package.Workbook.Worksheets.Add("Albaran");
+            fila = 1;
+
+            worksheet3.Cells[fila, 1].Value = "Cuenta Cliente";
+            worksheet3.Cells[fila, 2].Value = "Nombre Cliente";
+            worksheet3.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
+            worksheet3.Cells[fila, 4].Value = "Pedido Venta";
+            worksheet3.Cells[fila, 5].Value = "Estado Pedido";
+            worksheet3.Cells[fila, 6].Value = "Lista Empaque";
+            worksheet3.Cells[fila, 7].Value = "Fecha Generacion Lista Empaque";
+            worksheet3.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
+            worksheet3.Cells[fila, 9].Value = "Albaran";
+            worksheet3.Cells[fila, 10].Value = "Fecha Albaran";
+
+            fila++;
+
+            Pedidos.FindAll(x => x.Albaran != "" && x.Factura == "" && x.Ubicacion == "")
+                .ForEach(element => {
+                    worksheet3.Cells[fila, 1].Value = element.CuentaCliente;
+                    worksheet3.Cells[fila, 2].Value = element.NombreCliente;
+                    worksheet3.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "" : element.FechaIngresoPedido;
+                    worksheet3.Cells[fila, 4].Value = element.PedidoVenta;
+                    worksheet3.Cells[fila, 5].Value = element.EstadoPedido;
+                    worksheet3.Cells[fila, 6].Value = element.ListaEmpaque;
+                    worksheet3.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
+                    worksheet3.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
+                    worksheet3.Cells[fila, 9].Value = element.Albaran;
+                    worksheet3.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
+                    fila++;
+                });
+
+            worksheet3.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet3.Cells[1, 7, fila - 1, 8].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet3.Cells[1, 10, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy";
+
+
+
+            var rangeTable3 = worksheet3.Cells[1, 1, fila - 1, 10];
+            var table3 = worksheet3.Tables.Add(rangeTable3, "Albaran");
+            table3.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet3.Cells.AutoFitColumns();
+
+            //Factura
+            var worksheet4 = package.Workbook.Worksheets.Add("Factura");
+            fila = 1;
+
+            worksheet4.Cells[fila, 1].Value = "Cuenta Cliente";
+            worksheet4.Cells[fila, 2].Value = "Nombre Cliente";
+            worksheet4.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
+            worksheet4.Cells[fila, 4].Value = "Pedido Venta";
+            worksheet4.Cells[fila, 5].Value = "Estado Pedido";
+            worksheet4.Cells[fila, 6].Value = "Lista Empaque";
+            worksheet4.Cells[fila, 7].Value = "Fecha Generacion Lista Empaque";
+            worksheet4.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
+            worksheet4.Cells[fila, 9].Value = "Albaran";
+            worksheet4.Cells[fila, 10].Value = "Fecha Albaran";
+            worksheet4.Cells[fila, 11].Value = "Factura";
+            worksheet4.Cells[fila, 12].Value = "Fecha Factura";
+
+            fila++;
+
+            Pedidos.FindAll(x => x.Factura != "" && x.Ubicacion == "")
+                .ForEach(element => {
+                    worksheet4.Cells[fila, 1].Value = element.CuentaCliente;
+                    worksheet4.Cells[fila, 2].Value = element.NombreCliente;
+                    worksheet4.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "" : element.FechaIngresoPedido;
+                    worksheet4.Cells[fila, 4].Value = element.PedidoVenta;
+                    worksheet4.Cells[fila, 5].Value = element.EstadoPedido;
+                    worksheet4.Cells[fila, 6].Value = element.ListaEmpaque;
+                    worksheet4.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
+                    worksheet4.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
+                    worksheet4.Cells[fila, 9].Value = element.Albaran;
+                    worksheet4.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
+                    worksheet4.Cells[fila, 11].Value = element.Factura;
+                    worksheet4.Cells[fila, 12].Value = element.FechaFactura == FechaVacia ? "" : element.FechaFactura;
+                    fila++;
+                });
+
+            worksheet4.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet4.Cells[1, 7, fila - 1, 8].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet4.Cells[1, 10, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy";
+            worksheet4.Cells[1, 12, fila - 1, 12].Style.Numberformat.Format = "dd/MM/yyyy";
+
+            var rangeTable4 = worksheet4.Cells[1, 1, fila - 1, 12];
+            var table4 = worksheet4.Tables.Add(rangeTable4, "Factura");
+            table4.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet4.Cells.AutoFitColumns();
+
+            Byte[]  fileContents = package.GetAsByteArray();
+            try
+            {
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                var correos = await getCorreoCiclicoTelaTrackingPedido();
+
+                foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                {
+                    mail.To.Add(correo.Correo);
+                }
+
+                //mail.To.Add("bavila@intermoda.com.hn");
+                mail.Subject = "Tracking Pedidos";
+                mail.IsBodyHtml = false;
+
+                mail.Body = "Tranking Pedidos a la fecha ";
+
+                using (MemoryStream ms = new MemoryStream(fileContents))
+                {
+                    DateTime date = DateTime.Now;
+                    string fechah = date.Day + "_" + date.Month + "_" + date.Year;
+                    Attachment attachment = new Attachment(ms, "TrackingPedidos-" + fechah + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    mail.Attachments.Add(attachment);
+
+                    SmtpClient oSmtpClient = new SmtpClient();
+
+                    oSmtpClient.Host = "smtp.office365.com";
+                    oSmtpClient.Port = 587;
+                    oSmtpClient.EnableSsl = true;
+                    oSmtpClient.UseDefaultCredentials = false;
+
+                    NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                    oSmtpClient.Credentials = userCredential;
+
+                    oSmtpClient.Send(mail);
+                    oSmtpClient.Dispose();
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+        } 
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreoCiclicoTelaTrackingPedido()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>{};        
+
+            List<IM_WMS_Correos_DespachoPTDTO> correos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_ObtenerCorreosTrackingPedido]", parametros);
+            return correos;
+        }
     }
+   
 }

@@ -475,9 +475,15 @@ namespace WMS_API.Controllers
             string htmlCorreo = "";
 
             htmlCorreo += @"<h1>" + JournalID + @"</h1>";
-            htmlCorreo += @"<p>" + texto[1] + @"</p>";
-            htmlCorreo += @"<p>" + texto[2] + @"</p>";
-            htmlCorreo += @"<p>" + texto[3] + @"</p>";
+            try
+            {
+                htmlCorreo += @"<p>" + texto[1] + @"</p>";
+                htmlCorreo += @"<p>" + texto[2] + @"</p>";
+                htmlCorreo += @"<p>" + texto[3] + @"</p>";
+            }catch(Exception err)
+            {
+                htmlCorreo += @"<p>" + resp + @"</p>";
+            }
 
 
             try
@@ -855,6 +861,14 @@ namespace WMS_API.Controllers
         public async Task<IM_WMS_ClientesGeneracionprecios> postClientesGeneracionprecios(IM_WMS_ClientesGeneracionprecios data)
         {
             var resp = await _WMS.postClienteGeneracionPrecio(data);
+            return resp;
+        }
+        //Tracking pedido
+        [HttpGet("EnviarCorreoTrackingPedidos/{fecha}")]
+
+        public async Task<string> getEnviarCorreoTrackingPedidos(string fecha)
+        {
+            var resp = await _WMS.getEnviarCorreoTrackingPedidos(fecha);
             return resp;
         }
 
