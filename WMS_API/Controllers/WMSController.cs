@@ -8,6 +8,7 @@ using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -865,11 +866,17 @@ namespace WMS_API.Controllers
         }
         //Tracking pedido
         [HttpGet("EnviarCorreoTrackingPedidos/{fecha}")]
-
         public async Task<string> getEnviarCorreoTrackingPedidos(string fecha)
         {
             var resp = await _WMS.getEnviarCorreoTrackingPedidos(fecha);
             return resp;
+        }
+        [HttpPost("TrackingPedidos")]
+        public async Task<IEnumerable<IM_WMS_GenerarDetalleFacturas>> postTrackingPedidos(TrackingPedidosFiltro filtro) 
+        {
+            var resp = await _WMS.getObtenerDetalletrackingPedidos(filtro);
+            return resp;
+            
         }
 
     }

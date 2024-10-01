@@ -25,5 +25,6 @@ namespace Core.DTOs.TrackingPedidos
         public int Cajas { get; set; }
         public int QTY { get; set; }
         public string EstadoPedido { get; set; }
+        public int Paginas { get; set; }
     }
 }

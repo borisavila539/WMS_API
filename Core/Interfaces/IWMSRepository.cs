@@ -8,6 +8,7 @@ using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.TrackingPedidos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -126,6 +127,7 @@ namespace Core.Interfaces
 
         //Tracking Pedidos
         public Task<string> getEnviarCorreoTrackingPedidos( string fecha);
+        public Task<List<IM_WMS_GenerarDetalleFacturas>> getObtenerDetalletrackingPedidos(TrackingPedidosFiltro filtro);
        
 
 

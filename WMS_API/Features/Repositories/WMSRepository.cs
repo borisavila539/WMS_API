@@ -3165,6 +3165,24 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_Correos_DespachoPTDTO> correos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_ObtenerCorreosTrackingPedido]", parametros);
             return correos;
         }
+
+        public async Task<List<IM_WMS_GenerarDetalleFacturas>> getObtenerDetalletrackingPedidos(TrackingPedidosFiltro filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@cuentaCliente",filtro.CuentaCliente),
+                new SqlParameter("@pedido",filtro.Pedido),
+                new SqlParameter("@ListaEmpaque",filtro.ListaEmpaque),
+                new SqlParameter("@albaran",filtro.Albaran),
+                new SqlParameter("@factura",filtro.Factura),
+                new SqlParameter("@page",filtro.page),
+                new SqlParameter("@size",filtro.size)
+
+            };
+
+            List<IM_WMS_GenerarDetalleFacturas> correos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GenerarDetalleFacturas>("[IM_WMS_ObtenerDetalleTrackingPedidos]", parametros);
+            return correos;
+        }
     }
    
 }
