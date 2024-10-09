@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
@@ -816,6 +817,9 @@ namespace WMS_API.Controllers
         [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
         public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha,string impresora)
         {
+            string resp = "";
+            string resp2 = "";
+
             var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
             var tmp = data.FindAll(x => x.Precio == 0);
             string cajas = "";
@@ -830,7 +834,12 @@ namespace WMS_API.Controllers
                     if (cajas == "" || cajas != element.IMIB_BOXCODE)
                     {
                         cajas = element.IMIB_BOXCODE;
-                        _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE,impresora);
+                        resp2 = _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE, impresora);
+                        if (resp2 != "OK")
+                        {
+                            resp += "Fallo Impresion :" + resp2 + ",";
+
+                        }
 
                     }
                     
@@ -838,15 +847,30 @@ namespace WMS_API.Controllers
                     int restante = element.QTY - multiplo * 3;
                     if (multiplo > 0)
                     {
-                        _WMS.imprimirEtiquetaprecios(element, multiplo, 0, fecha,impresora);
+                        resp2 = _WMS.imprimirEtiquetaprecios(element, multiplo, 0, fecha, impresora);
+                        if (resp2 != "OK")
+                        {
+                            resp += "Fallo Impresion :" + resp2 + ",";
+
+                        }
+
                     }
                     if (restante > 0)
                     {
-                        _WMS.imprimirEtiquetaprecios(element, 0, restante, fecha, impresora);
+                        resp2 = _WMS.imprimirEtiquetaprecios(element, 0, restante, fecha, impresora);
+                        if (resp2 != "OK")
+                        {
+                            resp += "Fallo Impresion :" + resp2 + ",";
+                        }
+                        
                     }
                 });
             }
             
+            if(resp.Length > 0)
+            {
+                return resp;
+            }
            
             return "OK";
 
@@ -877,6 +901,30 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getObtenerDetalletrackingPedidos(filtro);
             return resp;
             
+        }
+
+        //Auditoria cajas denim
+        [HttpGet("AuditoriaCajasDenim/{OP}/{Ubicacion}/{usuario}")]
+        public async Task<IEnumerable<IM_WMS_ObtenerDetalleAdutoriaDenim>> GetObtenerDetalleAdutoriaDenim(string OP,string Ubicacion,string usuario)
+        {
+            var texto = OP.Split(",");
+            var resp = await _WMS.Get_ObtenerDetalleAdutoriaDenims(OP!= "-"? texto[0]:"", OP!= "-"? Convert.ToInt32(texto[1]):0, Ubicacion, usuario);
+            return resp;
+        }
+
+        [HttpGet("AuditoriaInsertCajasDenim/{ID}/{AuditoriaID}")]
+        public async Task<IM_WMS_insertDetalleAdutoriaDenim> GetInsertDetalleAdutoriaDenim(int ID,int AuditoriaID)
+        {
+            
+            var resp = await _WMS.GetInsertDetalleAdutoriaDenim(ID,AuditoriaID);
+            return resp;
+        }
+
+        [HttpGet("EnviarAuditoriaInsertCajasDenim/{ubicacion}/{usuario}")]
+        public async Task<string> GetInsertDetalleAdutoriaDenim(string ubicacion, string usuario)
+        {
+            var resp = await _WMS.getEnviarCorreoAuditoriaDenim(ubicacion, usuario);
+            return resp;
         }
 
     }

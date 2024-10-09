@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
@@ -128,6 +129,11 @@ namespace Core.Interfaces
         //Tracking Pedidos
         public Task<string> getEnviarCorreoTrackingPedidos( string fecha);
         public Task<List<IM_WMS_GenerarDetalleFacturas>> getObtenerDetalletrackingPedidos(TrackingPedidosFiltro filtro);
+
+        //auditoria Denim
+        public Task<List<IM_WMS_ObtenerDetalleAdutoriaDenim>> Get_ObtenerDetalleAdutoriaDenims(string OP, int Caja, string Ubicacion, string Usuario);
+        public Task<IM_WMS_insertDetalleAdutoriaDenim> GetInsertDetalleAdutoriaDenim(int ID, int AuditoriaID);
+        public Task<string> getEnviarCorreoAuditoriaDenim(string Ubicaicon,string usuario);
        
 
 
