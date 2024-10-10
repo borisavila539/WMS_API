@@ -3233,6 +3233,7 @@ namespace WMS_API.Features.Repositories
             worksheet0.Cells[fila, 7].Value = "Diferencia";
             worksheet0.Cells[fila, 8].Value = "Fecha Inicio";
             worksheet0.Cells[fila, 9].Value = "Fecha Final";
+            worksheet0.Cells[fila, 10].Value = "Lote";
             
             fila++;
 
@@ -3245,7 +3246,9 @@ namespace WMS_API.Features.Repositories
                 worksheet0.Cells[fila, 6].Value = element.Auditado;
                 worksheet0.Cells[fila, 7].Value = element.Cantidad - element.Auditado;
                 worksheet0.Cells[fila, 8].Value = element.FechaInicio == FechaVacia ? "" : element.FechaInicio;
-                worksheet0.Cells[fila, 9].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;               
+                worksheet0.Cells[fila, 9].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
+                worksheet0.Cells[fila, 10].Value = element.Lote;
+
                 fila++;
             });
             worksheet0.Cells[fila, 6].Value = "Diferencias";
@@ -3254,7 +3257,7 @@ namespace WMS_API.Features.Repositories
             worksheet0.Cells[fila, 7].Style.Font.Bold = true;
             worksheet0.Cells[1, 8, fila - 1, 9].Style.Numberformat.Format = "dd/MM/yyyy HH:mm";
 
-            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 9];
+            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 10];
             var table0 = worksheet0.Tables.Add(rangeTable0, "Todo");
             table0.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet0.Cells.AutoFitColumns();

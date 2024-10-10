@@ -20,6 +20,7 @@ namespace Core.DTOs.AuditoriaCajasDenim
         public string Talla { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public string Lote { get; set; }
 
     }
 }
