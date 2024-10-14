@@ -1671,6 +1671,149 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
+
+        public async Task<IM_WMS_insertDetalleAdutoriaDenim> getInsertAuditoriaCajaTP(string ProdID, int Box, int IDUnico, int QTY)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@ProdID", ProdID),
+                new SqlParameter("@Box", Box),
+                new SqlParameter("@IDUnico", IDUnico),
+                new SqlParameter("@QTY", QTY)
+            };
+
+            IM_WMS_insertDetalleAdutoriaDenim response = await executeProcedure.ExecuteStoredProcedure<IM_WMS_insertDetalleAdutoriaDenim>("[IM_WMS_InsertAuditoriaTP]", parametros);
+
+            return response;
+        }
+        public async Task<string> getEnviarCorreoAuditoriaTP(int DespachoID, string usuario)
+        {
+            var data = await getCajasAuditar(DespachoID);
+
+            DateTime FechaVacia = new DateTime(1900, 01, 01);
+            int diferencias = 0;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var package = new ExcelPackage();
+            //Todo
+            var worksheet0 = package.Workbook.Worksheets.Add("Todo");
+            int fila = 1;
+
+            worksheet0.Cells[fila, 1].Value = "OP";
+            worksheet0.Cells[fila, 2].Value = "Numero de Caja";
+            worksheet0.Cells[fila, 3].Value = "Articulo";
+            worksheet0.Cells[fila, 4].Value = "Talla";
+            worksheet0.Cells[fila, 5].Value = "Color";
+            worksheet0.Cells[fila, 6].Value = "Recibido";
+            worksheet0.Cells[fila, 7].Value = "Auditado";
+            worksheet0.Cells[fila, 8].Value = "Diferencia";
+            worksheet0.Cells[fila, 9].Value = "Fecha Inicio";
+            worksheet0.Cells[fila, 10].Value = "Fecha Final";
+
+            fila++;
+
+            data.ForEach(element => {
+                worksheet0.Cells[fila, 1].Value = element.ProdID;
+                worksheet0.Cells[fila, 2].Value = element.Box;
+                worksheet0.Cells[fila, 3].Value = element.ItemID;
+                worksheet0.Cells[fila, 4].Value = element.Size;
+                worksheet0.Cells[fila, 5].Value = element.Color;
+                worksheet0.Cells[fila, 6].Value = element.QTY;
+                worksheet0.Cells[fila, 7].Value = element.Auditado;
+                worksheet0.Cells[fila, 8].Value = element.QTY - element.Auditado;
+                worksheet0.Cells[fila, 9].Value = element.FechaIni == FechaVacia ? "" : element.FechaIni;
+                worksheet0.Cells[fila, 10].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
+                diferencias += element.QTY - element.Auditado;
+
+                fila++;
+            });
+            worksheet0.Cells[fila, 7].Value = "Diferencias";
+            worksheet0.Cells[fila, 7].Style.Font.Bold = true;
+            worksheet0.Cells[fila, 8].Formula = $"SUM(H2:H{fila - 1})";
+            worksheet0.Cells[fila, 8].Style.Font.Bold = true;
+            worksheet0.Cells[1, 9, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy HH:mm";
+
+            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 10];
+            var table0 = worksheet0.Tables.Add(rangeTable0, "Todo");
+            table0.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+            worksheet0.Cells.AutoFitColumns();
+
+
+
+
+            Byte[] fileContents = package.GetAsByteArray();
+            try
+            {
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                var correos = await getCorreosRecepcionUbicacionCajas();
+
+                foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                {
+                    mail.To.Add(correo.Correo);
+                }
+
+                //mail.To.Add("bavila@intermoda.com.hn");
+
+                mail.Subject = "Auditoria TP Despacho " + DespachoID;
+                mail.IsBodyHtml = false;
+
+                if(diferencias > 0)
+                {
+                    mail.Body = "Auditoria TP Despacho: " + DespachoID + " usuario: " + usuario + " Diferencia: " + diferencias;
+
+                }
+                else
+                {
+                    mail.Body = "Auditoria TP Despacho: " + DespachoID + " usuario: " + usuario;
+
+                }
+
+
+                using (MemoryStream ms = new MemoryStream(fileContents))
+                {
+                    DateTime date = DateTime.Now;
+                    string fechah = date.Day + "_" + date.Month + "_" + date.Year;
+                    Attachment attachment = new Attachment(ms, "AuditoriaTP_Despacho:" + DespachoID + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    mail.Attachments.Add(attachment);
+
+                    SmtpClient oSmtpClient = new SmtpClient();
+
+                    oSmtpClient.Host = "smtp.office365.com";
+                    oSmtpClient.Port = 587;
+                    oSmtpClient.EnableSsl = true;
+                    oSmtpClient.UseDefaultCredentials = false;
+
+                    NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                    oSmtpClient.Credentials = userCredential;
+
+                    oSmtpClient.Send(mail);
+                    oSmtpClient.Dispose();
+                }
+
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parametros = new List<SqlParameter> {
+                new SqlParameter("@DespachoID",DespachoID)
+                };
+                List<IM_WMS_Get_Despachos_PT_DTO> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Get_Despachos_PT_DTO>("[IM_WMS_EnviarAuditoriaTP]", parametros);
+
+
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+
+
+            
+        }
+
+
         public async Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID)
         {
 
@@ -3217,7 +3360,7 @@ namespace WMS_API.Features.Repositories
             var data = await Get_ObtenerDetalleAdutoriaDenims("-", 0, Ubicacion, usuario);
 
             DateTime FechaVacia = new DateTime(1900, 01, 01);
-
+            int diferencias = 0;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var package = new ExcelPackage();
             //Todo
@@ -3228,12 +3371,13 @@ namespace WMS_API.Features.Repositories
             worksheet0.Cells[fila, 2].Value = "Numero de Caja";
             worksheet0.Cells[fila, 3].Value = "Articulo";
             worksheet0.Cells[fila, 4].Value = "Talla";
-            worksheet0.Cells[fila, 5].Value = "Recibido";
-            worksheet0.Cells[fila, 6].Value = "Auditado";
-            worksheet0.Cells[fila, 7].Value = "Diferencia";
-            worksheet0.Cells[fila, 8].Value = "Fecha Inicio";
-            worksheet0.Cells[fila, 9].Value = "Fecha Final";
-            worksheet0.Cells[fila, 10].Value = "Lote";
+            worksheet0.Cells[fila, 5].Value = "Color";
+            worksheet0.Cells[fila, 6].Value = "Recibido";
+            worksheet0.Cells[fila, 7].Value = "Auditado";
+            worksheet0.Cells[fila, 8].Value = "Diferencia";
+            worksheet0.Cells[fila, 9].Value = "Fecha Inicio";
+            worksheet0.Cells[fila, 10].Value = "Fecha Final";
+            worksheet0.Cells[fila, 11].Value = "Lote";
             
             fila++;
 
@@ -3242,22 +3386,23 @@ namespace WMS_API.Features.Repositories
                 worksheet0.Cells[fila, 2].Value = element.NumeroCaja;
                 worksheet0.Cells[fila, 3].Value = element.Articulo;
                 worksheet0.Cells[fila, 4].Value = element.Talla;
-                worksheet0.Cells[fila, 5].Value = element.Cantidad;
-                worksheet0.Cells[fila, 6].Value = element.Auditado;
-                worksheet0.Cells[fila, 7].Value = element.Cantidad - element.Auditado;
-                worksheet0.Cells[fila, 8].Value = element.FechaInicio == FechaVacia ? "" : element.FechaInicio;
-                worksheet0.Cells[fila, 9].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
-                worksheet0.Cells[fila, 10].Value = element.Lote;
-
+                worksheet0.Cells[fila, 5].Value = element.COlor;
+                worksheet0.Cells[fila, 6].Value = element.Cantidad;
+                worksheet0.Cells[fila, 7].Value = element.Auditado;
+                worksheet0.Cells[fila, 8].Value = element.Cantidad - element.Auditado;
+                worksheet0.Cells[fila, 9].Value = element.FechaInicio == FechaVacia ? "" : element.FechaInicio;
+                worksheet0.Cells[fila, 10].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
+                worksheet0.Cells[fila, 11].Value = element.Lote;
+                diferencias += element.Cantidad - element.Auditado;
                 fila++;
             });
-            worksheet0.Cells[fila, 6].Value = "Diferencias";
-            worksheet0.Cells[fila, 6].Style.Font.Bold = true;
-            worksheet0.Cells[fila, 7].Formula = $"SUM(G2:G{fila - 1})";
+            worksheet0.Cells[fila, 7].Value = "Diferencias";
             worksheet0.Cells[fila, 7].Style.Font.Bold = true;
-            worksheet0.Cells[1, 8, fila - 1, 9].Style.Numberformat.Format = "dd/MM/yyyy HH:mm";
+            worksheet0.Cells[fila, 8].Formula = $"SUM(H2:H{fila - 1})";
+            worksheet0.Cells[fila, 8].Style.Font.Bold = true;
+            worksheet0.Cells[1, 9, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy HH:mm";
 
-            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 10];
+            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 11];
             var table0 = worksheet0.Tables.Add(rangeTable0, "Todo");
             table0.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet0.Cells.AutoFitColumns();
@@ -3284,7 +3429,16 @@ namespace WMS_API.Features.Repositories
                 mail.Subject = "Auditoria Denim " + Ubicacion ;
                 mail.IsBodyHtml = false;
 
-                mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario;
+                if (diferencias > 0)
+                {
+                    mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario+ " Diferencias: "+diferencias;
+
+                }
+                else
+                {
+                    mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario;
+                }
+                
 
                 using (MemoryStream ms = new MemoryStream(fileContents))
                 {

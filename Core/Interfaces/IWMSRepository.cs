@@ -60,6 +60,8 @@ namespace Core.Interfaces
         //Adutoria de cajas
         public Task<List<IM_WMS_DespachoPT_CajasAuditarDTO>> getCajasAuditar(int despachoID);
         public Task<List<IM_WMS_Detalle_Auditoria_CajaDTO>> getDetalleAuditoriaCaja(string ProdID, int box);
+        public Task<IM_WMS_insertDetalleAdutoriaDenim> getInsertAuditoriaCajaTP(string ProdID, int Box, int IDUnico, int QTY);
+        public Task<string> getEnviarCorreoAuditoriaTP(int DespachoID, string usuario);
 
         public Task<List<IM_WMS_Get_Despachos_PT_DTO>> getDespachosPTEstado(int DespachoID);
         public Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoPT(string user);

@@ -286,7 +286,21 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("InsertAuditoriaCajaTP/{ProdID}/{Box}/{IDUnico}/{QTY}")]
+        public async Task<IM_WMS_insertDetalleAdutoriaDenim> getDetalleAuditoriaCaja(string ProdID, int Box,int IDUnico,int QTY)
+        {
+            var resp = await _WMS.getInsertAuditoriaCajaTP(ProdID, Box,IDUnico,QTY);
+            return resp;
+        }
 
+        [HttpGet("EnviarAuditoriaTP/{DespachoID}/{usuario}")]
+        public async Task<string> getDetalleAuditoriaCaja(int DespachoID,string usuario)
+        {
+            var resp = await _WMS.getEnviarCorreoAuditoriaTP(DespachoID,usuario);
+            return resp;
+        }
+
+        
         //Consulta OP
 
 

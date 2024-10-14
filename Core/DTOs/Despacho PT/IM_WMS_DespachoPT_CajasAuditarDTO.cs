@@ -16,5 +16,7 @@ namespace Core.DTOs.Despacho_PT
         public int Box { get; set; }
         public int QTY { get; set; }
         public int Auditado { get; set; }
+        public DateTime FechaIni { get; set; }
+        public DateTime FechaFin { get; set; }
     }
 }

@@ -21,6 +21,7 @@ namespace Core.DTOs.AuditoriaCajasDenim
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public string Lote { get; set; }
+        public string COlor { get; set; }
 
     }
 }
