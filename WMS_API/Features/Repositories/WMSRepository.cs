@@ -1693,6 +1693,11 @@ namespace WMS_API.Features.Repositories
 
             DateTime FechaVacia = new DateTime(1900, 01, 01);
             int diferencias = 0;
+            int cajas = 0;
+            int unidades = 0;
+            DateTime fechaINI = new DateTime();
+            DateTime FechaFin = new DateTime();
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var package = new ExcelPackage();
             //Todo
@@ -1724,6 +1729,27 @@ namespace WMS_API.Features.Repositories
                 worksheet0.Cells[fila, 9].Value = element.FechaIni == FechaVacia ? "" : element.FechaIni;
                 worksheet0.Cells[fila, 10].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
                 diferencias += element.QTY - element.Auditado;
+
+                if (fila == 2)
+                {
+                    fechaINI = element.FechaIni;
+                    FechaFin = element.FechaFin;
+                }
+                else
+                {
+                    if (fechaINI > element.FechaIni)
+                    {
+                        fechaINI = element.FechaIni;
+                    }
+
+                    if (FechaFin < element.FechaFin)
+                    {
+                        FechaFin = element.FechaFin;
+                    }
+                }
+
+                cajas++;
+                unidades += element.Auditado;
 
                 fila++;
             });
@@ -1759,17 +1785,8 @@ namespace WMS_API.Features.Repositories
 
                 mail.Subject = "Auditoria TP Despacho " + DespachoID;
                 mail.IsBodyHtml = false;
-
-                if(diferencias > 0)
-                {
-                    mail.Body = "Auditoria TP Despacho: " + DespachoID + " usuario: " + usuario + " Diferencia: " + diferencias;
-
-                }
-                else
-                {
-                    mail.Body = "Auditoria TP Despacho: " + DespachoID + " usuario: " + usuario;
-
-                }
+               
+                mail.Body = "Auditoria TP Despacho: " + DespachoID + " usuario: " + usuario + " Diferencia: " + diferencias + " Cajas: " + cajas + " unidades: " + unidades + " Inicio: " + fechaINI + " Fin: " + FechaFin;
 
 
                 using (MemoryStream ms = new MemoryStream(fileContents))
@@ -3361,6 +3378,10 @@ namespace WMS_API.Features.Repositories
 
             DateTime FechaVacia = new DateTime(1900, 01, 01);
             int diferencias = 0;
+            int cajas = 0;
+            int unidades = 0;
+            DateTime fechaINI = new DateTime();
+            DateTime FechaFin = new DateTime();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var package = new ExcelPackage();
             //Todo
@@ -3394,6 +3415,27 @@ namespace WMS_API.Features.Repositories
                 worksheet0.Cells[fila, 10].Value = element.FechaFin == FechaVacia ? "" : element.FechaFin;
                 worksheet0.Cells[fila, 11].Value = element.Lote;
                 diferencias += element.Cantidad - element.Auditado;
+
+                if (fila == 2)
+                {
+                    fechaINI = element.FechaInicio;
+                    FechaFin = element.FechaFin;
+                }
+                else
+                {
+                    if(fechaINI > element.FechaInicio)
+                    {
+                        fechaINI = element.FechaInicio;
+                    }
+
+                    if (FechaFin < element.FechaFin)
+                    {
+                        FechaFin = element.FechaFin;
+                    }
+                }
+
+                cajas++;
+                unidades += element.Auditado;
                 fila++;
             });
             worksheet0.Cells[fila, 7].Value = "Diferencias";
@@ -3428,17 +3470,9 @@ namespace WMS_API.Features.Repositories
 
                 mail.Subject = "Auditoria Denim " + Ubicacion ;
                 mail.IsBodyHtml = false;
-
-                if (diferencias > 0)
-                {
-                    mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario+ " Diferencias: "+diferencias;
-
-                }
-                else
-                {
-                    mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario;
-                }
                 
+                mail.Body = "Auditoria Denim " + Ubicacion + " usuario: " + usuario+ " Diferencias: "+diferencias + " Cajas: "+cajas + " unidades: "+unidades +" Inicio: "+fechaINI+ " Fin: " +FechaFin;                
+               
 
                 using (MemoryStream ms = new MemoryStream(fileContents))
                 {
