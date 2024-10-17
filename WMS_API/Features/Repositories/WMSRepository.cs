@@ -1737,7 +1737,7 @@ namespace WMS_API.Features.Repositories
                 }
                 else
                 {
-                    if (fechaINI > element.FechaIni)
+                    if (fechaINI > element.FechaIni && element.FechaIni != FechaVacia)
                     {
                         fechaINI = element.FechaIni;
                     }
@@ -1748,7 +1748,10 @@ namespace WMS_API.Features.Repositories
                     }
                 }
 
-                cajas++;
+                if (element.Auditado != 0)
+                {
+                    cajas++;
+                }
                 unidades += element.Auditado;
 
                 fila++;
@@ -3423,7 +3426,7 @@ namespace WMS_API.Features.Repositories
                 }
                 else
                 {
-                    if(fechaINI > element.FechaInicio)
+                    if(fechaINI > element.FechaInicio && element.FechaInicio != FechaVacia)
                     {
                         fechaINI = element.FechaInicio;
                     }
@@ -3433,8 +3436,10 @@ namespace WMS_API.Features.Repositories
                         FechaFin = element.FechaFin;
                     }
                 }
-
-                cajas++;
+                if(element.Auditado != 0)
+                {
+                    cajas++;
+                }
                 unidades += element.Auditado;
                 fila++;
             });
