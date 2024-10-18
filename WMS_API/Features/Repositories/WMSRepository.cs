@@ -2644,7 +2644,11 @@ namespace WMS_API.Features.Repositories
                         mail.Body = "<p>Recepcion Producto Terminado DENIM" + " Camion: " + data[0].Camion + " Usuario: " + data[0].Usuario + ", Descargado en " + tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos " + tiempo.Seconds + " Segundos</p><h2>Traslados:</h2>";
                         traslados.ForEach(x =>
                         {
-                            mail.Body += "<p>Primeras: " + x.TransferIdAx1 + " S/T: " + x.TransferIdAx2 + "</p>";
+                            if(x.TransferIdAx1 != "" || x.TransferIdAx2 != "")
+                            {
+                                mail.Body += "<p>Traslado Primeras: " + x.TransferIdAx1 + " Traslado Segundas/Terceras: " + x.TransferIdAx2 + "</p>";
+
+                            }
                         });
                         using (MemoryStream ms = new MemoryStream(fileContents))
                         {
