@@ -1,6 +1,7 @@
 ﻿using Core.DTOs;
 using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.Cajasrecicladas;
 using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
@@ -287,20 +288,20 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("InsertAuditoriaCajaTP/{ProdID}/{Box}/{IDUnico}/{QTY}")]
-        public async Task<IM_WMS_insertDetalleAdutoriaDenim> getDetalleAuditoriaCaja(string ProdID, int Box,int IDUnico,int QTY)
+        public async Task<IM_WMS_insertDetalleAdutoriaDenim> getDetalleAuditoriaCaja(string ProdID, int Box, int IDUnico, int QTY)
         {
-            var resp = await _WMS.getInsertAuditoriaCajaTP(ProdID, Box,IDUnico,QTY);
+            var resp = await _WMS.getInsertAuditoriaCajaTP(ProdID, Box, IDUnico, QTY);
             return resp;
         }
 
         [HttpGet("EnviarAuditoriaTP/{DespachoID}/{usuario}")]
-        public async Task<string> getDetalleAuditoriaCaja(int DespachoID,string usuario)
+        public async Task<string> getDetalleAuditoriaCaja(int DespachoID, string usuario)
         {
-            var resp = await _WMS.getEnviarCorreoAuditoriaTP(DespachoID,usuario);
+            var resp = await _WMS.getEnviarCorreoAuditoriaTP(DespachoID, usuario);
             return resp;
         }
 
-        
+
         //Consulta OP
 
 
@@ -354,17 +355,17 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("TransferirMovimiento/{JOURNALID}/{ITEMBARCODE}/{PROCESO}/{BoxCode}")]
-        public async Task<string> GetTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO,string BoxCode)
+        public async Task<string> GetTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string BoxCode)
         {
             var resp = _AX.InsertDeleteTransferirMovimientoLine(JOURNALID, ITEMBARCODE, PROCESO);
-            if(resp == "OK")
+            if (resp == "OK")
             {
-               await _WMS.GetInsertTransferirCajaDetalle(JOURNALID, ITEMBARCODE, BoxCode, PROCESO);
+                await _WMS.GetInsertTransferirCajaDetalle(JOURNALID, ITEMBARCODE, BoxCode, PROCESO);
             }
 
             return resp;
 
-          
+
         }
 
         [HttpGet("EnviarCorreotransferir/{JOURNALID}/{USERID}")]
@@ -496,7 +497,8 @@ namespace WMS_API.Controllers
                 htmlCorreo += @"<p>" + texto[1] + @"</p>";
                 htmlCorreo += @"<p>" + texto[2] + @"</p>";
                 htmlCorreo += @"<p>" + texto[3] + @"</p>";
-            }catch(Exception err)
+            }
+            catch (Exception err)
             {
                 htmlCorreo += @"<p>" + resp + @"</p>";
             }
@@ -639,7 +641,7 @@ namespace WMS_API.Controllers
             var resp = await _WMS.Get_Control_Cajas_Etiquetado_Detalles(filtro);
             return resp;
         }
-        
+
         //generaicon de precios y codigos
         [HttpGet("ObtenerDetalleGeneracionPrecios/{pedido}/{empresa}")]
         public async Task<IEnumerable<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa)
@@ -793,7 +795,7 @@ namespace WMS_API.Controllers
 
                         // Recorre las filas y columnas
                         for (int row = 2; row <= rowCount; row++) // Empieza en la fila 2, omitiendo el encabezado
-                        {                           
+                        {
 
                             var configuracion = new IM_WMS_ObtenerPreciosCodigos
                             {
@@ -801,7 +803,7 @@ namespace WMS_API.Controllers
                                 Base = worksheet.Cells[row, 2].Text,
                                 IDColor = worksheet.Cells[row, 3].Text,
                                 Costo = Convert.ToDecimal(worksheet.Cells[row, 4].Text),
-                                Precio =  Convert.ToDecimal(worksheet.Cells[row, 5].Text),
+                                Precio = Convert.ToDecimal(worksheet.Cells[row, 5].Text),
                             };
 
                             await this.postInsertUpdatePrecioCodigos(configuracion);
@@ -829,7 +831,7 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
-        public async Task<string> getimpresionPrecioCodigos(string pedido,string ruta,string caja,string fecha,string impresora)
+        public async Task<string> getimpresionPrecioCodigos(string pedido, string ruta, string caja, string fecha, string impresora)
         {
             string resp = "";
             string resp2 = "";
@@ -856,7 +858,7 @@ namespace WMS_API.Controllers
                         }
 
                     }
-                    
+
                     int multiplo = element.QTY / 3;
                     int restante = element.QTY - multiplo * 3;
                     if (multiplo > 0)
@@ -876,16 +878,16 @@ namespace WMS_API.Controllers
                         {
                             resp += "Fallo Impresion :" + resp2 + ",";
                         }
-                        
+
                     }
                 });
             }
-            
-            if(resp.Length > 0)
+
+            if (resp.Length > 0)
             {
                 return resp;
             }
-           
+
             return "OK";
 
         }
@@ -910,27 +912,27 @@ namespace WMS_API.Controllers
             return resp;
         }
         [HttpPost("TrackingPedidos")]
-        public async Task<IEnumerable<IM_WMS_GenerarDetalleFacturas>> postTrackingPedidos(TrackingPedidosFiltro filtro) 
+        public async Task<IEnumerable<IM_WMS_GenerarDetalleFacturas>> postTrackingPedidos(TrackingPedidosFiltro filtro)
         {
             var resp = await _WMS.getObtenerDetalletrackingPedidos(filtro);
             return resp;
-            
+
         }
 
         //Auditoria cajas denim
         [HttpGet("AuditoriaCajasDenim/{OP}/{Ubicacion}/{usuario}")]
-        public async Task<IEnumerable<IM_WMS_ObtenerDetalleAdutoriaDenim>> GetObtenerDetalleAdutoriaDenim(string OP,string Ubicacion,string usuario)
+        public async Task<IEnumerable<IM_WMS_ObtenerDetalleAdutoriaDenim>> GetObtenerDetalleAdutoriaDenim(string OP, string Ubicacion, string usuario)
         {
             var texto = OP.Split(",");
-            var resp = await _WMS.Get_ObtenerDetalleAdutoriaDenims(OP!= "-"? texto[0]:"", OP!= "-"? Convert.ToInt32(texto[1]):0, Ubicacion, usuario);
+            var resp = await _WMS.Get_ObtenerDetalleAdutoriaDenims(OP != "-" ? texto[0] : "", OP != "-" ? Convert.ToInt32(texto[1]) : 0, Ubicacion, usuario);
             return resp;
         }
 
         [HttpGet("AuditoriaInsertCajasDenim/{ID}/{AuditoriaID}")]
-        public async Task<IM_WMS_insertDetalleAdutoriaDenim> GetInsertDetalleAdutoriaDenim(int ID,int AuditoriaID)
+        public async Task<IM_WMS_insertDetalleAdutoriaDenim> GetInsertDetalleAdutoriaDenim(int ID, int AuditoriaID)
         {
-            
-            var resp = await _WMS.GetInsertDetalleAdutoriaDenim(ID,AuditoriaID);
+
+            var resp = await _WMS.GetInsertDetalleAdutoriaDenim(ID, AuditoriaID);
             return resp;
         }
 
@@ -941,5 +943,29 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        //recicjale de cajas
+        [HttpGet("ReciclajeCajas/{CentroCosto}/{QTY}/{DIARIO}/{CAMION}/{CHOFER}/{USUARIO}")]
+        public string getInsetCajaReciclaje(string CentroCosto, string QTY, string DIARIO, string CAMION, string CHOFER, string USUARIO)
+        {
+            var resp = _AX.InsertCajasRecicladas(QTY, CentroCosto == "-" ? "" : CentroCosto, DIARIO == "-" ? "" : DIARIO);
+            if (resp.StartsWith("DIA"))
+            {
+                _WMS.GetInsertCajasRecicladashistorico(CAMION, CHOFER, CentroCosto, Convert.ToInt32(QTY), USUARIO, resp);
+            }
+            return resp;
+        }
+
+        [HttpGet("ReciclajeCajasCentroCostos")]
+        public async Task<IEnumerable<IM_WMS_CentroCostoReciclajeCajas>> GetCentroCostoReciclajeCajas()
+        {
+            var resp = await _WMS.GetCentroCostoReciclajeCajas();
+            return resp;
+        }
+        [HttpGet("ReciclajeCajasPendientes")]
+        public async Task<IEnumerable<IM_WMS_InsertCajasRecicladashistorico>> GetCajasRecicladasPendiente()
+        {
+            var resp = await _WMS.GetCajasRecicladasPendiente();
+            return resp;
+        }
     }
 }

@@ -29,6 +29,7 @@ using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.TrackingPedidos;
 using System.Threading;
 using Core.DTOs.AuditoriaCajasDenim;
+using Core.DTOs.Cajasrecicladas;
 
 namespace WMS_API.Features.Repositories
 {
@@ -3064,6 +3065,25 @@ namespace WMS_API.Features.Repositories
             DateTime FechaVacia = new DateTime(1900, 01, 01);
 
             List<IM_WMS_GenerarDetalleFacturas> Pedidos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GenerarDetalleFacturas>("[IM_WMS_GenerarDetalleFacturas]", parametros);
+
+            //variblea para resumen
+            string AlbaranTableHTML = "<table border='2'><caption><h2>Albaranado y No Facturado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Albaran</th><th>Fecha Albaran</th><th>Piezas</th><th>Dias sin Factura</th></thead><tbody>";
+            int AlbaranQTY = 0, AlbaranUnidades = 0;
+            List<string> ClientesAlbaran = new List<string>();
+
+            string ListaCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque Completada y no Albaranado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Fecha Completada</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            int ListaCompletadaQTY = 0, ListaCompletadaUnidades = 0;
+            List<string> ClientesListaCompletada = new List<string>();
+
+
+            string ListaNoCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque pendiente</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Fecha Iniciado</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            int ListaNoCompletadaQTY = 0, ListaNoCompletadaUnidades = 0;
+            List<string> ClientesListaNoCompletada = new List<string>();
+
+
+            TimeSpan diferencia;
+            DateTime hoy = DateTime.Now;
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var package = new ExcelPackage();
             //Todo
@@ -3176,6 +3196,33 @@ namespace WMS_API.Features.Repositories
                     worksheet2.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
                     worksheet2.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
                     fila++;
+
+                    if(element.FechaListaEmpaqueCompletada == FechaVacia)
+                    {
+                        diferencia = hoy - element.FechaGeneracionListaEmpaque ;
+                        if(diferencia.TotalHours > 72)
+                        {
+                            ListaNoCompletadaTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaGeneracionListaEmpaque + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                            ListaNoCompletadaQTY++;
+                            ListaNoCompletadaUnidades += element.QTY;
+                            if (!ClientesListaNoCompletada.Contains(element.CuentaCliente))
+                            {
+                                ClientesListaNoCompletada.Add(element.CuentaCliente);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        diferencia = hoy - element.FechaListaEmpaqueCompletada;
+                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                        ListaCompletadaQTY++;
+                        ListaCompletadaUnidades += element.QTY;
+
+                        if (!ClientesListaCompletada.Contains(element.CuentaCliente))
+                        {
+                            ClientesListaCompletada.Add(element.CuentaCliente);
+                        }
+                    }
                 });
 
             worksheet2.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
@@ -3217,6 +3264,16 @@ namespace WMS_API.Features.Repositories
                     worksheet3.Cells[fila, 9].Value = element.Albaran;
                     worksheet3.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
                     fila++;
+
+                    diferencia = hoy - element.FechaAlbaran;
+                    AlbaranTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.Albaran + "</td><td>" + element.FechaAlbaran + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                    AlbaranQTY++;
+                    AlbaranUnidades += element.QTY;
+
+                    if (!ClientesAlbaran.Contains(element.CuentaCliente))
+                    {
+                        ClientesAlbaran.Add(element.CuentaCliente);
+                    }
                 });
 
             worksheet3.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
@@ -3292,9 +3349,33 @@ namespace WMS_API.Features.Repositories
 
                 //mail.To.Add("bavila@intermoda.com.hn");
                 mail.Subject = "Tracking Pedidos";
-                mail.IsBodyHtml = false;
+                mail.IsBodyHtml = true;
 
-                mail.Body = "Tranking Pedidos a la fecha ";
+                string body = "<h1>Resumen</h1>";
+                
+                
+
+                body += "<table border='2'><thead><tr><th>Resumen</th><th>Clientes</th><th>Cantidad</th><th>Unidades</th></tr><thead>";
+                body += "<tbody>";
+                body += "<tr><td>Albaranes Pendientes de Facturar</td><td>" + ClientesAlbaran.Count() + "</td><td>" + AlbaranQTY + "</td><td>" + AlbaranUnidades + "</td></tr>";
+                body += "<tr><td>Lista Empaque pendientes de albaranar y facturar</td><td>" + ClientesListaCompletada.Count() + "</td><td>" + ListaCompletadaQTY + "</td><td>" + ListaCompletadaUnidades + "</td></tr>";
+                body += "<tr><td>Lista Empaque Pendiente de empacar mayor a 3 dias</td><td>" + ClientesListaNoCompletada.Count() + "</td><td>" + ListaNoCompletadaQTY+ "</td><td>" + ListaNoCompletadaQTY + "</td></tr>";
+                body += "</tbody></table>";
+                if(AlbaranQTY > 0)
+                {
+                    body += AlbaranTableHTML + "</table>";
+                }
+                if (ListaCompletadaQTY > 0)
+                {
+                    body += ListaCompletadaTableHTML + "</table>";
+                }
+                if (ListaNoCompletadaQTY > 0)
+                {
+                    body += ListaNoCompletadaTableHTML + "</table>";
+                }
+
+
+                mail.Body = body;
 
                 using (MemoryStream ms = new MemoryStream(fileContents))
                 {
@@ -3519,6 +3600,42 @@ namespace WMS_API.Features.Repositories
             }
 
             return "OK";
+        }
+
+        //Reciclaje de cajas
+        public async Task<List<IM_WMS_CentroCostoReciclajeCajas>> GetCentroCostoReciclajeCajas()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_CentroCostoReciclajeCajas> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_CentroCostoReciclajeCajas>("[IM_WMS_CentroCostoReciclajeCajas]", parametros);
+            return resp;
+        }
+
+        public async Task<IM_WMS_InsertCajasRecicladashistorico> GetInsertCajasRecicladashistorico(string Camion, string Chofer, string CentroCostos, int QTY, string usuario, string diario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@Camion",Camion),
+                new SqlParameter("@Chofer",Chofer),
+                new SqlParameter("@CentroCostos",CentroCostos),
+                new SqlParameter("@QTY",QTY),
+                new SqlParameter("@usuario",usuario),
+                new SqlParameter("@Diario",diario),
+
+            };
+
+            IM_WMS_InsertCajasRecicladashistorico resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_InsertCajasRecicladashistorico>("[IM_WMS_InsertCajasRecicladashistorico]", parametros);
+            return resp;
+        }
+
+        public async Task<List<IM_WMS_InsertCajasRecicladashistorico>> GetCajasRecicladasPendiente()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_InsertCajasRecicladashistorico> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_InsertCajasRecicladashistorico>("[IM_WMS_DespachoCajasReciclajePendiente]", parametros);
+            return resp;
         }
     }
    

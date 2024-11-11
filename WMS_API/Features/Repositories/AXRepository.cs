@@ -13,6 +13,8 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Xml.Serialization;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.Cajasrecicladas;
+using IM_WMS_CajaRecladasGP;
 
 namespace WMS_API.Features.Repositories
 {
@@ -213,6 +215,40 @@ namespace WMS_API.Features.Repositories
 
         }
 
+        public string InsertCajasRecicladas(string qty, string CentroCosto,string diario)
+        {
+            CAJASRECICLADAS HEADER = new CAJASRECICLADAS();
+            List<CAJARECICLADALINE> LIST = new List<CAJARECICLADALINE>();
+
+            CAJARECICLADALINE LINE = new CAJARECICLADALINE();
+            LINE.DIARIO = diario;
+            LINE.CENTROCOSTOS = CentroCosto;
+            LINE.QTY = qty;
+            LIST.Add(LINE);
+
+            HEADER.LINES = LIST.ToArray();
+
+            string trasladosLine = SerializationService.Serialize(HEADER);
+            IM_WMS_CajaRecladasGP.CallContext context = new IM_WMS_CajaRecladasGP.CallContext { Company = "IMHN" };
+            var serviceClient = new M_WMS_CajaRecicladasClient(GetBinding(), GetEndpointAddCaja());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                var resp = serviceClient.initAsync(context, dataValidation, trasladosLine);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
@@ -289,6 +325,19 @@ namespace WMS_API.Features.Repositories
         {
 
             string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_InventarioCiclicoTelaGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+
+        private EndpointAddress GetEndpointAddCaja()
+        {
+
+            string url = "net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_CajaRecladasGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

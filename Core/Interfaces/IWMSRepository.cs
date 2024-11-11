@@ -1,6 +1,7 @@
 ﻿using Core.DTOs;
 using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.Cajasrecicladas;
 using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
@@ -136,8 +137,12 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_ObtenerDetalleAdutoriaDenim>> Get_ObtenerDetalleAdutoriaDenims(string OP, int Caja, string Ubicacion, string Usuario);
         public Task<IM_WMS_insertDetalleAdutoriaDenim> GetInsertDetalleAdutoriaDenim(int ID, int AuditoriaID);
         public Task<string> getEnviarCorreoAuditoriaDenim(string Ubicaicon,string usuario);
-       
 
+        //Reciclaje de cajas
+        public Task<List<IM_WMS_CentroCostoReciclajeCajas>> GetCentroCostoReciclajeCajas();
+        public Task<IM_WMS_InsertCajasRecicladashistorico> GetInsertCajasRecicladashistorico(string Camion, string Chofer, string CentroCostos, int QTY, string usuario, string diario);
+
+        public Task<List<IM_WMS_InsertCajasRecicladashistorico>> GetCajasRecicladasPendiente();
 
     }
 }

@@ -11,5 +11,6 @@ namespace Core.Interfaces
         public string InsertDeleteEntradaMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO);
         public string InsertDeleteTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO);
         public string InsertAddInventarioCiclicoTelaLine(List<INVENTARIOCICLICOTELALINE> LIST);
+        public string InsertCajasRecicladas(string qty, string CentroCosto,string diario);
     }
 }
