@@ -3067,16 +3067,16 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_GenerarDetalleFacturas> Pedidos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GenerarDetalleFacturas>("[IM_WMS_GenerarDetalleFacturas]", parametros);
 
             //variblea para resumen
-            string AlbaranTableHTML = "<table border='2'><caption><h2>Albaranado y No Facturado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Albaran</th><th>Fecha Albaran</th><th>Piezas</th><th>Dias sin Factura</th></thead><tbody>";
+            string AlbaranTableHTML = "<table border='2'><caption><h2>Albaranado y No Facturado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Albaran</th><th>Fecha Albaran</th><th>Piezas</th><th>Dias sin Factura</th></thead><tbody>";
             int AlbaranQTY = 0, AlbaranUnidades = 0;
             List<string> ClientesAlbaran = new List<string>();
 
-            string ListaCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque Completada y no Albaranado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Fecha Completada</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            string ListaCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque Completada y no Albaranado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Completada</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
             int ListaCompletadaQTY = 0, ListaCompletadaUnidades = 0;
             List<string> ClientesListaCompletada = new List<string>();
 
 
-            string ListaNoCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque pendiente</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Lista Empaque</th><th>Fecha Iniciado</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            string ListaNoCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque pendiente</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Iniciado</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
             int ListaNoCompletadaQTY = 0, ListaNoCompletadaUnidades = 0;
             List<string> ClientesListaNoCompletada = new List<string>();
 
@@ -3107,6 +3107,10 @@ namespace WMS_API.Features.Repositories
             worksheet0.Cells[fila, 15].Value = "Ubicacion";
             worksheet0.Cells[fila, 16].Value = "Cajas";
             worksheet0.Cells[fila, 17].Value = "Cantidad";
+            worksheet0.Cells[fila, 18].Value = "Responsable";
+            worksheet0.Cells[fila, 19].Value = "Lote";
+            worksheet0.Cells[fila, 20].Value = "Tienda";
+
             fila++;
 
             Pedidos.ForEach(element => {
@@ -3127,7 +3131,10 @@ namespace WMS_API.Features.Repositories
                     worksheet0.Cells[fila, 15].Value = element.Ubicacion;
                     worksheet0.Cells[fila, 16].Value = element.Cajas;
                     worksheet0.Cells[fila, 17].Value = element.QTY;
-                    fila++;
+                    worksheet0.Cells[fila, 18].Value = element.Responsable;
+                    worksheet0.Cells[fila, 19].Value = element.BFPSEASONID;
+                    worksheet0.Cells[fila, 20].Value = element.Tienda;
+                fila++;
                 });
 
             worksheet0.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
@@ -3135,7 +3142,7 @@ namespace WMS_API.Features.Repositories
             worksheet0.Cells[1, 10, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy";
             worksheet0.Cells[1, 12, fila - 1, 14].Style.Numberformat.Format = "dd/MM/yyyy";
 
-            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 17];
+            var rangeTable0 = worksheet0.Cells[1, 1, fila - 1, 20];
             var table0 = worksheet0.Tables.Add(rangeTable0, "Todo");
             table0.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet0.Cells.AutoFitColumns();
@@ -3202,7 +3209,7 @@ namespace WMS_API.Features.Repositories
                         diferencia = hoy - element.FechaGeneracionListaEmpaque ;
                         if(diferencia.TotalHours > 72)
                         {
-                            ListaNoCompletadaTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaGeneracionListaEmpaque + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                            ListaNoCompletadaTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaGeneracionListaEmpaque + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
                             ListaNoCompletadaQTY++;
                             ListaNoCompletadaUnidades += element.QTY;
                             if (!ClientesListaNoCompletada.Contains(element.CuentaCliente))
@@ -3214,7 +3221,7 @@ namespace WMS_API.Features.Repositories
                     else
                     {
                         diferencia = hoy - element.FechaListaEmpaqueCompletada;
-                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
                         ListaCompletadaQTY++;
                         ListaCompletadaUnidades += element.QTY;
 
@@ -3266,7 +3273,7 @@ namespace WMS_API.Features.Repositories
                     fila++;
 
                     diferencia = hoy - element.FechaAlbaran;
-                    AlbaranTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.Albaran + "</td><td>" + element.FechaAlbaran + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                    AlbaranTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.Albaran + "</td><td>" + element.FechaAlbaran + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
                     AlbaranQTY++;
                     AlbaranUnidades += element.QTY;
 
@@ -3347,7 +3354,7 @@ namespace WMS_API.Features.Repositories
                     mail.To.Add(correo.Correo);
                 }
 
-                //mail.To.Add("bavila@intermoda.com.hn");
+                mail.To.Add("bavila@intermoda.com.hn");
                 mail.Subject = "Tracking Pedidos";
                 mail.IsBodyHtml = true;
 

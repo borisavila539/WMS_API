@@ -26,5 +26,9 @@ namespace Core.DTOs.TrackingPedidos
         public int QTY { get; set; }
         public string EstadoPedido { get; set; }
         public int Paginas { get; set; }
+        public string Responsable { get; set; }
+        public string BFPSEASONID { get; set; }
+        public string Tienda { get; set; }
+
     }
 }
