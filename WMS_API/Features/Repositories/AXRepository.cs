@@ -170,7 +170,7 @@ namespace WMS_API.Features.Repositories
 
             HEADER.LINES = LIST.ToArray();
             string movimientosLines = SerializationService.Serialize(HEADER);
-            ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext context = new ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext { Company = "IMHN" };
+            ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext context = new ServiceReferenceIM_WMS_Trasferir_Inventario.CallContext { Company = JOURNALID.StartsWith("DIA-")? "IMHN":"IMGT" };
             var serviceClient = new M_WMS_Trasferir_InventarioClient(GetBinding(), GetEndpointTransferir());
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";

@@ -227,12 +227,13 @@ namespace WMS_API.Features.Repositories
 
             }
 
-            if (lineaArticulo != 910)
+            //if (lineaArticulo != 910)
+            if(!etiqueta.EndsWith("^XZ"))
             {
                 etiqueta += pie;
                 etiqueta += $"^FO430,1090^FDTotal: {total}/{totalUnidades}^FS";
                 etiqueta += "^XZ";
-            }
+            }           
 
 
 
@@ -3354,7 +3355,7 @@ namespace WMS_API.Features.Repositories
                     mail.To.Add(correo.Correo);
                 }
 
-                mail.To.Add("bavila@intermoda.com.hn");
+                //mail.To.Add("bavila@intermoda.com.hn");
                 mail.Subject = "Tracking Pedidos";
                 mail.IsBodyHtml = true;
 
@@ -3366,7 +3367,7 @@ namespace WMS_API.Features.Repositories
                 body += "<tbody>";
                 body += "<tr><td>Albaranes Pendientes de Facturar</td><td>" + ClientesAlbaran.Count() + "</td><td>" + AlbaranQTY + "</td><td>" + AlbaranUnidades + "</td></tr>";
                 body += "<tr><td>Lista Empaque pendientes de albaranar y facturar</td><td>" + ClientesListaCompletada.Count() + "</td><td>" + ListaCompletadaQTY + "</td><td>" + ListaCompletadaUnidades + "</td></tr>";
-                body += "<tr><td>Lista Empaque Pendiente de empacar mayor a 3 dias</td><td>" + ClientesListaNoCompletada.Count() + "</td><td>" + ListaNoCompletadaQTY+ "</td><td>" + ListaNoCompletadaQTY + "</td></tr>";
+                body += "<tr><td>Lista Empaque Pendiente de empacar mayor a 3 dias</td><td>" + ClientesListaNoCompletada.Count() + "</td><td>" + ListaNoCompletadaQTY+ "</td><td>" + ListaNoCompletadaUnidades + "</td></tr>";
                 body += "</tbody></table>";
                 if(AlbaranQTY > 0)
                 {
