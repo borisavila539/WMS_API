@@ -6,6 +6,7 @@ using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
+using Core.DTOs.Devoluciones;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
@@ -143,6 +144,16 @@ namespace Core.Interfaces
         public Task<IM_WMS_InsertCajasRecicladashistorico> GetInsertCajasRecicladashistorico(string Camion, string Chofer, string CentroCostos, int QTY, string usuario, string diario);
 
         public Task<List<IM_WMS_InsertCajasRecicladashistorico>> GetCajasRecicladasPendiente();
+
+        //Devoluciones
+        public Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesEVA(string filtro, int page, int size,int estado);
+        public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDevolucionDetalle(int id);
+        public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getInsertDevolucionRecibidoEnviado(int id,int qty, string tipo);
+        public Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario);
+        public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id);
+        public Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions();
+        public Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo);
+
 
     }
 }

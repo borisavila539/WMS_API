@@ -6,6 +6,7 @@ using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
+using Core.DTOs.Devoluciones;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
@@ -965,6 +966,55 @@ namespace WMS_API.Controllers
         public async Task<IEnumerable<IM_WMS_InsertCajasRecicladashistorico>> GetCajasRecicladasPendiente()
         {
             var resp = await _WMS.GetCajasRecicladasPendiente();
+            return resp;
+        }
+
+        //Devoluciones
+
+        [HttpGet("Devolucion/{Filtro}/{Page}/{Size}/{Estado}")]
+        public async Task<IEnumerable<IM_WMS_Devolucion_Busqueda>> getDevolucionesEVA(string Filtro, int Page, int Size,int Estado)
+        {
+            var resp = await _WMS.getDevolucionesEVA(Filtro, Page, Size,Estado);
+            return resp;
+        }
+
+        [HttpGet("DevolucionDetalle/{id}")]
+        public async Task<IEnumerable<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDevolucionDetalle(int id)
+        {
+            var resp = await _WMS.getDevolucionDetalle(id);
+            return resp;
+        }
+        [HttpGet("DevolucionDetalleQTY/{id}/{qty}/{tipo}")]
+        public async Task<IEnumerable<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getInsertDevolucionRecibidoEnviado(int id, int qty, string tipo)
+        {
+            var resp = await _WMS.getInsertDevolucionRecibidoEnviado(id,qty,tipo);
+            return resp;
+        }
+
+        [HttpGet("Devolucion/Estado/{id}/{Estado}/{usuario}")]
+        public async Task<IM_WMS_Devolucion_Busqueda> getDevolucionesEVA(int id,string Estado,string usuario)
+        {
+            var resp = await _WMS.getActualizarEstadoDevolucion(id, Estado,usuario);
+            return resp;
+        }
+
+        [HttpGet("DevolucionDetalle/auditoria/{id}")]
+        public async Task<IEnumerable<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id)
+        {
+            var resp = await _WMS.getDetalleDevolucionAuditoria(id);
+            return resp;
+        }
+        
+        [HttpGet("Devolucion/Defectos")]
+        public async Task<IEnumerable<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions()
+        {
+            var resp = await _WMS.GetObtenerEstructuraDefectosDevolucions();
+            return resp;
+        }
+        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}")]
+        public async Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo)
+        {
+            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo);
             return resp;
         }
     }

@@ -30,6 +30,7 @@ using Core.DTOs.TrackingPedidos;
 using System.Threading;
 using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.Cajasrecicladas;
+using Core.DTOs.Devoluciones;
 
 namespace WMS_API.Features.Repositories
 {
@@ -2226,7 +2227,7 @@ namespace WMS_API.Features.Repositories
 
             }
 
-            if (lineaArticulo != 910)
+            if (!etiqueta.EndsWith("^XZ"))
             {
                 etiqueta += pie;
                 etiqueta += $"^FO430,1090^FDTotal: {total}/{totalUnidades}^FS";
@@ -3643,6 +3644,175 @@ namespace WMS_API.Features.Repositories
             var parametros = new List<SqlParameter> { };
 
             List<IM_WMS_InsertCajasRecicladashistorico> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_InsertCajasRecicladashistorico>("[IM_WMS_DespachoCajasReciclajePendiente]", parametros);
+            return resp;
+        }
+
+        //Devoluciones
+        public async Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesEVA(string filtro, int page, int size,int estado)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@Filtro",filtro),
+                new SqlParameter("@page",page),
+                new SqlParameter("@size",size),
+                new SqlParameter("@estado",estado)
+
+            };
+
+            List<IM_WMS_Devolucion_Busqueda> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Busqueda>("[IM_WMS_Devolucion_Busqueda]", parametros);
+            return resp;
+        }
+
+        public async Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDevolucionDetalle(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@id",id)
+
+            };
+
+            List<IM_WMS_Devolucion_Detalle_RecibirPlanta> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Detalle_RecibirPlanta>("[IM_WMS_Devolucion_Detalle_RecibirPlanta]", parametros);
+            return resp;
+        }
+
+        public async Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getInsertDevolucionRecibidoEnviado(int id, int qty, string tipo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@id",id),
+                new SqlParameter("@qty",qty),
+                new SqlParameter("@tipo",tipo)
+
+
+            };
+
+            List<IM_WMS_Devolucion_Detalle_RecibirPlanta> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Detalle_RecibirPlanta>("[IM_WMS_Devolucion_Recibido_Enviado_QTY]", parametros);
+            return resp;
+        }
+
+        public async Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@id",id),
+                new SqlParameter("@estado",estado),
+                new SqlParameter("@usuario",usuario)
+
+            };
+
+            IM_WMS_Devolucion_Busqueda resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Devolucion_Busqueda>("[IM_WMS_UpdateEstadoDevolucion]", parametros);
+
+            if(resp.Descricpcion== "Rechazado")
+            {
+                string html = "<table border='2'><caption><h2>Detalle Devolucion</h2></caption><thead><th>Articulo</th><th>Talla</th><th>Color</th><th>Cantidad</th><th>Recibida</th><th>Diferencia</th></thead><tbody>";
+                var datos = await getDevolucionDetalle(resp.ID);
+                datos.ForEach(element =>
+                {
+                    if((element.RecibidaPlanta - element.Cantidad) !=0)
+                    {
+                        html += "<tr style='background-color:#FF6600;'>";
+                    }else{
+                        html += "<tr>";
+                    }
+
+                    html +="<td>"+ element.Articulo +"</td>";
+                    html += "<td>" + element.Talla + "</td>";
+                    html += "<td>" + element.Color + "</td>";
+                    html += "<td>" + element.Cantidad + "</td>";
+                    html += "<td>" + element.RecibidaPlanta + "</td>";
+                    html += "<td>" + (element.RecibidaPlanta - element.Cantidad ) + "</td>";
+                    html += "</tr>";
+                });
+
+                html += "</tbody></table>";
+                try
+                {
+                    MailMessage mail = new MailMessage();
+
+                    mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                    //var correos = await getCorreosRecepcionUbicacionCajas();
+
+                    /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                     {
+                         mail.To.Add(correo.Correo);
+                     }*/
+
+                    mail.To.Add("bavila@intermoda.com.hn");
+
+                    mail.Subject = "Rechazo Devolucion: " + resp.NumDevolucion;
+                    mail.IsBodyHtml = true;
+
+                    mail.Body = html;                    
+
+                    SmtpClient oSmtpClient = new SmtpClient();
+
+                    oSmtpClient.Host = "smtp.office365.com";
+                    oSmtpClient.Port = 587;
+                    oSmtpClient.EnableSsl = true;
+                    oSmtpClient.UseDefaultCredentials = false;
+
+                    NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                    oSmtpClient.Credentials = userCredential;
+
+                    oSmtpClient.Send(mail);
+                    oSmtpClient.Dispose();
+                    
+                }
+                catch (Exception err)
+                {
+                    return null;
+                }
+            }
+            return resp;
+        }
+
+        public async Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id)
+        {
+            List<IM_WMS_Devolucion_Detalle_RecibirPlanta> lista = new List<IM_WMS_Devolucion_Detalle_RecibirPlanta>();
+
+            var datos = await getDevolucionDetalle(id);
+
+            
+            foreach(IM_WMS_Devolucion_Detalle_RecibirPlanta element in datos)
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parametros = new List<SqlParameter> {
+                    new SqlParameter("@id",element.ID),
+                    new SqlParameter("@qty",element.Cantidad)
+                };
+
+                List<DefectosDevolucion> resp = await executeProcedure.ExecuteStoredProcedureList<DefectosDevolucion>("[IM_WMS_ObteneDetalleDefectosDevolucion]", parametros);
+                element.Defecto = resp.ToArray();
+                lista.Add(element);
+            }
+
+            return lista;
+
+
+
+        }
+
+        public async Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_ObtenerEstructuraDefectosDevolucion> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerEstructuraDefectosDevolucion>("[IM_WMS_ObtenerEstructuraDefectosDevolucion]", parametros);
+            return resp;
+        }
+
+        public async Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@id",id),
+                    new SqlParameter("@idDefecto",idDefecto),
+                    new SqlParameter("@tipo",tipo)                
+            };
+
+            DefectosDevolucion resp = await executeProcedure.ExecuteStoredProcedure<DefectosDevolucion>("[IM_WMS_UpdateDetalleDefectoDevolucion]", parametros);
             return resp;
         }
     }
