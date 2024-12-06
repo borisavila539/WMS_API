@@ -36,6 +36,7 @@ namespace WMS_API.Features.Repositories
 {
     public class WMSRepository : IWMSRepository
     {
+       
         private readonly string _connectionString;
         private readonly string _connectionStringPiso;
 
@@ -3814,6 +3815,136 @@ namespace WMS_API.Features.Repositories
 
             DefectosDevolucion resp = await executeProcedure.ExecuteStoredProcedure<DefectosDevolucion>("[IM_WMS_UpdateDetalleDefectoDevolucion]", parametros);
             return resp;
+        }
+
+        public async Task<List<IM_WMS_Devolucion_Busqueda>> getObtenerDevolucionTracking(string filtro, int page, int size)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@filtro",filtro),
+                    new SqlParameter("@page",page),
+                    new SqlParameter("@size",size)
+            };
+
+            List<IM_WMS_Devolucion_Busqueda> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Busqueda>("[IM_WMS_DevolucionTracking]", parametros);
+            return resp;
+        }
+
+        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular)
+        {
+            var devolucion =await  getDevolucionesEVA(NumDevolucion, 1, 1, 2);
+            
+            
+
+            for (int i = 1; i <= CajaPrimera; i++)
+            {
+                IngresarCaja(id, i, "PRIMERA");
+                imprimirEtiquetaDevolucion(devolucion[0], i, "PRIMERA",CajaPrimera+ CajaIrregular);
+            }
+
+            for (int i = 1; i <= CajaIrregular; i++)
+            {
+                IngresarCaja(id, CajaPrimera+ i, "IRREGULAR");
+                imprimirEtiquetaDevolucion(devolucion[0], CajaPrimera + i, "IRREGULAR", CajaPrimera + CajaIrregular);
+            }
+            string OK = "OK";
+            return OK;
+
+        }
+
+        public async void IngresarCaja(int id, int caja,string tipo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@id",id),
+                    new SqlParameter("@caja",caja),
+                    new SqlParameter("@tipo",tipo)
+            };
+
+            IM_WMS_CrearCajaDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_CrearCajaDevolucion>("[IM_WMS_CrearCajaDevolucion]", parametros);
+            
+        }
+
+        public string imprimirEtiquetaDevolucion(IM_WMS_Devolucion_Busqueda datos,int caja, string Tipo,int total)
+        {
+            string etiqueta = "";
+            etiqueta += "^XA^CF0,40";
+            etiqueta += "^FO50,50^FDDevolucion: "+datos.NumDevolucion+"^FS";
+            etiqueta += "^FO50,100^FDRMA: "+datos.NumeroRMA+"^FS";
+            etiqueta += "^FO50,150^FDCantidad: "+datos.TotalUnidades+"^FS";
+            etiqueta += "^FO50,200^FDAsesor: "+datos.Asesor+"^FS";
+            etiqueta += "^CF0,250";
+            etiqueta += "^FO125,400^FD"+caja.ToString("D2") + "/" + total.ToString("D2") + "^FS";
+            etiqueta += "^BY3,2,120^FO125,700^BC^FD"+datos.NumDevolucion+","+caja+"^FS";
+            etiqueta += "^CF0,60^FO280,900^FD"+Tipo+"^FS";
+            etiqueta += "^CF0,40^FO50,1100^FDAuditor: Boris Avila^FS"; //colocar al empleado
+            etiqueta += "^FO50,1150^FDFecha: " + DateTime.Now.Day + "/" + DateTime.Now.Month + "/" + DateTime.Now.Year + "^FS"; //colocar fecha correcta
+            etiqueta += "^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+        }
+
+        public async Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucion(string NumDevolucion, string usuario, int Caja)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@NumDevolucion",NumDevolucion),
+                    new SqlParameter("@caja",Caja),
+                    new SqlParameter("@usuario",usuario)
+            };
+
+            IM_WMS_CrearCajaDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_CrearCajaDevolucion>("[IM_WMS_DevolucionPackingCaja]", parametros);
+            return resp;
+        }
+
+        public async Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasPacking()
+        {
+
+            List<IM_WMS_DevolucionCajasPacking> lista = new List<IM_WMS_DevolucionCajasPacking>();
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_Devolucion_Busqueda> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Busqueda>("[IM_WMS_obtenerDevolucionPacking]", parametros);
+            foreach (var element in resp)
+            {
+                IM_WMS_DevolucionCajasPacking tmp = new IM_WMS_DevolucionCajasPacking();
+
+                tmp.ID = element.ID;
+                tmp.NumDevolucion = element.NumDevolucion;
+                tmp.NumeroRMA = element.NumeroRMA;
+                tmp.FechaCrea = element.FechaCrea;
+                tmp.FechaCreacionAX = element.FechaCreacionAX;
+                tmp.Asesor = element.Asesor;
+                tmp.Descricpcion = element.Descricpcion ?? "";
+                tmp.TotalUnidades = element.TotalUnidades;
+                
+                var parametros2 = new List<SqlParameter> {
+                    new SqlParameter("@id",element.ID)
+                };
+
+                List<IM_WMS_CrearCajaDevolucion> resp2 = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_CrearCajaDevolucion>("[IM_WMS_ObtenerCajasDevolucionPacking]", parametros2);
+                tmp.cajas = resp2.ToArray();
+                lista.Add(tmp);
+            }
+            
+            return lista;
         }
     }
    

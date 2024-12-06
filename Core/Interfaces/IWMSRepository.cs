@@ -153,6 +153,10 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id);
         public Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions();
         public Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo);
+        public Task<List<IM_WMS_Devolucion_Busqueda>> getObtenerDevolucionTracking(string filtro, int page, int size);
+        public Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular);
+        public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucion(string NumDevolucion, string usuario, int Caja);
+        public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasPacking();
 
 
     }

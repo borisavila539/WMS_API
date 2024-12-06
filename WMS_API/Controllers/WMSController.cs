@@ -1017,5 +1017,33 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo);
             return resp;
         }
+
+        [HttpGet("Devolucion/Tracking/{Filtro}/{Page}/{Size}")]
+        public async Task<IEnumerable<IM_WMS_Devolucion_Busqueda>> getObtenerDevolucionTracking(string Filtro, int Page, int Size)
+        {
+            var resp = await _WMS.getObtenerDevolucionTracking(Filtro, Page, Size);
+            return resp;
+        }
+        
+        [HttpGet("Devolucion/ImpresionEtiqueta/{id}/{NumDevolucion}/{CajaPrimera}/{CajaIrregular}")]
+        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular)
+        {
+            var resp = await _WMS.getImprimirEtiquetasDevolucion(id, NumDevolucion, CajaPrimera, CajaIrregular);
+            return resp;
+        }
+        
+        [HttpGet("Devolucion/IngresoCajasPacking/{NumDevolucion}/{usuario}/{caja}")]
+        public async Task<IM_WMS_CrearCajaDevolucion> getImprimirEtiquetasDevolucion( string NumDevolucion, string usuario, int caja)
+        {
+            var resp = await _WMS.getInsertarCajasDevolucion( NumDevolucion, usuario, caja);
+            return resp;
+        }
+
+        [HttpGet("Devolucion/packing")]
+        public async Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasPacking()
+        {
+            var resp = await _WMS.getDevolucionCajasPacking();
+            return resp;
+        }
     }
 }
