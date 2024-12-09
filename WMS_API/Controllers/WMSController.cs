@@ -991,10 +991,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("Devolucion/Estado/{id}/{Estado}/{usuario}")]
-        public async Task<IM_WMS_Devolucion_Busqueda> getDevolucionesEVA(int id,string Estado,string usuario)
+        [HttpGet("Devolucion/Estado/{id}/{Estado}/{usuario}/{camion}")]
+        public async Task<IM_WMS_Devolucion_Busqueda> getDevolucionesEVA(int id,string Estado,string usuario,string camion)
         {
-            var resp = await _WMS.getActualizarEstadoDevolucion(id, Estado,usuario);
+            var resp = await _WMS.getActualizarEstadoDevolucion(id, Estado,usuario,camion);
             return resp;
         }
 
@@ -1045,5 +1045,27 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getDevolucionCajasPacking();
             return resp;
         }
+
+        [HttpPost("Devolucion/EnviarCorreoPacking")]
+        public async Task<string> postEnviarCorreoPackig(List<IM_WMS_Devolucion_Busqueda> data)
+        {
+            var resp = await _WMS.postEnviarCorreoPackig(data);
+            return resp;
+        }
+
+        [HttpGet("Devolucion/EnviadasCD")]
+        public async Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasEnviadasCD()
+        {
+            var resp = await _WMS.getDevolucionCajasEnviadasCD();
+            return resp;
+        }
+
+        [HttpGet("Devolucion/IngresoCajasRecibir/{NumDevolucion}/{usuario}/{caja}")]
+        public async Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int caja)
+        {
+            var resp = await _WMS.getInsertarCajasDevolucionRecibir(NumDevolucion, usuario, caja);
+            return resp;
+        }
     }
+    
 }

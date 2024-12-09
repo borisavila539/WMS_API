@@ -16,5 +16,6 @@ namespace Core.DTOs.Devoluciones
         public string Asesor { get; set; } 
         public string Descricpcion { get; set; }
         public int TotalUnidades { get; set; }
+        public string Camion { get; set; }
     }
 }

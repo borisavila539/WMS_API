@@ -149,7 +149,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesEVA(string filtro, int page, int size,int estado);
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDevolucionDetalle(int id);
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getInsertDevolucionRecibidoEnviado(int id,int qty, string tipo);
-        public Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario);
+        public Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario,string camion);
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id);
         public Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions();
         public Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo);
@@ -157,6 +157,9 @@ namespace Core.Interfaces
         public Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular);
         public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucion(string NumDevolucion, string usuario, int Caja);
         public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasPacking();
+        public Task<string> postEnviarCorreoPackig(List<IM_WMS_Devolucion_Busqueda> data);
+        public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasEnviadasCD();
+        public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int Caja);
 
 
     }

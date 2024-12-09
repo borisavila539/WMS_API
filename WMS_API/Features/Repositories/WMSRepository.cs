@@ -3691,13 +3691,15 @@ namespace WMS_API.Features.Repositories
             return resp;
         }
 
-        public async Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario)
+        public async Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario,string camion)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter> {
                 new SqlParameter("@id",id),
                 new SqlParameter("@estado",estado),
-                new SqlParameter("@usuario",usuario)
+                new SqlParameter("@usuario",usuario),
+                new SqlParameter("@camion",camion)
+
 
             };
 
@@ -3934,6 +3936,7 @@ namespace WMS_API.Features.Repositories
                 tmp.Asesor = element.Asesor;
                 tmp.Descricpcion = element.Descricpcion ?? "";
                 tmp.TotalUnidades = element.TotalUnidades;
+                tmp.camion = element.Camion;
                 
                 var parametros2 = new List<SqlParameter> {
                     new SqlParameter("@id",element.ID)
@@ -3945,6 +3948,110 @@ namespace WMS_API.Features.Repositories
             }
             
             return lista;
+        }
+
+        public async Task<string> postEnviarCorreoPackig(List<IM_WMS_Devolucion_Busqueda> data)
+        {     
+            string html = "<table border='2'><caption><h2>Despacho Devoluciones a Ofibodegas SB Camion: "+data[0].Camion+ "</h2></caption><thead><th>Asesor</th><th>Devolucion</th><th>RMA</th><th>Total Unidades</th></thead><tbody>";
+            
+            data.ForEach(element =>
+            {
+                html += "<tr>";         
+                html += "<td>" + element.Asesor + "</td>";
+                html += "<td>" + element.NumDevolucion + "</td>";
+                html += "<td>" + element.NumeroRMA + "</td>";
+                html += "<td>" + element.TotalUnidades + "</td>";                
+                html += "</tr>";
+            });
+
+            html += "</tbody></table>";
+            try
+            {
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                //var correos = await getCorreosRecepcionUbicacionCajas();
+
+                /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                 {
+                     mail.To.Add(correo.Correo);
+                 }*/
+
+                mail.To.Add("bavila@intermoda.com.hn");
+
+                mail.Subject = "Despacho Devolucion Planta a CD";
+                mail.IsBodyHtml = true;
+
+                mail.Body = html;
+
+                SmtpClient oSmtpClient = new SmtpClient();
+
+                oSmtpClient.Host = "smtp.office365.com";
+                oSmtpClient.Port = 587;
+                oSmtpClient.EnableSsl = true;
+                oSmtpClient.UseDefaultCredentials = false;
+
+                NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                oSmtpClient.Credentials = userCredential;
+
+                oSmtpClient.Send(mail);
+                oSmtpClient.Dispose();
+
+            }
+            catch (Exception err)
+            {
+                return "Error";
+            }
+            return "OK";
+        }
+        public async Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasEnviadasCD()
+        {
+
+            List<IM_WMS_DevolucionCajasPacking> lista = new List<IM_WMS_DevolucionCajasPacking>();
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_Devolucion_Busqueda> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Busqueda>("[IM_WMS_obtenerDevolucionEnviadasCD]", parametros);
+            foreach (var element in resp)
+            {
+                IM_WMS_DevolucionCajasPacking tmp = new IM_WMS_DevolucionCajasPacking();
+
+                tmp.ID = element.ID;
+                tmp.NumDevolucion = element.NumDevolucion;
+                tmp.NumeroRMA = element.NumeroRMA;
+                tmp.FechaCrea = element.FechaCrea;
+                tmp.FechaCreacionAX = element.FechaCreacionAX;
+                tmp.Asesor = element.Asesor;
+                tmp.Descricpcion = element.Descricpcion ?? "";
+                tmp.TotalUnidades = element.TotalUnidades;
+                tmp.camion = element.Camion;
+
+                var parametros2 = new List<SqlParameter> {
+                    new SqlParameter("@id",element.ID)
+                };
+
+                List<IM_WMS_CrearCajaDevolucion> resp2 = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_CrearCajaDevolucion>("[IM_WMS_ObtenerCajasDevolucionPacking]", parametros2);
+                tmp.cajas = resp2.ToArray();
+                lista.Add(tmp);
+            }
+
+            return lista;
+        }
+
+        public async Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int Caja)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@NumDevolucion",NumDevolucion),
+                    new SqlParameter("@caja",Caja),
+                    new SqlParameter("@usuario",usuario)
+            };
+
+            IM_WMS_CrearCajaDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_CrearCajaDevolucion>("[IM_WMS_DevolucionRecibirCaja]", parametros);
+            return resp;
         }
     }
    
