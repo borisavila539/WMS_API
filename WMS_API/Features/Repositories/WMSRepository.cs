@@ -3705,9 +3705,18 @@ namespace WMS_API.Features.Repositories
 
             IM_WMS_Devolucion_Busqueda resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Devolucion_Busqueda>("[IM_WMS_UpdateEstadoDevolucion]", parametros);
 
-            if(resp.Descricpcion== "Rechazado")
+            if(resp.Descricpcion== "Rechazado" || resp.Descricpcion == "Recibido en Planta")
             {
-                string html = "<table border='2'><caption><h2>Detalle Devolucion</h2></caption><thead><th>Articulo</th><th>Talla</th><th>Color</th><th>Cantidad</th><th>Recibida</th><th>Diferencia</th></thead><tbody>";
+                string html = "<h3>Estimado/a "+resp.Asesor+",</h3>";
+                if(resp.Descricpcion == "Recibido en Planta")
+                {
+                    html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion + " ha sido " + resp.Descricpcion + ".</p>";
+                }
+                else
+                {
+                    html += "<p>Lamentamos informarle que la devolución " + resp.NumDevolucion + " ha sido rechazada debido a que las unidades recibidas no concuerdan con las unidades declaradas en la devolución.</p>";
+                }
+                html += "<table border='2'><caption><h2>Detalle Devolucion "+resp.NumDevolucion+"</h2></caption><thead><th>Articulo</th><th>Talla</th><th>Color</th><th>Cantidad</th><th>Recibida</th><th>Diferencia</th></thead><tbody>";
                 var datos = await getDevolucionDetalle(resp.ID);
                 datos.ForEach(element =>
                 {
@@ -3734,16 +3743,28 @@ namespace WMS_API.Features.Repositories
 
                     mail.From = new MailAddress(VariablesGlobales.Correo);
 
-                    //var correos = await getCorreosRecepcionUbicacionCajas();
+                    var correos = await getCorreosDevolucion(id);
 
-                    /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                     foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
                      {
                          mail.To.Add(correo.Correo);
-                     }*/
+                     }
 
-                    mail.To.Add("bavila@intermoda.com.hn");
+                    //mail.To.Add("bavila@intermoda.com.hn");
 
-                    mail.Subject = "Rechazo Devolucion: " + resp.NumDevolucion;
+                    if (resp.Descricpcion == "Recibido en Planta")
+                    {
+                        mail.Subject = "Confirmación de recepción de la devolución "+resp.NumDevolucion+" en Planta";
+                        html += "<p>Saludos</p>";
+
+                    }
+                    else
+                    {
+                        mail.Subject = "Notificación de la devolución "+resp.NumDevolucion+" rechazada: Discrepancia en unidades";
+                        html += "<p>Por favor, revise los detalles y comuníquese con nosotros si necesita más información o desea discutir esta situación. Estamos disponibles para ayudarle con cualquier aclaración.</p><p>Saludos</p>";
+                    }
+
+                    
                     mail.IsBodyHtml = true;
 
                     mail.Body = html;                    
@@ -3768,9 +3789,72 @@ namespace WMS_API.Features.Repositories
                     return null;
                 }
             }
+
+            if(resp.Descricpcion == "Recibido CD")
+            {
+                string html = "<h3>Estimado/a " + resp.Asesor + ",</h3>";
+                html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion + " ha sido " + resp.Descricpcion + " y registrado en el sistema.</p>";
+                html += "<p>Saludos</p>";
+
+
+                try
+                {
+                    MailMessage mail = new MailMessage();
+
+                    mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                    var correos = await getCorreosDevolucion(id);
+
+                    foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                    {
+                        mail.To.Add(correo.Correo);
+                    }
+
+                    //mail.To.Add("bavila@intermoda.com.hn");
+
+                    mail.Subject = "Confirmación de recepción de la devolución " + resp.NumDevolucion + " en OfiBodegas SB";
+                    mail.IsBodyHtml = true;
+
+                    mail.Body = html;
+
+                    SmtpClient oSmtpClient = new SmtpClient();
+
+                    oSmtpClient.Host = "smtp.office365.com";
+                    oSmtpClient.Port = 587;
+                    oSmtpClient.EnableSsl = true;
+                    oSmtpClient.UseDefaultCredentials = false;
+
+                    NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+
+                    oSmtpClient.Credentials = userCredential;
+
+                    oSmtpClient.Send(mail);
+                    oSmtpClient.Dispose();
+
+                }
+                catch (Exception err)
+                {
+                    return null;
+                }
+            }
             return resp;
         }
 
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDevolucion(int id)
+        {
+            
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id)
+            };
+
+            List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_ObtenerCorreosDevolucion]", parametros);
+
+            return response;
+            
+        }
         public async Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id)
         {
             List<IM_WMS_Devolucion_Detalle_RecibirPlanta> lista = new List<IM_WMS_Devolucion_Detalle_RecibirPlanta>();
@@ -3971,14 +4055,14 @@ namespace WMS_API.Features.Repositories
 
                 mail.From = new MailAddress(VariablesGlobales.Correo);
 
-                //var correos = await getCorreosRecepcionUbicacionCajas();
+                var correos = await getCorreosDevolucion(0);
 
-                /* foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
+                 foreach (IM_WMS_Correos_DespachoPTDTO correo in correos)
                  {
                      mail.To.Add(correo.Correo);
-                 }*/
+                 }
 
-                mail.To.Add("bavila@intermoda.com.hn");
+                //mail.To.Add("bavila@intermoda.com.hn");
 
                 mail.Subject = "Despacho Devolucion Planta a CD";
                 mail.IsBodyHtml = true;
