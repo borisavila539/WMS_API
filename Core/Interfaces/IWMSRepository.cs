@@ -161,6 +161,10 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasEnviadasCD();
         public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int Caja);
 
+        //otro
+
+        public Task<string> imprimirTodasEtiquetasPendientes(string journalID);
+
 
     }
 }

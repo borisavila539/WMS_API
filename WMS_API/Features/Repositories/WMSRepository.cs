@@ -4137,6 +4137,37 @@ namespace WMS_API.Features.Repositories
             IM_WMS_CrearCajaDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_CrearCajaDevolucion>("[IM_WMS_DevolucionRecibirCaja]", parametros);
             return resp;
         }
+
+        public async Task<string> imprimirTodasEtiquetasPendientes(string journalID)
+        {
+            
+            var resp = await Get_InventarioCilicoTelaDiarios(journalID);
+            resp.ForEach(ele =>
+            {
+                if(ele.Exist == false)
+                {
+                        List<EtiquetaRolloDTO> tmp = new List<EtiquetaRolloDTO>();
+                        EtiquetaRolloDTO tmpR = new EtiquetaRolloDTO();
+                        tmpR.INVENTSERIALID = ele.InventSerialID;
+                        tmpR.APVENDROLL = ele.ApvendRoll;
+                        tmpR.QTYTRANSFER = ele.InventOnHand.ToString();
+                        tmpR.ITEMID = ele.ItemID;
+                        tmpR.COLOR = ele.ColorName;
+                        tmpR.INVENTBATCHID = ele.InventBatchID;
+                        tmpR.CONFIGID = ele.ConfigID;
+                        tmpR.PRINT = "10.1.1.164";
+
+                        tmp.Add(tmpR);
+
+                        var resp = postImprimirEtiquetaRollo(tmp);
+                }
+                
+
+
+            });
+
+            return "OK";
+        }
     }
    
 }

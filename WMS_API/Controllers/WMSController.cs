@@ -461,11 +461,11 @@ namespace WMS_API.Controllers
         [HttpGet("EnviarInventarioCilcicoTela/{JournalID}")]
         public async Task<string> getEnviarInventarioCiclicoTela(string JournalID)
         {
-            var Detalle = await _WMS.Get_InventarioCilicoTelaDiarios(JournalID);
+            var Detalle2 = await _WMS.Get_InventarioCilicoTelaDiarios(JournalID);
 
             List<INVENTARIOCICLICOTELALINE> lines = new List<INVENTARIOCICLICOTELALINE>();
 
-            Detalle = Detalle.FindAll(x => x.Exist);
+            var Detalle = Detalle2.FindAll(x => x.Exist);
 
             Detalle.ForEach(element =>
             {
@@ -495,9 +495,20 @@ namespace WMS_API.Controllers
             htmlCorreo += @"<h1>" + JournalID + @"</h1>";
             try
             {
-                htmlCorreo += @"<p>" + texto[1] + @"</p>";
-                htmlCorreo += @"<p>" + texto[2] + @"</p>";
-                htmlCorreo += @"<p>" + texto[3] + @"</p>";
+                htmlCorreo += @"<p> Rollos de Tela encontrados: " + Detalle2.Count(x=> x.New == false && x.Exist == true) + "/"+ Detalle2.Count(x => x.New == false) +@"</p>";
+                htmlCorreo += @"<p>Rollos agregados al conteo: " + Detalle2.Count(x => x.New == true) + @"</p>";
+                if(Detalle2.Count(x => x.Exist == false) > 0)
+                {
+                    htmlCorreo += @"<h3>Rollos de Tela no encontrados</h3>";
+                    htmlCorreo += @"<ol>";
+
+                    Detalle2.FindAll(x => x.Exist == false).ForEach(ele =>
+                     {
+                         htmlCorreo += @"<li>"+ele.InventSerialID+@"</li>";
+                     });
+                    htmlCorreo += @"</ol>";
+                }
+
             }
             catch (Exception err)
             {
@@ -1064,6 +1075,15 @@ namespace WMS_API.Controllers
         public async Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int caja)
         {
             var resp = await _WMS.getInsertarCajasDevolucionRecibir(NumDevolucion, usuario, caja);
+            return resp;
+        }
+
+        //otros
+        //impresion de etiquetas todo diario de recuento telas
+        [HttpGet("ImpresionDiarioRecuentoRollosPendientes/{journalID}")]
+        public async Task<string> getInsertarCajasDevolucionRecibir(string journalID)
+        {
+            var resp = await _WMS.imprimirTodasEtiquetasPendientes(journalID);
             return resp;
         }
     }
