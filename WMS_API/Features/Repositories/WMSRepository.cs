@@ -3881,25 +3881,54 @@ namespace WMS_API.Features.Repositories
 
         }
 
-        public async Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions()
+        public async Task<List<DefectosAuditoria>> GetObtenerDefectosDevolucions(int id)
         {
+            List<DefectosAuditoria> areas = new List<DefectosAuditoria>();
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
-            var parametros = new List<SqlParameter> { };
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@id",id),
+            };
 
-            List<IM_WMS_ObtenerEstructuraDefectosDevolucion> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ObtenerEstructuraDefectosDevolucion>("[IM_WMS_ObtenerEstructuraDefectosDevolucion]", parametros);
-            return resp;
+            List<selectList> resp = await executeProcedure.ExecuteStoredProcedureList<selectList>("[IM_WMS_obtenerAreasAuditoriaDevolucion]", parametros);
+            foreach (var area in resp)
+                //resp.ForEach(async (area) =>
+            {
+                DefectosAuditoria tmp = new DefectosAuditoria();
+                tmp.id = area.id;
+                tmp.key = area.key;
+                tmp.value = area.value;
+
+                parametros = new List<SqlParameter> {
+                    new SqlParameter("@idArea",area.id),
+                };
+                List<selectList> operaciones = await executeProcedure.ExecuteStoredProcedureList<selectList>("[IM_WMS_obtenerOperacionesAuditoriaDevolucion]", parametros);
+                tmp.Operacion = operaciones.ToArray() ;
+
+                parametros = new List<SqlParameter> {
+                    new SqlParameter("@idArea",area.id),
+                };
+                List<selectList> defectos = await executeProcedure.ExecuteStoredProcedureList<selectList>("[IM_WMS_obtenerDefectosAuditoriaDevolucion]", parametros);
+                tmp.Defecto = defectos.ToArray();
+
+                areas.Add(tmp);
+
+            }
+
+            return areas;
         }
 
-        public async Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo)
+        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion,int operacion)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter> {
                     new SqlParameter("@id",id),
                     new SqlParameter("@idDefecto",idDefecto),
-                    new SqlParameter("@tipo",tipo)                
+                    new SqlParameter("@tipo",tipo),
+                    new SqlParameter("@reparacion",Reparacion),
+                    new SqlParameter("@idOperacion",operacion)
             };
 
-            DefectosDevolucion resp = await executeProcedure.ExecuteStoredProcedure<DefectosDevolucion>("[IM_WMS_UpdateDetalleDefectoDevolucion]", parametros);
+            IM_WMS_UpdateDetalleDefectoDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_UpdateDetalleDefectoDevolucion>("[IM_WMS_UpdateDetalleDefectoDevolucion]", parametros);
             return resp;
         }
 
@@ -3916,7 +3945,7 @@ namespace WMS_API.Features.Repositories
             return resp;
         }
 
-        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular)
+        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular,string usuario)
         {
             var devolucion =await  getDevolucionesEVA(NumDevolucion, 1, 1, 2);
             
@@ -3925,13 +3954,13 @@ namespace WMS_API.Features.Repositories
             for (int i = 1; i <= CajaPrimera; i++)
             {
                 IngresarCaja(id, i, "PRIMERA");
-                imprimirEtiquetaDevolucion(devolucion[0], i, "PRIMERA",CajaPrimera+ CajaIrregular);
+                await imprimirEtiquetaDevolucion(devolucion[0], i, "PRIMERA",CajaPrimera+ CajaIrregular,usuario);
             }
 
             for (int i = 1; i <= CajaIrregular; i++)
             {
                 IngresarCaja(id, CajaPrimera+ i, "IRREGULAR");
-                imprimirEtiquetaDevolucion(devolucion[0], CajaPrimera + i, "IRREGULAR", CajaPrimera + CajaIrregular);
+                await imprimirEtiquetaDevolucion(devolucion[0], CajaPrimera + i, "IRREGULAR", CajaPrimera + CajaIrregular,usuario);
             }
             string OK = "OK";
             return OK;
@@ -3951,8 +3980,9 @@ namespace WMS_API.Features.Repositories
             
         }
 
-        public string imprimirEtiquetaDevolucion(IM_WMS_Devolucion_Busqueda datos,int caja, string Tipo,int total)
+        public async Task<string> imprimirEtiquetaDevolucion(IM_WMS_Devolucion_Busqueda datos,int caja, string Tipo,int total,string usuario)
         {
+            var empleado = await getNombreEmpleado(usuario);
             string etiqueta = "";
             etiqueta += "^XA^CF0,40";
             etiqueta += "^FO50,50^FDDevolucion: "+datos.NumDevolucion+"^FS";
@@ -3963,7 +3993,7 @@ namespace WMS_API.Features.Repositories
             etiqueta += "^FO125,400^FD"+caja.ToString("D2") + "/" + total.ToString("D2") + "^FS";
             etiqueta += "^BY3,2,120^FO125,700^BC^FD"+datos.NumDevolucion+","+caja+"^FS";
             etiqueta += "^CF0,60^FO280,900^FD"+Tipo+"^FS";
-            etiqueta += "^CF0,40^FO50,1100^FDAuditor: Boris Avila^FS"; //colocar al empleado
+            etiqueta += "^CF0,40^FO50,1100^FDAuditor: "+empleado.Nombre+"^FS"; //colocar al empleado
             etiqueta += "^FO50,1150^FDFecha: " + DateTime.Now.Day + "/" + DateTime.Now.Month + "/" + DateTime.Now.Year + "^FS"; //colocar fecha correcta
             etiqueta += "^XZ";
 
@@ -4138,6 +4168,140 @@ namespace WMS_API.Features.Repositories
             return resp;
         }
 
+        public async Task<string> postDevolucionConsolidada(List<DevolucionConsolidada> data)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@user",data[0].Usuario)
+                };
+
+            IM_WMS_Crear_Devolucion_Consolidada resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Crear_Devolucion_Consolidada>("[IM_WMS_Crear_Devolucion_Consolidada]", parametros);
+
+            data.ForEach(async(element) =>
+            {
+                var parametros2 = new List<SqlParameter>
+                {
+                    new SqlParameter("@numDevolucion",element.NumDevolucion),
+                    new SqlParameter("@idConsolidado",resp.ID)
+
+                };
+                IM_WMS_Devolucion_Busqueda resp2 = await executeProcedure.ExecuteStoredProcedure<IM_WMS_Devolucion_Busqueda>("[IM_WMS_Agregar_Devolucion_Consolidada]", parametros2);
+
+            });
+
+            var empleado = await getNombreEmpleado(data[0].Usuario);
+
+            int cont = 1;
+            string encabezado = "^XA^CF0,30";
+
+            string pie  = "^BY2,2,100^FO125,960^BC^FDCONSOLIDADO," + resp.ID + "^FS";
+            pie += "^CF0,40^FO50,1110^FDAuditor: "+ empleado .Nombre+ "^FS"; 
+            pie += "^FO50,1150^FDFecha: " + DateTime.Now.Day + "/" + DateTime.Now.Month + "/" + DateTime.Now.Year + "^FS"; //colocar fecha correcta
+            pie += "^XZ";
+            int fila = 50;
+            string cuerpo = "";
+
+            
+           
+            foreach (var element in data)
+            {
+                var devolucion = await getDevolucionesEVA(element.NumDevolucion, 1, 1, 0);
+                IngresarCaja(devolucion[0].ID, 1, "PRIMERA");
+
+                cuerpo += "^FO50," + fila + "^FDDevolucion: "+element.NumDevolucion+"^FS";
+                cuerpo += "^FO450," + fila + "^FDRMA: "+ devolucion[0].NumeroRMA+ "^FS";
+                fila += 30;
+                cuerpo += "^FO50," + fila + "^FDAsesor: " + devolucion[0].Asesor + "^FS";
+                fila += 30;
+                cuerpo += "^FO50," + fila + "^FDCantidad: " + devolucion[0].TotalUnidades + "^FS";
+                fila += 30;
+                cuerpo += "^FO50," + fila + "^GB700,3,3^FS";
+                fila += 10;
+                if(cont == 9)
+                {
+                    cont = 1;
+                    fila = 50;
+                    try
+                    {
+                        using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                        {
+                            using (NetworkStream stream = client.GetStream())
+                            {
+                                byte[] bytes = Encoding.ASCII.GetBytes(encabezado + cuerpo + pie);
+                                stream.Write(bytes, 0, bytes.Length);
+                            }
+                        }
+                    }
+                    catch (Exception err)
+                    {
+                        
+                    }
+
+                }
+                else
+                {
+                    cont++;
+                }
+
+            }
+
+            if(fila > 50 && cont > 1 )
+            {
+                try
+                {
+                    using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                    {
+                        using (NetworkStream stream = client.GetStream())
+                        {
+                            byte[] bytes = Encoding.ASCII.GetBytes(encabezado + cuerpo + pie);
+                            stream.Write(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+                catch (Exception err)
+                {
+
+                }
+            }
+
+            
+
+            
+
+
+
+
+
+            return "OK";
+        }
+        
+        public async Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesConsolidar()
+        {
+            List<IM_WMS_Devolucion_Busqueda> lista = new List<IM_WMS_Devolucion_Busqueda>();
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_Devolucion_Busqueda> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Devolucion_Busqueda>("[IM_WMS_ObtenerDevolucionesConsolidar]", parametros);
+            return resp;
+        }
+        public async Task<List<IM_WMS_CrearCajaDevolucion>> getPackingRecibirCajaConsolidada(int id, string usuario,string tipo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> {
+                    new SqlParameter("@id",id),
+                    new SqlParameter("@usuario",usuario),
+                    new SqlParameter("@tipo",tipo),
+            };
+
+            List<IM_WMS_CrearCajaDevolucion> resp = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_CrearCajaDevolucion>("[IM_WMS_PackingCajaConsolidado]", parametros);
+            return resp;
+        }
+
+
+
+
+
         public async Task<string> imprimirTodasEtiquetasPendientes(string journalID)
         {
             
@@ -4168,6 +4332,8 @@ namespace WMS_API.Features.Repositories
 
             return "OK";
         }
+
+        
     }
    
 }

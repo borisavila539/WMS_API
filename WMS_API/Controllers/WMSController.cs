@@ -1015,17 +1015,17 @@ namespace WMS_API.Controllers
             var resp = await _WMS.getDetalleDevolucionAuditoria(id);
             return resp;
         }
-        
-        [HttpGet("Devolucion/Defectos")]
-        public async Task<IEnumerable<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions()
+
+        [HttpGet("Devolucion/Defectos/{id}")]
+        public async Task<IEnumerable<DefectosAuditoria>> GetObtenerDefectosDevolucions(int id)
         {
-            var resp = await _WMS.GetObtenerEstructuraDefectosDevolucions();
+            var resp = await _WMS.GetObtenerDefectosDevolucions(id);
             return resp;
         }
-        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}")]
-        public async Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo)
+        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}")]
+        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion, int operacion)
         {
-            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo);
+            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo,Reparacion,operacion);
             return resp;
         }
 
@@ -1036,15 +1036,15 @@ namespace WMS_API.Controllers
             return resp;
         }
         
-        [HttpGet("Devolucion/ImpresionEtiqueta/{id}/{NumDevolucion}/{CajaPrimera}/{CajaIrregular}")]
-        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular)
+        [HttpGet("Devolucion/ImpresionEtiqueta/{id}/{NumDevolucion}/{CajaPrimera}/{CajaIrregular}/{usuario}")]
+        public async Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular,string usuario)
         {
-            var resp = await _WMS.getImprimirEtiquetasDevolucion(id, NumDevolucion, CajaPrimera, CajaIrregular);
+            var resp = await _WMS.getImprimirEtiquetasDevolucion(id, NumDevolucion, CajaPrimera, CajaIrregular,usuario);
             return resp;
         }
         
         [HttpGet("Devolucion/IngresoCajasPacking/{NumDevolucion}/{usuario}/{caja}")]
-        public async Task<IM_WMS_CrearCajaDevolucion> getImprimirEtiquetasDevolucion( string NumDevolucion, string usuario, int caja)
+        public async Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucion( string NumDevolucion, string usuario, int caja)
         {
             var resp = await _WMS.getInsertarCajasDevolucion( NumDevolucion, usuario, caja);
             return resp;
@@ -1078,6 +1078,27 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("Devolucion/Consolidada")]
+        public async Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesConsolidar()
+        {
+            var resp = await _WMS.getDevolucionesConsolidar();
+            return resp;
+        }
+
+        [HttpPost("Devolucion/ConsolidacionCajas")]
+        public async Task<string> postDevolucionConsolidada(List<DevolucionConsolidada> data)
+        {
+            var resp = await _WMS.postDevolucionConsolidada(data);
+
+            return resp;
+        }
+
+        [HttpGet("Devolucion/PackingRecibirCajaConsolidada/{id}/{usuario}/{tipo}")]
+        public async Task<IEnumerable<IM_WMS_CrearCajaDevolucion>> getPackingRecibirCajaConsolidada(int id, string usuario, string tipo)
+        {
+            var resp = await _WMS.getPackingRecibirCajaConsolidada(id, usuario, tipo);
+            return resp;
+        }
         //otros
         //impresion de etiquetas todo diario de recuento telas
         [HttpGet("ImpresionDiarioRecuentoRollosPendientes/{journalID}")]

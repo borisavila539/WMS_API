@@ -151,15 +151,18 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getInsertDevolucionRecibidoEnviado(int id,int qty, string tipo);
         public Task<IM_WMS_Devolucion_Busqueda> getActualizarEstadoDevolucion(int id, string estado,string usuario,string camion);
         public Task<List<IM_WMS_Devolucion_Detalle_RecibirPlanta>> getDetalleDevolucionAuditoria(int id);
-        public Task<List<IM_WMS_ObtenerEstructuraDefectosDevolucion>> GetObtenerEstructuraDefectosDevolucions();
-        public Task<DefectosDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo);
+        public Task<List<DefectosAuditoria>> GetObtenerDefectosDevolucions(int id);
+        public Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo, bool Reparacion, int operacion);
         public Task<List<IM_WMS_Devolucion_Busqueda>> getObtenerDevolucionTracking(string filtro, int page, int size);
-        public Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular);
+        public Task<string> getImprimirEtiquetasDevolucion(int id, string NumDevolucion, int CajaPrimera, int CajaIrregular,string usuario);
         public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucion(string NumDevolucion, string usuario, int Caja);
         public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasPacking();
         public Task<string> postEnviarCorreoPackig(List<IM_WMS_Devolucion_Busqueda> data);
         public Task<List<IM_WMS_DevolucionCajasPacking>> getDevolucionCajasEnviadasCD();
         public Task<IM_WMS_CrearCajaDevolucion> getInsertarCajasDevolucionRecibir(string NumDevolucion, string usuario, int Caja);
+        public Task<List<IM_WMS_Devolucion_Busqueda>> getDevolucionesConsolidar();
+        public Task<string> postDevolucionConsolidada(List<DevolucionConsolidada> data);
+        public Task<List<IM_WMS_CrearCajaDevolucion>> getPackingRecibirCajaConsolidada(int id, string usuario,string tipo);
 
         //otro
 

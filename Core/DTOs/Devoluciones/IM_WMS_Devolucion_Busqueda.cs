@@ -17,5 +17,6 @@ namespace Core.DTOs.Devoluciones
         public string Descricpcion { get; set; }
         public int TotalUnidades { get; set; }
         public string Camion { get; set; }
+        public int IDConsolidado { get; set; }
     }
 }

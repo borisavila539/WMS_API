@@ -27,8 +27,12 @@ namespace Core.DTOs.Devoluciones
     {
         public int Id { get; set; }
         public int IDDevolucionDetalle { get; set; }
-        public int IdDefecto { get; set; }
+        public string Defecto { get; set; }
         public string Tipo { get; set; }
+        public bool Reparacion { get; set; }
+        public string Area { get; set; }
+        public string Operacion { get; set; }
+
 
 
 
