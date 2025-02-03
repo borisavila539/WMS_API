@@ -35,7 +35,9 @@ namespace WMS_API
             services.AddControllers();
             services.AddTransient<IWMSRepository, WMSRepository>();
             services.AddTransient<IAX, AXRepository>();
-        
+            services.AddTransient<IWMSCAEXRepository, WMSCAEXRepository>();
+
+
 
 
 
