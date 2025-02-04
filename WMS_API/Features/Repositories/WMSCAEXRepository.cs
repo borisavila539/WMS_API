@@ -8,6 +8,7 @@ using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -188,6 +189,20 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
+        public async Task<IM_WMSCAEX_ObtenerDetallePickingRouteID> getDetallePickingRoute(string BoxCode)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@BoxCode",BoxCode)
+            };
+
+            IM_WMSCAEX_ObtenerDetallePickingRouteID result = await executeProcedure.ExecuteStoredProcedure<IM_WMSCAEX_ObtenerDetallePickingRouteID>("[IM_WMSCAEX_ObtenerDetallePickingRouteID]", parametros);
+
+            return result;
+        }
+
 
 
         public async Task<ResultadoGenerarGuia> GetGenerarGuia(string Cuentacliente,string ListasEmpaque,int cajas,string usuario)
@@ -208,7 +223,7 @@ namespace WMS_API.Features.Repositories
             //buscar departamento,municipio y poblado de cliente
             //var codigoDepto = departamento.Find(element => element.Nombre == cliente.Departamento).Codigo;
             // var codigoMuni = municipio.Find(element => element.CodigoDepto == codigoDepto && element.Nombre == cliente.Municipio).Codigo;
-            var codigoPobladoCliente = poblado.Find(element => /*element.CodigoDepto == codigoDepto && element.CodigoMunicipio == codigoMuni &&*/ element.Nombre == cliente.Municipio).Codigo;
+            var codigoPobladoCliente = poblado.Find(element => string.Equals(NormalizeText(element.Nombre),NormalizeText(cliente.Municipio),System.StringComparison.OrdinalIgnoreCase)).Codigo;
 
             //buscar poblado de Empresa
             var CodigoPoblaboEmpresa = poblado.Find(element => element.Nombre == credencial.Poblado).Codigo;
@@ -259,7 +274,7 @@ namespace WMS_API.Features.Repositories
                                     CodigoPobladoDestino = codigoPobladoCliente,
                                     CodigoPobladoOrigen = CodigoPoblaboEmpresa,
                                     TipoServicio = "2",//cambiar a 1
-                                    FormatoImpresion = empresa=="IMHN"?"4":"3",
+                                    FormatoImpresion = "1",
                                     CodigoCredito= credencial.CodigoCredito,
                                     Piezas = piezas
                                 }
@@ -311,7 +326,24 @@ namespace WMS_API.Features.Repositories
 
 
 
+        public string NormalizeText(string input)
+        {
+            // Normalización para eliminar acentos y convertir a minúsculas
+            string normalized = input.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
 
+            foreach (char c in normalized)
+            {
+                // Filtrar caracteres no combinados (acentos)
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            // Convertir a minúsculas
+            return stringBuilder.ToString().ToLowerInvariant();
+        }
 
         //Generar metodo Post enviando el XML
         public static async Task<string> SendPostRequestAsync(string url, string xmlData)

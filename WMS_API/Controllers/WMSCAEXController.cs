@@ -76,6 +76,13 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("ListaEmpaque/{BoxCode}")]
+        public async Task<ActionResult<IM_WMSCAEX_ObtenerDetallePickingRouteID>> getDetallePickingRoute(string BoxCode)
+        {
+            var resp = await _WMSCAEX.getDetallePickingRoute(BoxCode);
+            return resp;
+        }
+
         [HttpGet("GenerarGuia/{Cuentacliente}/{ListasEmpaque}/{cajas}/{usuario}")]
         public async Task<ActionResult<ResultadoGenerarGuia>> GetGenerarGuia(string Cuentacliente, string ListasEmpaque, int cajas, string usuario)
         {
