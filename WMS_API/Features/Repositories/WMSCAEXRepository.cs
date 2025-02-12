@@ -6,12 +6,17 @@ using Core.DTOs.CAEX.Poblados;
 using Core.DTOs.CAEX.TipoPieza;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
+using PdfiumViewer;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -26,12 +31,11 @@ namespace WMS_API.Features.Repositories
         public WMSCAEXRepository(IConfiguration configuracion)
         {
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
-            _url = "https://ws.caexlogistics.com/wsCAEXLogisticsSB/wsCAEXLogisticsSB.asmx";
             //Pruebas
-            _url = "http://wsqa.caexlogistics.com:1880/wsCAEXLogisticsSB/wsCAEXLogisticsSB.asmx";
+            //_url = "http://wsqa.caexlogistics.com:1880/wsCAEXLogisticsSB/wsCAEXLogisticsSB.asmx";
 
             //Produccion
-           // _url = "https://ws.caexlogistics.com/wsCAEXLogisticsSB/wsCAEXLogisticsSB.asmx";
+            _url = "https://ws.caexlogistics.com/wsCAEXLogisticsSB/wsCAEXLogisticsSB.asmx";
 
 
         }
@@ -205,43 +209,45 @@ namespace WMS_API.Features.Repositories
 
 
 
-        public async Task<ResultadoGenerarGuia> GetGenerarGuia(string Cuentacliente,string ListasEmpaque,int cajas,string usuario)
+        public async Task<ResultadoGenerarGuia> GetGenerarGuia(RequestGenerarGuia data)
         {
-            string empresa = Cuentacliente.Substring(0,4);
+            ResultadoGenerarGuia err = new ResultadoGenerarGuia();
+            string empresa = data.Cliente.Substring(0,4);
             //obtener las credenciales por empresa
-            var credencial = await GetCompanyCredencial(empresa);
-
-            //obtener la data de los departamentos, municipios, poblados y piezas
-            //var departamento = await getDepartamentos(credencial.Username,credencial.Password);
-            //var municipio = await GetMunicipios(credencial.Username, credencial.Password);
-            var poblado = await GetPoblados(credencial.Username, credencial.Password);
-            var pieza = await GetPiezas(credencial.Username, credencial.Password);
+            var credencial = await GetCompanyCredencial(empresa);            
 
             //obtener informacion del cliente
-            var cliente = await GetDatosCliente(Cuentacliente);//"IMGT-000000704"
+            //var cliente = await GetDatosCliente(data.Cliente);//"IMGT-000000704"
 
-            //buscar departamento,municipio y poblado de cliente
-            //var codigoDepto = departamento.Find(element => element.Nombre == cliente.Departamento).Codigo;
-            // var codigoMuni = municipio.Find(element => element.CodigoDepto == codigoDepto && element.Nombre == cliente.Municipio).Codigo;
-            var codigoPobladoCliente = poblado.Find(element => string.Equals(NormalizeText(element.Nombre),NormalizeText(cliente.Municipio),System.StringComparison.OrdinalIgnoreCase)).Codigo;
-
-            //buscar poblado de Empresa
-            var CodigoPoblaboEmpresa = poblado.Find(element => element.Nombre == credencial.Poblado).Codigo;
+            
+            if (data.ListasEmpaque[0].Codigo == "")
+            {   
+                err.ResultadoOperacionMultiple = new ResultadoOperacionMultiple{
+                    ResultadoExitoso = false,
+                    MensajeError = "No existe " + data.ListasEmpaque[0].County + " como Poblado ",
+                    CodigoRespuesta = 0
+                }
+                ;
+                return err;
+            }           
 
             //crear la lista de piezas a enviar
-            List<PiezaGuia> piezas = new List<PiezaGuia>();
-            var codigoPieza = pieza.Find(element => element.Descripcion == "PAQUETES").Codigo;
+            List<PiezaGuia> piezas = new List<PiezaGuia>();            
 
-            for (int i = 1; i <= cajas; i++)
+            for (int i = 1; i <= data.Cajas; i++)
             {
                 PiezaGuia tmp = new PiezaGuia();
 
                 tmp.NumeroPieza = i;
-                tmp.TipoPieza = codigoPieza;
+                tmp.TipoPieza = "2";
                 tmp.PesoPieza = "30.00";
                 piezas.Add(tmp);
             }
-
+            string ListasEmpaque = "";
+            data.ListasEmpaque.ForEach(element =>
+            {
+                ListasEmpaque += element.PickingRouteID + ',';
+            });
 
             GuiaXMLRequest request = new GuiaXMLRequest
             {
@@ -264,16 +270,16 @@ namespace WMS_API.Features.Repositories
                                     RemitenteNombre = credencial.Name,
                                     RemitenteDireccion = credencial.Address,
                                     RemitenteTelefono = credencial.ContactPhone,
-                                    DestinatarioNombre = cliente.Nombre,
-                                    DestinatarioDireccion = cliente.Direccion,
-                                    DestinatarioTelefono = cliente.Telefono,
-                                    DestinatarioContacto = cliente.Nombre,
+                                    DestinatarioNombre = data.ListasEmpaque[0].Cliente,
+                                    DestinatarioDireccion = data.ListasEmpaque[0].Address,
+                                    DestinatarioTelefono = data.ListasEmpaque[0].Telefono,
+                                    DestinatarioContacto = data.ListasEmpaque[0].Cliente,
                                     DestinatarioNIT = "",
                                     ReferenciaCliente1 = "",
                                     ReferenciaCliente2 = ListasEmpaque,
-                                    CodigoPobladoDestino = codigoPobladoCliente,
-                                    CodigoPobladoOrigen = CodigoPoblaboEmpresa,
-                                    TipoServicio = "2",//cambiar a 1
+                                    CodigoPobladoDestino = data.ListasEmpaque[0].Codigo,
+                                    CodigoPobladoOrigen = credencial.Poblado,
+                                    TipoServicio = "1",
                                     FormatoImpresion = "1",
                                     CodigoCredito= credencial.CodigoCredito,
                                     Piezas = piezas
@@ -292,18 +298,18 @@ namespace WMS_API.Features.Repositories
             int IDConsolidado = 0;
             if (mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia.ResultadoOperacionMultiple.ResultadoExitoso)
             {
-                string[] Rutas = ListasEmpaque.Split(",");
-                
-                foreach(var ruta in Rutas)
+                                
+                foreach(var ruta in data.ListasEmpaque)
                 {
                     if(IDConsolidado == 0)
                     {
-                        var crear = await getIM_WMS_CAEX_CrearRutas(ruta, usuario, IDConsolidado);
+                        
+                        var crear = await getIM_WMS_CAEX_CrearRutas(ruta.PickingRouteID, data.usuario, IDConsolidado);
                         IDConsolidado = crear.ID;
                     }
                     else
                     {
-                        await getIM_WMS_CAEX_CrearRutas(ruta, usuario, IDConsolidado);
+                        await getIM_WMS_CAEX_CrearRutas(ruta.PickingRouteID, data.usuario, IDConsolidado);
                     }
                     
                 }
@@ -314,15 +320,159 @@ namespace WMS_API.Features.Repositories
             //validar si se creo la guia y guardarla
             mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia.ListaRecolecciones.DatosRecoleccion.ForEach(async(element) =>
             {
+                List<IM_WMSCAEX_CrearRutas_Cajas> imprimir = new List<IM_WMSCAEX_CrearRutas_Cajas>();
                 if (element.ResultadoOperacion.ResultadoExitoso)
                 {
                     var insertarCaja = await getIM_WMSCAEX_CrearRutas_Cajas(IDConsolidado, element.NumeroPieza, element.NumeroGuia, element.URLConsulta);
-
+                    imprimir.Add(insertarCaja);                    
                 }
+                //var impresion = await postImprimirEtiqueta(imprimir);
             });
            
             return mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia;
         }
+
+        public async Task<List<IM_WMSCAEX_ObtenerReimpresionEtiquetas>> getObtenerReimpresionEtiquetas(string BoxCode)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@BoxCode",BoxCode)
+            };
+
+            List<IM_WMSCAEX_ObtenerReimpresionEtiquetas> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMSCAEX_ObtenerReimpresionEtiquetas>("[IM_WMSCAEX_ObtenerReimpresionEtiquetas]", parametros);
+
+            return result;
+        }
+
+        public async Task<string> postImprimirEtiqueta(List<IM_WMSCAEX_CrearRutas_Cajas> urls)
+        {
+            string response = "";
+            foreach (var url in urls)
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var download = await client.GetAsync(url.URLConsulta);
+                    if (download.IsSuccessStatusCode)
+                    {
+                        byte[] pdfData = await download.Content.ReadAsByteArrayAsync();
+
+                        // Convertir PDF a imagen o ZPL
+                        string zplData = ConvertPdfToZpl(pdfData); 
+
+                        try
+                        {
+                            using (TcpClient print = new TcpClient("10.1.1.221", 9100))
+                            {
+                                using (NetworkStream stream = print.GetStream())
+                                {
+                                    byte[] zplBytes = System.Text.Encoding.UTF8.GetBytes(zplData);
+                                    stream.Write(zplBytes, 0, zplBytes.Length);
+                                    response = "OK";
+                                }
+                            }
+                        }
+                        catch (Exception err)
+                        {
+                            response = err.ToString();
+                        }
+                    }
+                    else
+                    {
+                        response = "Error al descargar el archivo";
+                    }
+                }
+            }
+
+            return response;
+        }
+
+        public string ConvertPdfToZpl(byte[] pdfData)
+        {
+            // Convierte el PDF a una imagen con alta resolución
+            using (MemoryStream pdfStream = new MemoryStream(pdfData))
+            using (PdfDocument pdfDoc = PdfDocument.Load(pdfStream))
+            {
+                // Renderiza la primera página con mayor DPI (e.g., 600 DPI)
+                Image pdfImage = pdfDoc.Render(0, 600, 600, PdfRenderFlags.CorrectFromDpi);
+
+                // Ajusta el tamaño de la imagen para que se corresponda con 4x4 pulgadas (812x812 puntos)
+                Bitmap resizedBitmap = ResizeBitmap(pdfImage, 812, 812);
+
+                // Generar el código ZPL a partir de la imagen redimensionada
+                return ConvertBitmapToZpl(resizedBitmap);
+            }
+        }
+
+        private Bitmap ResizeBitmap(Image originalImage, int width, int height)
+        {
+            Bitmap resizedBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(resizedBitmap))
+            {
+                g.Clear(Color.White);
+                g.DrawImage(originalImage, 0, 0, width, height);
+            }
+            return resizedBitmap;
+        }
+
+        private Bitmap ConvertToNonIndexedBitmap(Image originalImage)
+        {
+            // Convierte la imagen a formato no indexado (Format32bppArgb)
+            Bitmap newBitmap = new Bitmap(originalImage.Width, originalImage.Height, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(newBitmap))
+            {
+                g.DrawImage(originalImage, 0, 0);
+            }
+            return newBitmap;
+        }
+
+        private string ConvertBitmapToZpl(Bitmap bitmap)
+        {
+            StringBuilder zpl = new StringBuilder();
+
+            // Configuración de tamaño del papel (4x4 pulgadas en puntos)
+            zpl.AppendLine("^XA");
+            zpl.AppendLine("^PW812");  // Ancho del papel: 812 puntos
+            zpl.AppendLine("^LL812");  // Largo del papel: 812 puntos
+            zpl.AppendLine("^FO0,0");  // Posición inicial en (0,0)
+
+            // Tamaño de la imagen
+            int widthBytes = (bitmap.Width + 7) / 8;
+            int totalBytes = widthBytes * bitmap.Height;
+            byte[] imageData = new byte[totalBytes];
+            int byteIndex = 0;
+
+            // Convertir la imagen a bytes ZPL
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x += 8)
+                {
+                    byte pixelByte = 0;
+                    for (int bit = 0; bit < 8; bit++)
+                    {
+                        if (x + bit < bitmap.Width && bitmap.GetPixel(x + bit, y).R < 128) // Negro es 1
+                        {
+                            pixelByte |= (byte)(1 << (7 - bit));
+                        }
+                    }
+                    imageData[byteIndex++] = pixelByte;
+                }
+            }
+
+            // Convertir los datos a formato hexadecimal
+            string hexData = BitConverter.ToString(imageData).Replace("-", "");
+
+            // Generar el comando GFA
+            zpl.AppendLine($"^GFA,{totalBytes},{totalBytes},{widthBytes},{hexData}");
+
+            // Finalizar ZPL
+            zpl.AppendLine("^XZ");
+
+            return zpl.ToString();
+        }
+
+
 
 
 

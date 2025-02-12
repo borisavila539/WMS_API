@@ -83,10 +83,23 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("GenerarGuia/{Cuentacliente}/{ListasEmpaque}/{cajas}/{usuario}")]
-        public async Task<ActionResult<ResultadoGenerarGuia>> GetGenerarGuia(string Cuentacliente, string ListasEmpaque, int cajas, string usuario)
+        [HttpPost("GenerarGuia")]
+        public async Task<ActionResult<ResultadoGenerarGuia>> GetGenerarGuia(RequestGenerarGuia data)
         {
-            var resp = await _WMSCAEX.GetGenerarGuia(Cuentacliente,ListasEmpaque,cajas,usuario) ;
+            var resp = await _WMSCAEX.GetGenerarGuia(data) ;
+            return resp;
+        }
+        [HttpPost("ImprimirEtiquetas")]
+        public async Task<string> postImprimirEtiqueta(List<IM_WMSCAEX_CrearRutas_Cajas> urls)
+        {
+            var resp = await _WMSCAEX.postImprimirEtiqueta(urls);
+            return resp;
+        }
+
+        [HttpGet("ObtenerimpresionEtiquetas/{BoxCode}")]
+        public async Task<List<IM_WMSCAEX_ObtenerReimpresionEtiquetas>> getObtenerReimpresionEtiquetas(string BoxCode)
+        {
+            var resp = await _WMSCAEX.getObtenerReimpresionEtiquetas(BoxCode);
             return resp;
         }
     }

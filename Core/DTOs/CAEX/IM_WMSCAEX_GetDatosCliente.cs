@@ -13,5 +13,6 @@ namespace Core.DTOs.CAEX
         public string Direccion { get; set; }
         public string Nombre { get; set; }
         public string Telefono { get; set; }
+        public string Codigo { get; set; }
     }
 }

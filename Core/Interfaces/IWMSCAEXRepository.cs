@@ -16,8 +16,11 @@ namespace Core.Interfaces
         public Task<List<Municipio>> GetMunicipios(string user, string pass);
         public Task<List<Poblado>> GetPoblados(string user, string pass);
         public Task<List<Pieza>> GetPiezas(string user, string pass);
-        public Task<ResultadoGenerarGuia> GetGenerarGuia(string Cuentacliente, string ListasEmpaque, int cajas, string usuario);
+        public Task<ResultadoGenerarGuia> GetGenerarGuia(RequestGenerarGuia data) ;
         public Task<IM_WMSCAEX_GetDatosCliente> GetDatosCliente(string cliente);
         public Task<IM_WMSCAEX_ObtenerDetallePickingRouteID> getDetallePickingRoute(string BoxCode);
+        public Task<string> postImprimirEtiqueta(List<IM_WMSCAEX_CrearRutas_Cajas> urls);
+        public Task<List<IM_WMSCAEX_ObtenerReimpresionEtiquetas>> getObtenerReimpresionEtiquetas(string BoxCode);
+
     }
 }

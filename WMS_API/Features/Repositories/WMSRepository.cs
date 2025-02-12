@@ -39,11 +39,13 @@ namespace WMS_API.Features.Repositories
        
         private readonly string _connectionString;
         private readonly string _connectionStringPiso;
+        private readonly string _ImpresoraDevolucion;
 
         public WMSRepository(IConfiguration configuracion)
         {
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
+            _ImpresoraDevolucion = "192.168.10.128";
 
         }
 
@@ -3999,7 +4001,7 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-                using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                using (TcpClient client = new TcpClient(_ImpresoraDevolucion, 9100))//colocarIPImpresora
                 {
                     using (NetworkStream stream = client.GetStream())
                     {
@@ -4223,7 +4225,7 @@ namespace WMS_API.Features.Repositories
                     fila = 50;
                     try
                     {
-                        using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                        using (TcpClient client = new TcpClient(_ImpresoraDevolucion, 9100))//colocarIPImpresora
                         {
                             using (NetworkStream stream = client.GetStream())
                             {
@@ -4249,7 +4251,7 @@ namespace WMS_API.Features.Repositories
             {
                 try
                 {
-                    using (TcpClient client = new TcpClient("10.1.1.208", 9100))//colocarIPImpresora
+                    using (TcpClient client = new TcpClient(_ImpresoraDevolucion, 9100))//colocarIPImpresora
                     {
                         using (NetworkStream stream = client.GetStream())
                         {
