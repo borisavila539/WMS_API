@@ -2444,10 +2444,14 @@ namespace WMS_API.Features.Repositories
                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
 
             }
-            else
+            else if( Tipo == "TP")
             {
                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceivedTP]", parametros);
 
+            }
+            else
+            {
+                response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceivedMB]", parametros);
             }
 
             return response;
@@ -2473,9 +2477,14 @@ namespace WMS_API.Features.Repositories
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2]", parametros);
 
             }
-            else
+            else if(filtro.Tipo == "TP")
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP_V2]", parametros);
+
+            }
+            else
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2MB]", parametros);
 
             }
 
@@ -2493,9 +2502,14 @@ namespace WMS_API.Features.Repositories
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived]", parametros);
             }
-            else
+            else if(TIPO == "TP")
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP]", parametros);
+
+            }
+            else
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedMB]", parametros);
 
             }
             return result;

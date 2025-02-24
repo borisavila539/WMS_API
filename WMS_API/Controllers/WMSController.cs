@@ -932,7 +932,7 @@ namespace WMS_API.Controllers
         }
 
         //Auditoria cajas denim
-        [HttpGet("AuditoriaCajasDenimAuditoriaCajasDenim/{OP}/{Ubicacion}/{usuario}")]
+        [HttpGet("AuditoriaCajasDenim/{OP}/{Ubicacion}/{usuario}")]
         public async Task<IEnumerable<IM_WMS_ObtenerDetalleAdutoriaDenim>> GetObtenerDetalleAdutoriaDenim(string OP, string Ubicacion, string usuario)
         {
             var texto = OP.Split(",");

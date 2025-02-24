@@ -326,7 +326,7 @@ namespace WMS_API.Features.Repositories
                     var insertarCaja = await getIM_WMSCAEX_CrearRutas_Cajas(IDConsolidado, element.NumeroPieza, element.NumeroGuia, element.URLConsulta);
                     imprimir.Add(insertarCaja);                    
                 }
-                //var impresion = await postImprimirEtiqueta(imprimir);
+                var impresion = await postImprimirEtiqueta(imprimir);
             });
            
             return mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia;
@@ -349,6 +349,7 @@ namespace WMS_API.Features.Repositories
         public async Task<string> postImprimirEtiqueta(List<IM_WMSCAEX_CrearRutas_Cajas> urls)
         {
             string response = "";
+            urls = urls.OrderBy(x => x.NumeroPieza).ToList();
             foreach (var url in urls)
             {
                 using (HttpClient client = new HttpClient())
