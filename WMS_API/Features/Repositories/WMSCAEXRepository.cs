@@ -207,6 +207,20 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
+        public async Task<IM_WMS_CAEX_ObtenerPedido> GetObtenerPedido(string ListaEmpaque)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@ListaEmpaque",ListaEmpaque)
+            };
+
+            IM_WMS_CAEX_ObtenerPedido result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_CAEX_ObtenerPedido>("[IM_WMS_CAEX_ObtenerPedido]", parametros);
+
+            return result;
+        }
+
 
 
         public async Task<ResultadoGenerarGuia> GetGenerarGuia(RequestGenerarGuia data)
@@ -243,10 +257,25 @@ namespace WMS_API.Features.Repositories
                 tmp.PesoPieza = "30.00";
                 piezas.Add(tmp);
             }
+            List<string> pedidos = new List<string>();
             string ListasEmpaque = "";
-            data.ListasEmpaque.ForEach(element =>
+            foreach(var element in data.ListasEmpaque)
             {
                 ListasEmpaque += element.PickingRouteID + ',';
+
+                //obtener lista de Pedidos
+                var resp = await GetObtenerPedido(element.PickingRouteID);
+                if(pedidos.Find(x => x == resp.TRANSREFID).Length == 0)
+                {                    
+                    pedidos.Add(resp.TRANSREFID);
+
+                }
+            }
+
+            string reference1 = "#" + data.ListasEmpaque.First().Embarque + ",";
+            pedidos.ForEach(ele =>
+            {
+                reference1 += ele + ",";
             });
 
             GuiaXMLRequest request = new GuiaXMLRequest
@@ -275,7 +304,7 @@ namespace WMS_API.Features.Repositories
                                     DestinatarioTelefono = data.ListasEmpaque[0].Telefono,
                                     DestinatarioContacto = data.ListasEmpaque[0].Cliente,
                                     DestinatarioNIT = "",
-                                    ReferenciaCliente1 = "",
+                                    ReferenciaCliente1 = reference1,
                                     ReferenciaCliente2 = ListasEmpaque,
                                     CodigoPobladoDestino = data.ListasEmpaque[0].Codigo,
                                     CodigoPobladoOrigen = credencial.Poblado,
@@ -318,17 +347,23 @@ namespace WMS_API.Features.Repositories
 
 
             //validar si se creo la guia y guardarla
-            mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia.ListaRecolecciones.DatosRecoleccion.ForEach(async(element) =>
+            List<IM_WMSCAEX_CrearRutas_Cajas> imprimir = new List<IM_WMSCAEX_CrearRutas_Cajas>();
+
+            foreach (var element in mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia.ListaRecolecciones.DatosRecoleccion)
             {
-                List<IM_WMSCAEX_CrearRutas_Cajas> imprimir = new List<IM_WMSCAEX_CrearRutas_Cajas>();
+            
+
                 if (element.ResultadoOperacion.ResultadoExitoso)
                 {
                     var insertarCaja = await getIM_WMSCAEX_CrearRutas_Cajas(IDConsolidado, element.NumeroPieza, element.NumeroGuia, element.URLConsulta);
-                    imprimir.Add(insertarCaja);                    
+                    imprimir.Add(insertarCaja);  
+
                 }
-                var impresion = await postImprimirEtiqueta(imprimir);
-            });
-           
+            }
+            var impresion = await postImprimirEtiqueta(imprimir);
+
+
+
             return mappedResponse.Body.GenerarGuiaResponse.ResultadoGenerarGuia;
         }
 
