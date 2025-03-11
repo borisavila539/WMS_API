@@ -2459,7 +2459,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(Filtros filtro)
         {
-            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(filtro.Tipo == "MB"?_connectionString: _connectionStringPiso);
 
             var parametros = new List<SqlParameter> {
                 new SqlParameter("@Lote", filtro.Lote),
@@ -2484,7 +2484,7 @@ namespace WMS_API.Features.Repositories
             }
             else
             {
-                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived_V2MB]", parametros);
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[IM_WMS_MB_DetalleCajas]", parametros);
 
             }
 
@@ -2502,16 +2502,16 @@ namespace WMS_API.Features.Repositories
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceived]", parametros);
             }
-            else if(TIPO == "TP")
+            else //if(TIPO == "TP")
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP]", parametros);
 
             }
-            else
+            /*else
             {
                 result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedMB]", parametros);
 
-            }
+            }*/
             return result;
         }
 

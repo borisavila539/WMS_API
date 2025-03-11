@@ -1,4 +1,5 @@
-﻿using Core.DTOs.MB;
+﻿using Core.DTOs.Despacho_PT;
+using Core.DTOs.MB;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
@@ -56,6 +57,18 @@ namespace WMS_API.Features.Repositories
 
 
         }
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosRecepcionUbicacionCajas()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+            };
+
+            List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_CorreosRecepcionUbicacionCajas]", parametros);
+
+            return response;
+        }
 
         public async Task<string> postEnviarCorreoRecepcion(List<IM_WMS_MB_InsertBox> data)
         {
@@ -76,11 +89,10 @@ namespace WMS_API.Features.Repositories
                     worksheet.Cells[1, 3].Value = "Articulo";
                     worksheet.Cells[1, 4].Value = "NumeroCaja";
                     worksheet.Cells[1, 5].Value = "Talla";
-                    worksheet.Cells[1, 6].Value = "Cantidad";
-                    worksheet.Cells[1, 7].Value = "FechaEnvio";
-                    worksheet.Cells[1, 8].Value = "FechaRecepcion";
-                    worksheet.Cells[1, 9].Value = "Color";
-                    worksheet.Cells[1, 10].Value = "Ubicacion";
+                    worksheet.Cells[1, 6].Value = "Cantidad";                
+                    worksheet.Cells[1, 7].Value = "FechaRecepcion";
+                    worksheet.Cells[1, 8].Value = "Color";
+                    worksheet.Cells[1, 9].Value = "Ubicacion";
 
                     int fila = 2;
                     data.ForEach(x =>
@@ -91,13 +103,13 @@ namespace WMS_API.Features.Repositories
                         worksheet.Cells[fila, 4].Value = x.NumeroCaja;
                         worksheet.Cells[fila, 5].Value = x.Talla;
                         worksheet.Cells[fila, 6].Value = x.Cantidad;
-                        worksheet.Cells[fila, 8].Value = x.FechaRecepcion;
-                        worksheet.Cells[fila, 9].Value = x.Color;
-                        worksheet.Cells[fila, 10].Value = x.UbicacionRecepcion;
+                        worksheet.Cells[fila, 7].Value = x.FechaRecepcion;
+                        worksheet.Cells[fila, 8].Value = x.Color;
+                        worksheet.Cells[fila, 9].Value = x.UbicacionRecepcion;
                         fila++;
 
                     });
-                    var rangeTable = worksheet.Cells[1, 1, fila, 10];
+                    var rangeTable = worksheet.Cells[1, 1, fila, 9];
                     var table = worksheet.Tables.Add(rangeTable, "MyTable");
                     table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
@@ -147,14 +159,14 @@ namespace WMS_API.Features.Repositories
 
                         mail.From = new MailAddress(VariablesGlobales.Correo);
 
-                        /*var correos = await getCorreosRecepcionUbicacionCajas();
+                        var correos = await getCorreosRecepcionUbicacionCajas();
 
                         correos.ForEach(x =>
                         {
                             mail.To.Add(x.Correo);
 
-                        });*/
-                        mail.To.Add("bavila@intermoda.com.hn");
+                        });
+                        //mail.To.Add("bavila@intermoda.com.hn");
 
 
                         TimeSpan tiempo = data[0].FechaRecepcion - data[data.Count - 1].FechaRecepcion;
@@ -163,7 +175,7 @@ namespace WMS_API.Features.Repositories
                         mail.Subject = "Recepcion Producto Terminado MB " + fecha;
                         mail.IsBodyHtml = true;
 
-                        mail.Body = "<p>Recepcion Producto Terminado MB" + " Camion: " + data[0].Camion + " Usuario: " + data[0].usuarioRecepcion + ", Descargado en " + tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos " + tiempo.Seconds + " Segundos</p><h2>Traslados:</h2>";
+                        mail.Body = "<p>Recepcion Producto Terminado MB" + " Camion: " + data[0].Camion + " Usuario: " + data[0].usuarioRecepcion + ", Descargado en " + tiempo.Hours + " horas y " + tiempo.Minutes + " Minutos " + tiempo.Seconds + " Segundos</p>";
 
                         using (MemoryStream ms = new MemoryStream(fileContents))
                         {
@@ -197,6 +209,107 @@ namespace WMS_API.Features.Repositories
             }
             return "OK";
 
+        }
+
+        public async Task<List<IM_WMS_MB_CajasDisponibles>> GetCajasDisponibles(FiltroCajasDisponiblesMB Filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@orden",Filtro.Orden),
+                new SqlParameter("@Articulo",Filtro.Articulo),
+                new SqlParameter("@Color",Filtro.Color),
+                new SqlParameter("@page",Filtro.Page),
+                new SqlParameter("@size",Filtro.Size)
+            };
+
+            List<IM_WMS_MB_CajasDisponibles> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_CajasDisponibles>("[IM_WMS_MB_CajasDisponibles]", parametros);
+            return result;
+        }
+
+        public async Task<IM_WMS_MB_CajasDisponibles> getActualizarCajasParaDespacho(int id, bool PickToDespacho)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id),
+                new SqlParameter("@PickToDespacho",PickToDespacho)
+               
+            };
+
+            IM_WMS_MB_CajasDisponibles result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_CajasDisponibles>("[IM_WMS_MB_ActualizarCajasParaDespacho]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_ResumenArticulosSeleccionados>> GetResumenArticulosSeleccionados()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {               
+            };
+
+            List<IM_WMS_MB_ResumenArticulosSeleccionados> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_ResumenArticulosSeleccionados>("[IM_WMS_MB_ResumenArticulosSeleccionados]", parametros);
+            return result;
+        }
+
+        public async Task<IM_WMS_MB_CrearDespacho> getGenerarDespacho(string usuario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Usuario",usuario)
+
+            };
+
+            IM_WMS_MB_CrearDespacho result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_CrearDespacho>("[IM_WMS_MB_CrearDespacho]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_CrearDespacho>> getDespachosPendientes()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+
+            };
+
+            List<IM_WMS_MB_CrearDespacho> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_CrearDespacho>("[IM_WMS_MB_ObtenerDespachosPendientes]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_PICKING>> getPicking(int DespachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID",DespachoID)
+
+            };
+
+            List<IM_WMS_MB_PICKING> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_PICKING>("[IM_WMS_MB_PICKING]", parametros);
+            return result;
+        }
+
+        public async Task<IM_WMS_MB_PICKING> getUpdatePicking(int id, string usuario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id),
+                new SqlParameter("@usuario",usuario)
+
+
+            };
+
+            IM_WMS_MB_PICKING result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_PICKING>("[IM_WMS_MB_UpdatePICKING]", parametros);
+            return result;
         }
     }
 }
