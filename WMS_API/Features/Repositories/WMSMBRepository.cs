@@ -305,10 +305,39 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@id",id),
                 new SqlParameter("@usuario",usuario)
 
-
             };
 
             IM_WMS_MB_PICKING result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_PICKING>("[IM_WMS_MB_UpdatePICKING]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_PACKING>> getPacking(int DespachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID",DespachoID)
+
+            };
+
+            List<IM_WMS_MB_PACKING> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_PACKING>("[IM_WMS_MB_PACKING]", parametros);
+            return result;
+        }
+
+        public async Task<IM_WMS_MB_PACKING> getUpdatePacking(int id, string usuario, string Pallet)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id),
+                new SqlParameter("@usuario",usuario),
+                new SqlParameter("@pallet",Pallet)
+
+            };
+
+            IM_WMS_MB_PACKING result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_PACKING>("[IM_WMS_MB_UpdatePACKING]", parametros);
             return result;
         }
     }

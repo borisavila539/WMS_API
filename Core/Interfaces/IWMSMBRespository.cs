@@ -20,5 +20,8 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_MB_CrearDespacho>> getDespachosPendientes();
         public Task<List<IM_WMS_MB_PICKING>> getPicking(int DespachoID);
         public Task<IM_WMS_MB_PICKING> getUpdatePicking(int id, string usuario);
+        public Task<List<IM_WMS_MB_PACKING>> getPacking(int DespachoID);
+        public Task<IM_WMS_MB_PACKING> getUpdatePacking(int id, string usuario,string Pallet);
+
     }
 }

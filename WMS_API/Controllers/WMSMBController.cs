@@ -170,5 +170,19 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+        [HttpGet("DespachoPacking/{DespachoID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_PACKING>>> getPacking(int DespachoID)
+        {
+            var resp = await _WMSMB.getPacking(DespachoID);
+            return resp;
+        }
+
+        [HttpGet("DespachoUpdatePacking/{id}/{usuario}/{pallet}")]
+        public async Task<ActionResult<IM_WMS_MB_PACKING>> getUpdatePicking(int id, string usuario,string pallet)
+        {
+            var resp = await _WMSMB.getUpdatePacking(id, usuario,pallet);
+            return resp;
+        }
+
     }
 }
