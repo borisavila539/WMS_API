@@ -52,5 +52,12 @@ namespace WMS_API.Controllers
             var resp = await _IMWMS_RecTelaRepository.GetTelaPickingRule();
             return Ok(resp);
         }
+
+        [HttpGet("EnviarCorreoDeRecepcionDeTela/{journalId}")]
+        public async Task<ActionResult<string>> EnviarCorreoDeRecepcionDeTela(string journalId)
+        {
+            var resp = await _IMWMS_RecTelaRepository.EnviarCorreoDeRecepcionDeTela(journalId);
+            return Ok(resp);
+        }
     }
 }

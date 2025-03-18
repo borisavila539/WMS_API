@@ -11,5 +11,8 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_RecTela_UpdateTelaPickingIsScanningDTO>> UpdateTelaPickingIsScanning(List<UpdateTelaPickingIsScanningDto> telapicking);
         public Task<List<IM_WMS_RecTela_GetTelaPickingDefectoDTO>> GetTelaPickingDefecto();
         public Task<List<IM_WMS_RecTela_GetTelaPickingRuleDTO>> GetTelaPickingRule();
+        public Task<string> EnviarCorreoDeRecepcionDeTela(string journalId);
+
+        public Task<List<IM_WMS_RecTela_CorreosActivosDTO>> GetCorreosActivos();
     }
 }
