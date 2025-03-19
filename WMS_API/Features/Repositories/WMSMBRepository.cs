@@ -211,7 +211,7 @@ namespace WMS_API.Features.Repositories
 
         }
 
-        public async Task<List<IM_WMS_MB_CajasDisponibles>> GetCajasDisponibles(FiltroCajasDisponiblesMB Filtro)
+        public async Task<List<IM_WMS_MB_CajasDisponibles2>> GetCajasDisponibles(FiltroCajasDisponiblesMB Filtro)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -225,7 +225,65 @@ namespace WMS_API.Features.Repositories
             };
 
             List<IM_WMS_MB_CajasDisponibles> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_CajasDisponibles>("[IM_WMS_MB_CajasDisponibles]", parametros);
-            return result;
+            List<IM_WMS_MB_CajasDisponibles2> data = new List<IM_WMS_MB_CajasDisponibles2>();
+            
+            foreach(var item in result.FindAll(x => x.IDConsolidado == 0))
+            {
+                IM_WMS_MB_CajasDisponibles2 tmp =  new IM_WMS_MB_CajasDisponibles2();
+
+                tmp.ID = item.ID;
+                tmp.IDConsolidado= item.IDConsolidado;
+                tmp.Lote= item.Lote;
+                tmp.Orden= item.Orden;
+                tmp.Articulo= item.Articulo;
+                tmp.DescripcioMB= item.DescripcioMB;
+                tmp.NumeroCaja= item.NumeroCaja;
+                tmp.Talla= item.Talla;
+                tmp.Cantidad= item.Cantidad;
+                tmp.Color= item.Color;
+                tmp.NombreColor= item.NombreColor;
+                tmp.CantidadTotal= item.CantidadTotal;
+                tmp.CantidadCajas= item.CantidadCajas;
+                tmp.PickToDespacho = item.PickToDespacho;
+                tmp.subRows = new List<IM_WMS_MB_CajasDisponibles2>();
+                if (result.Count(x=> x.IDConsolidado == tmp.ID) > 0)
+                {
+                    List<IM_WMS_MB_CajasDisponibles2> subRows = new List<IM_WMS_MB_CajasDisponibles2>();
+                    //subRows.Add(tmp);
+
+                    tmp.NumeroCaja = 0;
+                    tmp.Talla = "";
+                    tmp.Cantidad = 0;
+                    tmp.Color = "";
+                    tmp.NombreColor = "";
+
+                    foreach (var subItem in result.FindAll(x => x.IDConsolidado == tmp.ID || x.ID == tmp.ID))
+                    {
+                        IM_WMS_MB_CajasDisponibles2 tmpSubrow = new IM_WMS_MB_CajasDisponibles2();
+                        tmpSubrow.ID = subItem.ID;
+                        tmpSubrow.IDConsolidado = tmp.ID;
+                        tmpSubrow.Lote = subItem.Lote;
+                        tmpSubrow.Orden = subItem.Orden;
+                        tmpSubrow.Articulo = subItem.Articulo;
+                        tmpSubrow.DescripcioMB = subItem.DescripcioMB;
+                        tmpSubrow.NumeroCaja = subItem.NumeroCaja;
+                        tmpSubrow.Talla = subItem.Talla;
+                        tmpSubrow.Cantidad = subItem.Cantidad;
+                        tmpSubrow.Color = subItem.Color;
+                        tmpSubrow.NombreColor = subItem.NombreColor;
+                        tmpSubrow.CantidadTotal = 0;
+                        tmpSubrow.CantidadCajas = 0;
+                        tmpSubrow.PickToDespacho = subItem.PickToDespacho;
+                        tmpSubrow.subRows = new List<IM_WMS_MB_CajasDisponibles2>();
+                        subRows.Add(tmpSubrow);
+                    }
+                    tmp.subRows = subRows;
+
+                }
+
+                data.Add(tmp);
+            }
+            return data;
         }
 
         public async Task<IM_WMS_MB_CajasDisponibles> getActualizarCajasParaDespacho(int id, bool PickToDespacho)
@@ -338,6 +396,48 @@ namespace WMS_API.Features.Repositories
             };
 
             IM_WMS_MB_PACKING result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_PACKING>("[IM_WMS_MB_UpdatePACKING]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_Tracking>> getTracking(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id)
+
+            };
+
+            List<IM_WMS_MB_Tracking> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_Tracking>("[IM_WMS_MB_Tracking]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_Trackingpallet>> getTrackingPallet(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id)
+
+            };
+
+            List<IM_WMS_MB_Trackingpallet> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_Trackingpallet>("[IM_WMS_MB_Trackingpallet]", parametros);
+            return result;
+        }
+
+        public async Task<List<IM_WMS_MB_ResumenDespachoPallet>> GetResumenDespachoPallets(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@id",id)
+
+            };
+
+            List<IM_WMS_MB_ResumenDespachoPallet> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_ResumenDespachoPallet>("[IM_WMS_MB_ResumenDespachoPallet]", parametros);
             return result;
         }
     }
