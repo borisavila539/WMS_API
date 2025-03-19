@@ -1,4 +1,5 @@
-﻿using Core.DTOs.MB;
+﻿using Core.DTOs.Despacho_PT;
+using Core.DTOs.MB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Core.Interfaces
 
         public Task<List<IM_WMS_MB_Trackingpallet>> getTrackingPallet(int id);
         public Task<List<IM_WMS_MB_ResumenDespachoPallet>> GetResumenDespachoPallets(int id);
+        public  Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoMB();
 
     }
 }

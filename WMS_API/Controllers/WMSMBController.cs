@@ -232,14 +232,14 @@ namespace WMS_API.Controllers
 
                 mail.From = new MailAddress(VariablesGlobales.Correo);
 
-                /*var correos = await getCorreosRecepcionUbicacionCajas();
+                var correos = await _WMSMB.getCorreosDespachoMB();
 
                 correos.ForEach(x =>
                 {
                     mail.To.Add(x.Correo);
 
-                });*/
-                mail.To.Add("bavila@intermoda.com.hn");
+                });
+                //mail.To.Add("bavila@intermoda.com.hn");
 
 
                 mail.Subject = "Desapcho MB " + resp.ID;

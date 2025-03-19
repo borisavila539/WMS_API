@@ -440,5 +440,18 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_MB_ResumenDespachoPallet> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_ResumenDespachoPallet>("[IM_WMS_MB_ResumenDespachoPallet]", parametros);
             return result;
         }
+
+        public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoMB()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+            };
+
+            List<IM_WMS_Correos_DespachoPTDTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_Correos_DespachoPTDTO>("[IM_WMS_MB_CorreosDesapchoMB]", parametros);
+
+            return response;
+        }
     }
 }
