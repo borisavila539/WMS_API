@@ -14,5 +14,9 @@ namespace Core.Interfaces
         public Task<string> EnviarCorreoDeRecepcionDeTela(string journalId);
 
         public Task<List<IM_WMS_RecTela_CorreosActivosDTO>> GetCorreosActivos();
+        public Task<List<IM_WMS_RecTela_TelaJournalScanCountsDTO>> TelaJournalScanCounts(string journalId);
+        public Task<List<IM_WMS_RecTela_DatosRollosProveedorDTO>> DatosRollosProveedor(string journalId);
+
+
     }
 }

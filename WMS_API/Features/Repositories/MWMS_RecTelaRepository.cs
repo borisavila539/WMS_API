@@ -10,7 +10,9 @@ using Core.Interfaces;
 using OfficeOpenXml;
 using System.Net.Mail;
 using System.IO;
+using System.Text;
 using System.Net;
+
 namespace WMS_API.Features.Repositories
 {
     public class MWMS_RecTelaRepository: IMWMS_RecTelaRepository
@@ -34,10 +36,46 @@ namespace WMS_API.Features.Repositories
             };
 
             var result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListTelasDTO>("[IM_WMS_RecTela_GetListTelas]", parametros);
-   
+
+
+            foreach (var item in result)
+            {
+                var journalScanCount = await TelaJournalScanCounts(item.JournalId);
+
+                item.JournalScanCounts = journalScanCount;
+            }
+
             return result;
         }
 
+
+        public async Task<List<IM_WMS_RecTela_TelaJournalScanCountsDTO>> TelaJournalScanCounts(string journalId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@journalId",journalId)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_TelaJournalScanCountsDTO>("[IM_WMS_RecTela_TelaJournalScanCounts]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_RecTela_DatosRollosProveedorDTO>> DatosRollosProveedor(string journalId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@journalId",journalId)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_DatosRollosProveedorDTO>("[IM_WMS_RecTela_DatosRollosProveedor]", parametros);
+
+            return result;
+        }
 
         public async Task<List<IM_WMS_RecTela_PostTelaPickingMergeDTO>> PostTelaPickingMergeDTO(string journalId)
         {
@@ -195,15 +233,39 @@ namespace WMS_API.Features.Repositories
                     mail.From = new MailAddress(VariablesGlobales.Correo);
 
                     var correos = await GetCorreosActivos();
+                    var rollosProveedor = await DatosRollosProveedor(journalId);
 
                     foreach (IM_WMS_RecTela_CorreosActivosDTO correo in correos)
                     {
                         mail.To.Add(correo.Correo);
                     }
 
-                    mail.Subject = "Recepción de tela" + journalId;
-                    mail.IsBodyHtml = false;
-                    mail.Body = "Adjunto reporte de recepción de tela.";
+                    mail.Subject = "Recepción de tela " + journalId;
+                    mail.IsBodyHtml = true;
+
+                    StringBuilder htmlTable = new StringBuilder();
+                    htmlTable.Append("<h2>Reporte de Recepción de Tela</h2>");
+                    htmlTable.Append("<table border='1' style='border-collapse:collapse; width:100%; text-align:center;'>");
+                    htmlTable.Append("<tr>");
+                    htmlTable.Append("<th>Articulo</th>");
+                    htmlTable.Append("<th>Importación</ th>");
+                    htmlTable.Append("<th>Cantidad de rollo</th>");
+                    htmlTable.Append("<th>Nombre proveedor</th>");
+                    htmlTable.Append("</tr>");
+
+                    foreach (var item in rollosProveedor)
+                    {
+                        htmlTable.Append("<tr>");
+                        htmlTable.AppendFormat("<td>{0}</td>", item.ItemId);
+                        htmlTable.AppendFormat("<td>{0}</td>", item.InventBatchId);
+                        htmlTable.AppendFormat("<td>{0}</td>", item.CantidadDeRollos);
+                        htmlTable.AppendFormat("<td>{0}</td>", item.NombreProveedor);
+                        htmlTable.Append("</tr>");
+                    }
+
+                    htmlTable.Append("</table>");
+
+                    mail.Body = htmlTable.ToString();
 
                     using (MemoryStream ms = new MemoryStream(fileContents))
                     {
