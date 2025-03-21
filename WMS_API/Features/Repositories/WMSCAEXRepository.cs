@@ -264,10 +264,11 @@ namespace WMS_API.Features.Repositories
                 ListasEmpaque += element.PickingRouteID + ',';
 
                 //obtener lista de Pedidos
-                var resp = await GetObtenerPedido(element.PickingRouteID);
-                if(pedidos.Find(x => x == resp.TRANSREFID).Length == 0)
+                //var resp = await GetObtenerPedido(element.PickingRouteID);
+                var ped = pedidos.Find(x => x == element.SalesID);
+                if (ped == null)
                 {                    
-                    pedidos.Add(resp.TRANSREFID);
+                    pedidos.Add(element.SalesID);
 
                 }
             }
