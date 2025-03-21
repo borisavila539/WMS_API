@@ -842,7 +842,7 @@ namespace WMS_API.Controllers
             return data;
         }
 
-        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
+        /*[HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
         public async Task<string> getimpresionPrecioCodigos(string pedido, string ruta, string caja, string fecha, string impresora)
         {
             string resp = "";
@@ -902,7 +902,82 @@ namespace WMS_API.Controllers
 
             return "OK";
 
+        }*/
+
+        //version 2 de impresion de etiquetas
+        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
+        public async Task<string> getimpresionPrecioCodigos2(string pedido, string ruta, string caja, string fecha, string impresora)
+        {
+            string resp = "";
+            string resp2 = "";
+
+            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
+            var tmp = data.FindAll(x => x.Precio == 0);
+            string cajas = "";
+            if (tmp.Count() != 0)
+            {
+                return "Existen articulos sin precio";
+            }
+            else
+            {
+                
+                List<IM_WMS_DetalleImpresionEtiquetasPrecio> listado = new List<IM_WMS_DetalleImpresionEtiquetasPrecio>();
+                data.ForEach(element =>
+                {
+                    if (cajas == "" || cajas != element.IMIB_BOXCODE)
+                    {
+                        if(listado.Count > 0)
+                        {
+                            //imprimir
+                            resp2 = _WMS.imprimirEtiquetaprecios2(listado, fecha, impresora);
+                            if (resp2 != "OK")
+                            {
+                                resp += "Fallo Impresion :" + resp2 + ",";
+
+                            }
+                        }
+
+                        cajas = element.IMIB_BOXCODE;
+                        resp2 = _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE, impresora);
+                        if (resp2 != "OK")
+                        {
+                            resp += "Fallo Impresion :" + resp2 + ",";
+
+                        }
+                        listado = new List<IM_WMS_DetalleImpresionEtiquetasPrecio>() ;
+
+                    }
+
+                    for(int i  = 1; i <= element.QTY; i++)
+                    {
+                        listado.Add(element);
+                    }                    
+                });
+                if (listado.Count > 0)
+                {
+                    //imprimir
+                    resp2 = _WMS.imprimirEtiquetaprecios2(listado, fecha, impresora);
+                    if (resp2 != "OK")
+                    {
+                        resp += "Fallo Impresion :" + resp2 + ",";
+
+                    }
+                }
+            }
+            
+
+            if (resp.Length > 0)
+            {
+                return resp;
+            }
+
+            return "OK";
+
         }
+        //version 2
+
+
+
         [HttpGet("ObtenerClientesGeneracionPrecio")]
         public async Task<IEnumerable<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
         {
