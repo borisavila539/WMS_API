@@ -16,7 +16,8 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_RecTela_CorreosActivosDTO>> GetCorreosActivos();
         public Task<List<IM_WMS_RecTela_TelaJournalScanCountsDTO>> TelaJournalScanCounts(string journalId);
         public Task<List<IM_WMS_RecTela_DatosRollosProveedorDTO>> DatosRollosProveedor(string journalId);
-
+        public Task<List<IM_WMS_RecTela_GetListTelasFilterDTO>> GetListTelasFilter(ParamsTelasFilterDTO parmsFilter);
+        public Task<IM_WMS_RecTela_GetListTelasFilterByReferenceDTO> GetListTelasFilterByReference(ParamsTelasFilterDTO parmsFilter);
 
     }
 }

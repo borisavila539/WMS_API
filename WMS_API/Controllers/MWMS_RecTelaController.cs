@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WMS_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/WMS/[controller]")]
     [ApiController]
     public class MWMS_RecTelaController : Controller
     {
@@ -59,5 +59,24 @@ namespace WMS_API.Controllers
             var resp = await _IMWMS_RecTelaRepository.EnviarCorreoDeRecepcionDeTela(journalId);
             return Ok(resp);
         }
+
+        [HttpPost("GetListTelasFilter")]
+        public async Task<ActionResult<List<IM_WMS_RecTela_GetListTelasFilterDTO>>> GetListTelasFilter([FromBody] ParamsTelasFilterDTO parmsFilter)
+        {
+            var resp = await _IMWMS_RecTelaRepository.GetListTelasFilter(parmsFilter);
+            return Ok(resp);
+        }
+
+
+        [HttpPost("GetListTelasFilterByReference")]
+        public async Task<ActionResult<dynamic>> GetListTelasFilterByReference([FromBody] ParamsTelasFilterDTO parmsFilter)
+        {
+             var resp = await _IMWMS_RecTelaRepository.GetListTelasFilterByReference(parmsFilter);
+             return Ok(resp);
+ 
+                
+            
+        }
+
     }
 }

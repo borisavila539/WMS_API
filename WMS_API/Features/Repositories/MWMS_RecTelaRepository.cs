@@ -291,5 +291,62 @@ namespace WMS_API.Features.Repositories
                 }
             }
         }
+    
+        public async Task<List<IM_WMS_RecTela_GetListTelasFilterDTO>> GetListTelasFilter(ParamsTelasFilterDTO parmsFilter)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@journalId", parmsFilter.JournalId ?? (object)DBNull.Value),
+                new SqlParameter("@color", parmsFilter.Color ?? (object)DBNull.Value),
+                new SqlParameter("@inventBatchId", parmsFilter.InventBatchId ?? (object)DBNull.Value),
+                new SqlParameter("@inventSerialId", parmsFilter.InventSerialId ?? (object)DBNull.Value),
+                new SqlParameter("@isScanning", parmsFilter.IsScanning ?? (object)DBNull.Value),
+                new SqlParameter("@telaPickingDefectoId", parmsFilter.TelaPickingDefectoId ?? (object)DBNull.Value),
+                new SqlParameter("@reference", parmsFilter.Reference ?? (object)DBNull.Value),
+                new SqlParameter("@ubicacion", parmsFilter.ubicacion ?? (object)DBNull.Value),
+                new SqlParameter("@vendRoll", parmsFilter.vendRoll ?? (object)DBNull.Value),
+                new SqlParameter("@pageNumber", parmsFilter.PageNumber),
+                new SqlParameter("@pageSize", parmsFilter.PageSize)
+            };
+
+            List<IM_WMS_RecTela_GetListTelasFilterDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListTelasFilterDTO>("[IM_WMS_RecTela_GetListTelasFilter]", parametros);
+
+            return result;
+        }
+
+
+        public async Task<IM_WMS_RecTela_GetListTelasFilterByReferenceDTO> GetListTelasFilterByReference(ParamsTelasFilterDTO parmsFilter)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@journalId", parmsFilter.JournalId ?? (object)DBNull.Value),
+                new SqlParameter("@color", parmsFilter.Color ?? (object)DBNull.Value),
+                new SqlParameter("@inventBatchId", parmsFilter.InventBatchId ?? (object)DBNull.Value),
+                new SqlParameter("@inventSerialId", parmsFilter.InventSerialId ?? (object)DBNull.Value),
+                new SqlParameter("@isScanning", parmsFilter.IsScanning ?? (object)DBNull.Value),
+                new SqlParameter("@telaPickingDefectoId", parmsFilter.TelaPickingDefectoId ?? (object)DBNull.Value),
+                new SqlParameter("@reference", parmsFilter.Reference ?? (object)DBNull.Value),
+                new SqlParameter("@vendRoll", parmsFilter.vendRoll ?? (object)DBNull.Value),
+                new SqlParameter("@ubicacion", parmsFilter.ubicacion ?? (object)DBNull.Value)
+            };
+
+
+            try
+            {
+                IM_WMS_RecTela_GetListTelasFilterByReferenceDTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_RecTela_GetListTelasFilterByReferenceDTO>("[IM_WMS_RecTela_GetListTelasFilterByReference]", parametros);
+                return result;
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
     }
 }
