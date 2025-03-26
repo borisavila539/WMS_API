@@ -12,6 +12,9 @@ using System.Net.Mail;
 using System.IO;
 using System.Text;
 using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace WMS_API.Features.Repositories
 {
@@ -89,6 +92,61 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_RecTela_PostTelaPickingMergeDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_PostTelaPickingMergeDTO>("[IM_WMS_RecTela_PostTelaPickingMerge]", parametros);
 
             return result;
+        }
+
+        public async Task<string> PostPrintEtiquetasTela(List<IM_WMS_RecTela_PostTelaPickingMergeDTO> data, string ipImpresora)
+        {
+            string etiqueta = "";
+
+            try
+            {
+                var orderedData = data.OrderBy(item =>
+                int.TryParse(item.Location?.Substring(5), out int rackNumber) ? rackNumber : 0).ToList();
+
+                for (int i = 0; i < orderedData.Count; i++)
+                {
+                    var item = orderedData[i];
+
+                    etiqueta += "^XA^CF0,20^BY4,2,100";
+                    etiqueta += $"^FO65,50^BC^FD{item.InventSerialId}^FS";
+                    etiqueta += $"^FO50,220^FD{item.nameProveedor}^FS";
+                    etiqueta += $"^FO50,250^FDPR: {item.VendRoll}^FS";
+                    etiqueta += $"^FO500,220^FDCantidad: {Math.Round(item.Qty, 2)} {(item.ItemId.Substring(0, 2) == "45" ? "lb" : "yd")}^FS";
+                    if (!Regex.IsMatch(item.NameColor, @"\(.+\)"))
+                    {
+                        etiqueta += $"^FO50,280^FDColor: {item.NameColor} ({item.InventColorId})^FS";
+                    }
+                    else
+                    {
+                        etiqueta += $"^FO50,280^FDColor: {item.NameColor}^FS";
+                    }
+                    etiqueta += $"^FO500,250^FDTela: {item.Reference}^FS";
+                    etiqueta += $"^FO50,310^FDLote: {item.InventBatchId}^FS";
+                    etiqueta += $"^FO500,280^FDConfiguracion: {item.CONFIGID}^FS";
+                    etiqueta += $"^FO50,340^FDDefecto: {item.DescriptionDefecto ?? ""}^FS";
+                    etiqueta += $"^FO500,310^FD{item.Location}^FS";
+                    etiqueta += "^XZ";
+
+                    using (TcpClient client = new TcpClient(ipImpresora, 9100))
+                    {
+                        using (NetworkStream stream = client.GetStream())
+                        {
+                            byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                            stream.Write(bytes, 0, bytes.Length);
+                            Thread.Sleep(1000); //1 segundos
+                        }
+
+                    }
+                    etiqueta = "";
+                }
+
+
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
         }
 
 
@@ -183,18 +241,18 @@ namespace WMS_API.Features.Repositories
                 {
                     var row = new object[]
                     {
-                        item.JournalId, 
+                        item.JournalId,
                         item.InventBatchId,
                         item.ItemId,
-                        item.Reference, 
-                        item.NameColor + "(" + item.InventColorId + ")", 
-                        item.InventSerialId, 
-                        item.VendRoll, 
+                        item.Reference,
+                        item.NameColor + "(" + item.InventColorId + ")",
+                        item.InventSerialId,
+                        item.VendRoll,
                         Math.Round(item.Qty, 2),
                         item.Location,
-                        item.DescriptionDefecto, 
+                        item.DescriptionDefecto,
                         item.is_scanning ? "Sí" : "No",
-                        item.update_date.ToString("yyyy-MM-dd HH:mm:ss"), 
+                        item.update_date.ToString("yyyy-MM-dd HH:mm:ss"),
                         item.User
                     };
 
@@ -239,7 +297,7 @@ namespace WMS_API.Features.Repositories
                     {
                         mail.To.Add(correo.Correo);
                     }
-
+                    
                     mail.Subject = "Recepción de tela " + journalId;
                     mail.IsBodyHtml = true;
 

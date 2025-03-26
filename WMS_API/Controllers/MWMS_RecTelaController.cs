@@ -73,9 +73,14 @@ namespace WMS_API.Controllers
         {
              var resp = await _IMWMS_RecTelaRepository.GetListTelasFilterByReference(parmsFilter);
              return Ok(resp);
- 
-                
-            
+        }
+
+
+        [HttpPost("PostPrintEtiquetasTela/{ipImpresora}")]
+        public async Task<ActionResult<dynamic>> PostPrintEtiquetasTela([FromBody] List<IM_WMS_RecTela_PostTelaPickingMergeDTO> data, string ipImpresora)
+        {
+            var resp = await _IMWMS_RecTelaRepository.PostPrintEtiquetasTela(data, ipImpresora);
+            return Ok(resp);
         }
 
     }
