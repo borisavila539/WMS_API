@@ -8,6 +8,6 @@ namespace WMS_API.Features.Utilities
     public static class VariablesGlobales
     {
         public static string Correo = "sistema@intermoda.com.hn";
-        public static string Correo_Password = "&odRad!=PlW7Iga";
+        public static string Correo_Password = "z4H&T6l&EchUriB#-2pa";
     }
 }
