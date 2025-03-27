@@ -17,7 +17,7 @@ namespace Core.DTOs.IM_WMS_RecTela
         public string vendroll { get; set; }
         public string inventserialid_picking { get; set; }
 
-        public int is_scanning { get; set; }
+        public bool is_scanning { get; set; }
         public DateTime created_date { get; set; }
         public DateTime update_date { get; set; }
         public string USER { get; set; }
@@ -27,6 +27,7 @@ namespace Core.DTOs.IM_WMS_RecTela
         public string? TelaPickingDefectoId { get; set; }
         public string? location { get; set; }
         public string? descriptionDefecto { get; set; }
+        public string? nameProveedor { get; set; } 
         public int rowNum { get; set; }
         public int totalRecords { get; set; }
     }

@@ -18,6 +18,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_RecTela_DatosRollosProveedorDTO>> DatosRollosProveedor(string journalId);
         public Task<List<IM_WMS_RecTela_GetListTelasFilterDTO>> GetListTelasFilter(ParamsTelasFilterDTO parmsFilter);
         public Task<IM_WMS_RecTela_GetListTelasFilterByReferenceDTO> GetListTelasFilterByReference(ParamsTelasFilterDTO parmsFilter);
+        public Task<string> PostPrintEtiquetasTela(List<IM_WMS_RecTela_PostTelaPickingMergeDTO> data, string ipImpresora);
 
     }
 }

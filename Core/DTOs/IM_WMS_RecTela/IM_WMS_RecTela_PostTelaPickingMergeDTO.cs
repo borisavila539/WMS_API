@@ -23,9 +23,11 @@ namespace Core.DTOs.IM_WMS_RecTela
         public DateTime update_date { get; set; }
         public string vendroll_picking { get; set; }
         public string? Reference { get; set; }
-        public int TelaPickingDefectoId { get; set; }
+        public int? TelaPickingDefectoId { get; set; }
         public string? DescriptionDefecto { get; set; }
+        public string CONFIGID { get; set; }
         public string? Location { get; set; }
+        public string nameProveedor { get; set; }
     }
 
 }
