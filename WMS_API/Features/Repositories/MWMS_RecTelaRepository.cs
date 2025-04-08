@@ -365,6 +365,7 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@reference", parmsFilter.Reference ?? (object)DBNull.Value),
                 new SqlParameter("@ubicacion", parmsFilter.ubicacion ?? (object)DBNull.Value),
                 new SqlParameter("@vendRoll", parmsFilter.vendRoll ?? (object)DBNull.Value),
+                new SqlParameter("@configId", parmsFilter.configId ?? (object)DBNull.Value),
                 new SqlParameter("@pageNumber", parmsFilter.PageNumber),
                 new SqlParameter("@pageSize", parmsFilter.PageSize)
             };
@@ -389,7 +390,8 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@telaPickingDefectoId", parmsFilter.TelaPickingDefectoId ?? (object)DBNull.Value),
                 new SqlParameter("@reference", parmsFilter.Reference ?? (object)DBNull.Value),
                 new SqlParameter("@vendRoll", parmsFilter.vendRoll ?? (object)DBNull.Value),
-                new SqlParameter("@ubicacion", parmsFilter.ubicacion ?? (object)DBNull.Value)
+                new SqlParameter("@ubicacion", parmsFilter.ubicacion ?? (object)DBNull.Value),
+                new SqlParameter("@configId", parmsFilter.configId ?? (object)DBNull.Value)
             };
 
 

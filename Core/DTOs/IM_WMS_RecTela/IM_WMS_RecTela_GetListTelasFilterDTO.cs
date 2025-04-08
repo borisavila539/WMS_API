@@ -15,6 +15,7 @@ namespace Core.DTOs.IM_WMS_RecTela
         public decimal QTY { get; set; }
         public string inventserialid { get; set; }
         public string vendroll { get; set; }
+        public string configid { get; set; }
         public string inventserialid_picking { get; set; }
 
         public bool is_scanning { get; set; }

@@ -17,6 +17,7 @@ namespace Core.DTOs.IM_WMS_RecTela
         string? Reference = null,
         string? ubicacion = null,
         string? vendRoll = null,
+        string? configId = null,
         int PageNumber = 1,
         int PageSize = 10
     );
