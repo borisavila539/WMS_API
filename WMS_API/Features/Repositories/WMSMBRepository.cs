@@ -210,7 +210,22 @@ namespace WMS_API.Features.Repositories
             return "OK";
 
         }
+        public async Task<List<IM_WMS_MB_CajasDisponibles>> GetCajasDisponiblesTodo(FiltroCajasDisponiblesMB Filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@orden",Filtro.Orden),
+                new SqlParameter("@Articulo",Filtro.Articulo),
+                new SqlParameter("@Color",Filtro.Color),
+                new SqlParameter("@page",Filtro.Page),
+                new SqlParameter("@size",Filtro.Size)
+            };
+
+            List<IM_WMS_MB_CajasDisponibles> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_CajasDisponibles>("[IM_WMS_MB_CajasDisponibles]", parametros);
+            return result;
+        }
         public async Task<List<IM_WMS_MB_CajasDisponibles2>> GetCajasDisponibles(FiltroCajasDisponiblesMB Filtro)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);

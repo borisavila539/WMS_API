@@ -1,5 +1,6 @@
 ﻿using Core.DTOs.MB;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using OfficeOpenXml.Table.PivotTable;
@@ -51,6 +52,103 @@ namespace WMS_API.Controllers
         {
             var resp = await _WMSMB.GetCajasDisponibles(filtro);
             return resp;
+        }
+
+        //descargar excel con cajas Disponibles
+        [HttpGet("DescargarCajasDisponibles")]
+        public async Task<IActionResult> getDescargarDisponibles()
+        {
+            FiltroCajasDisponiblesMB Filtro = new FiltroCajasDisponiblesMB();
+            Filtro.Articulo = "";
+            Filtro.Color = "";
+            Filtro.Orden = "";
+            Filtro.Page = 0;
+            Filtro.Size = 0;
+            var data = await _WMSMB.GetCajasDisponiblesTodo(Filtro);
+
+            Byte[] fileContents;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (ExcelPackage package = new ExcelPackage())
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Hoja1");
+                worksheet.Cells[1, 1].Value = "ID";
+                worksheet.Cells[1, 2].Value = "IDConsolidado";
+                worksheet.Cells[1, 3].Value = "Lote";
+                worksheet.Cells[1, 4].Value = "Orden";
+                worksheet.Cells[1, 5].Value = "Articulo";
+                worksheet.Cells[1, 6].Value = "DescripcioMB";
+                worksheet.Cells[1, 7].Value = "NumeroCaja";
+                worksheet.Cells[1, 8].Value = "Talla";
+                worksheet.Cells[1, 9].Value = "Color";
+                worksheet.Cells[1, 10].Value = "NombreColor";
+                worksheet.Cells[1, 11].Value = "Cantidad";
+
+
+
+                int fila = 2;
+
+                foreach (var element in data)
+                {                    
+                    worksheet.Cells[fila, 1].Value = element.ID;
+                    worksheet.Cells[fila, 2].Value = element.IDConsolidado;
+                    worksheet.Cells[fila, 3].Value = element.Lote;
+                    worksheet.Cells[fila, 4].Value = element.Orden;
+                    worksheet.Cells[fila, 5].Value = element.Articulo;
+                    worksheet.Cells[fila, 6].Value = element.DescripcioMB;
+                    worksheet.Cells[fila, 7].Value = element.NumeroCaja;
+                    worksheet.Cells[fila, 8].Value = element.Talla;
+                    worksheet.Cells[fila, 9].Value = element.Color;
+                    worksheet.Cells[fila, 10].Value = element.NombreColor;
+                    worksheet.Cells[fila, 11].Value = element.Cantidad;
+                    fila++;
+                }
+                fila--;
+                var rangeTable = worksheet.Cells[1, 1, fila, 11];
+                rangeTable.AutoFitColumns();
+                var table = worksheet.Tables.Add(rangeTable, "MyTable");
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;               
+
+
+                fileContents = package.GetAsByteArray();
+            }
+            return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CajasDisponibles.xlsx");
+
+        }
+
+        [HttpPost("SubirArchivo")]
+        public async Task<string> subirArchivo(IFormFile file)
+        {
+            //limpiar los que ya estan
+            FiltroCajasDisponiblesMB Filtro = new FiltroCajasDisponiblesMB();
+            Filtro.Articulo = "";
+            Filtro.Color = "";
+            Filtro.Orden = "";
+            Filtro.Page = 0;
+            Filtro.Size = 0;
+            var data = await _WMSMB.GetCajasDisponiblesTodo(Filtro);
+
+            foreach(var item in data)
+            {
+                await _WMSMB.getActualizarCajasParaDespacho(item.ID, false);
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        int id = Convert.ToInt32(worksheet.Cells[row, 1].Text);
+                        await _WMSMB.getActualizarCajasParaDespacho(id, true);
+                    }
+                }
+            }
+
+            return "OK";
         }
 
         [HttpGet("ActualizarCajasParaDespacho/{id}/{PickToDespacho}")]

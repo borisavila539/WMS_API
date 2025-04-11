@@ -15,6 +15,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_MB_InsertBox>> getCajasEscaneadasRack(string ubicacion);
         public Task<string> postEnviarCorreoRecepcion(List<IM_WMS_MB_InsertBox> data);
         public Task<List<IM_WMS_MB_CajasDisponibles2>> GetCajasDisponibles(FiltroCajasDisponiblesMB filtro);
+        public Task<List<IM_WMS_MB_CajasDisponibles>> GetCajasDisponiblesTodo(FiltroCajasDisponiblesMB Filtro);
         public Task<IM_WMS_MB_CajasDisponibles> getActualizarCajasParaDespacho(int id,Boolean PickToDespacho);
         public Task<List<IM_WMS_MB_ResumenArticulosSeleccionados>> GetResumenArticulosSeleccionados();
         public Task<IM_WMS_MB_CrearDespacho> getGenerarDespacho(string usuario);
