@@ -2432,7 +2432,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<SP_GetBoxesReceived> getBoxesReceived(string opBoxNum, string ubicacion, string Tipo)
         {
-            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
+            
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@opBoxNum", opBoxNum),
@@ -2441,16 +2441,19 @@ namespace WMS_API.Features.Repositories
             SP_GetBoxesReceived response;
             if (Tipo == "DENIM")
             {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceived]", parametros);
 
             }
             else if( Tipo == "TP")
             {
-                response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceivedTP]", parametros);
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[IM_WMS_TP_InsertBox]", parametros);
 
             }
             else
             {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionStringPiso);
                 response = await executeProcedure.ExecuteStoredProcedure<SP_GetBoxesReceived>("[SP_GetBoxesReceivedMB]", parametros);
             }
 
@@ -2459,7 +2462,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(Filtros filtro)
         {
-            ExecuteProcedure executeProcedure = new ExecuteProcedure(filtro.Tipo == "MB"?_connectionString: _connectionStringPiso);
+            ExecuteProcedure executeProcedure = new ExecuteProcedure((filtro.Tipo == "MB" || filtro.Tipo == "TP") ? _connectionString: _connectionStringPiso);
 
             var parametros = new List<SqlParameter> {
                 new SqlParameter("@Lote", filtro.Lote),
@@ -2479,7 +2482,7 @@ namespace WMS_API.Features.Repositories
             }
             else if(filtro.Tipo == "TP")
             {
-                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[SP_GetAllBoxesReceivedTP_V2]", parametros);
+                result = await executeProcedure.ExecuteStoredProcedureList<SP_GetAllBoxesReceived>("[IM_WMS_TP_DetalleCajas]", parametros);
 
             }
             else
