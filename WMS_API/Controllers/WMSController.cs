@@ -587,6 +587,13 @@ namespace WMS_API.Controllers
             var resp = await _WMS.postEnviarRecepcionUbicacionCajas(data);
             return resp;
         }
+
+        [HttpPost("ResumenCajasUnidadesTP")]
+        public async Task<IEnumerable<IM_WMS_TP_DetalleCajasResumen>> getResumenCajasUnidadesTP(Filtros filtro)
+        {
+            var resp = await _WMS.getResumenCajasUnidadesTP(filtro);
+            return resp;
+        }
         [HttpGet("RecepcionUbicacionCajasSync/{TIPO}")]
         public async Task<IEnumerable<SP_GetAllBoxesReceived>> GetAllBoxesReceived(string TIPO)
         {

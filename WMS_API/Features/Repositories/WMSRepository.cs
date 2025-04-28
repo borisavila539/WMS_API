@@ -2711,6 +2711,25 @@ namespace WMS_API.Features.Repositories
 
             return "OK";
         }
+
+        public async Task<List<IM_WMS_TP_DetalleCajasResumen>> getResumenCajasUnidadesTP(Filtros filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            List<IM_WMS_TP_DetalleCajasResumen> result = new List<IM_WMS_TP_DetalleCajasResumen>();
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@Lote", filtro.Lote),
+                new SqlParameter("@Orden", filtro.Orden),
+                new SqlParameter("@articulo", filtro.Articulo),
+                new SqlParameter("@talla", filtro.Talla),
+                new SqlParameter("@color", filtro.Color),
+                new SqlParameter("@ubicacion", filtro.Ubicacion)
+               
+            };
+
+            result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_TP_DetalleCajasResumen>("[IM_WMS_TP_DetalleCajasResumen]", parametros);
+
+            return result;
+        }
         public async Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosRecepcionUbicacionCajas()
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);

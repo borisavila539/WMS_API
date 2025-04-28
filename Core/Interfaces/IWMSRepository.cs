@@ -107,6 +107,7 @@ namespace Core.Interfaces
         public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived( Filtros filtro);
         public Task<List<SP_GetAllBoxesReceived>> getAllBoxesReceived(string TIPO);
         public Task<string> postEnviarRecepcionUbicacionCajas(List<Ubicaciones> data);
+        public Task<List<IM_WMS_TP_DetalleCajasResumen>> getResumenCajasUnidadesTP(Filtros filtro);
 
         //Declaracion de envio
 
