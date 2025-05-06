@@ -104,6 +104,10 @@ namespace WMS_API.Features.Utilities
                 {
                     prop.SetValue(obj, Convert.ToInt32(reader[prop.Name]));
                 }
+                else if (prop.PropertyType == typeof(long))
+                {
+                    prop.SetValue(obj, Convert.ToInt64(reader[prop.Name]));
+                }
                 else if (prop.PropertyType == typeof(bool))
                 {
                     prop.SetValue(obj, Convert.ToInt32(reader[prop.Name])== 0 ? false:true);

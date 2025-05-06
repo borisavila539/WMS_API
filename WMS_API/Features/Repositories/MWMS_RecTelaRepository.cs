@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Core.DTOs.IM_WMS_RecTela.RecTelaByVendroll;
 
 namespace WMS_API.Features.Repositories
 {
@@ -25,7 +26,7 @@ namespace WMS_API.Features.Repositories
         
         public MWMS_RecTelaRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
         }
 
         public async Task<List<IM_WMS_RecTela_GetListTelasDTO>> GetListTelas(string journalId)
@@ -407,6 +408,72 @@ namespace WMS_API.Features.Repositories
                 throw;
             }
 
+        }
+
+        public async Task<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>> TopTelaPickingByVendroll()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>{};
+
+            List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>("[IM_WMS_RecTela_TopTelaPickingByVendroll]", parametros);
+
+            return result;
+        }
+
+        public async Task<IM_WMS_RecTela_PostTelaPickingByVendrollDTO> PostTelaPickingByVendroll(IM_WMS_TelaPickingByVendrollBodyDTO body)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@VendRoll", body.VendRoll),
+                new SqlParameter("@ProveedorId", body.ProveedorId),
+                new SqlParameter("@Location", body.Location),
+                new SqlParameter("@CreatedBy", body.CreatedBy),
+                new SqlParameter("@ActivityUUID", body.ActivityUUID),
+                new SqlParameter("@TelaPickingTypeId", body.TelaPickingTypeId)
+            };
+
+            IM_WMS_RecTela_PostTelaPickingByVendrollDTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_RecTela_PostTelaPickingByVendrollDTO>("[IM_WMS_RecTela_PostTelaPickingByVendroll]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_RecTela_GetRollorByUUIDDTO>> GetRollorByUUID(string activityUUI)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {
+             new SqlParameter("@ActivityUUID", activityUUI)
+            };
+
+            List<IM_WMS_RecTela_GetRollorByUUIDDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetRollorByUUIDDTO>("[IM_WMS_RecTela_GetRollorByUUID]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO>> GetListaDeTipoDeTela()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {};
+
+            List<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO>("[IM_WMS_RecTela_GetListaDeTipoDeTela]", parametros);
+
+            return result;
+        }
+
+
+        public async Task<List<IM_WMS_RecTela_GetListaProveedoresDTO>> GetListaProveedores()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> { };
+
+            List<IM_WMS_RecTela_GetListaProveedoresDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListaProveedoresDTO>("[IM_WMS_RecTela_GetListaProveedores]", parametros);
+
+            return result;
         }
     }
 }
