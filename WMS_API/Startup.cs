@@ -38,6 +38,7 @@ namespace WMS_API
             services.AddTransient<IWMSCAEXRepository, WMSCAEXRepository>();
             services.AddTransient<IWMSMBRespository, WMSMBRepository>();
             services.AddTransient<IMWMS_RecTelaRepository, MWMS_RecTelaRepository>();
+            services.AddTransient<IIM_PrepEnvOpRepository, IM_PrepEnvOpRepository>();
 
             services.AddSwaggerGen(c =>
             {
