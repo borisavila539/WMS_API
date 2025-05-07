@@ -46,6 +46,7 @@ namespace WMS_API.Features.Repositories
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
             _ImpresoraDevolucion = "192.168.10.128";
+            //_ImpresoraDevolucion = "10.1.1.208";
 
         }
 
@@ -3887,13 +3888,13 @@ namespace WMS_API.Features.Repositories
                 string html = "<h3>Estimado/a "+resp.Asesor+",</h3>";
                 if(resp.Descricpcion == "Recibido en Planta")
                 {
-                    html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion + " ha sido " + resp.Descricpcion + ".</p>";
+                    html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion +":" + resp.NumeroRMA + " ha sido " + resp.Descricpcion + ".</p>";
                 }
                 else
                 {
-                    html += "<p>Lamentamos informarle que la devolución " + resp.NumDevolucion + " ha sido rechazada debido a que las unidades recibidas no concuerdan con las unidades declaradas en la devolución.</p>";
+                    html += "<p>Lamentamos informarle que la devolución " + resp.NumDevolucion + ":" + resp.NumeroRMA + " ha sido " + " ha sido rechazada debido a que las unidades recibidas no concuerdan con las unidades declaradas en la devolución.</p>";
                 }
-                html += "<table border='2'><caption><h2>Detalle Devolucion "+resp.NumDevolucion+"</h2></caption><thead><th>Articulo</th><th>Talla</th><th>Color</th><th>Cantidad</th><th>Recibida</th><th>Diferencia</th></thead><tbody>";
+                html += "<table border='2'><caption><h2>Detalle Devolucion</h2></caption><thead><th>Articulo</th><th>Talla</th><th>Color</th><th>Cantidad</th><th>Recibida</th><th>Diferencia</th></thead><tbody>";
                 var datos = await getDevolucionDetalle(resp.ID);
                 datos.ForEach(element =>
                 {
@@ -3931,13 +3932,13 @@ namespace WMS_API.Features.Repositories
 
                     if (resp.Descricpcion == "Recibido en Planta")
                     {
-                        mail.Subject = "Confirmación de recepción de la devolución "+resp.NumDevolucion+" en Planta";
+                        mail.Subject = "Confirmación de recepción de la devolución "+resp.NumDevolucion + ":" + resp.NumeroRMA + " ha sido " + " en Planta";
                         html += "<p>Saludos</p>";
 
                     }
                     else
                     {
-                        mail.Subject = "Notificación de la devolución "+resp.NumDevolucion+" rechazada: Discrepancia en unidades";
+                        mail.Subject = "Notificación de la devolución "+resp.NumDevolucion + ":" + resp.NumeroRMA + " ha sido " + " rechazada: Discrepancia en unidades";
                         html += "<p>Por favor, revise los detalles y comuníquese con nosotros si necesita más información o desea discutir esta situación. Estamos disponibles para ayudarle con cualquier aclaración.</p><p>Saludos</p>";
                     }
 
@@ -3970,7 +3971,7 @@ namespace WMS_API.Features.Repositories
             if(resp.Descricpcion == "Recibido CD")
             {
                 string html = "<h3>Estimado/a " + resp.Asesor + ",</h3>";
-                html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion + " ha sido " + resp.Descricpcion + " y registrado en el sistema.</p>";
+                html += "<p>Nos complace informarle que la devolución " + resp.NumDevolucion + ":" + resp.NumeroRMA + " ha sido " + resp.Descricpcion + " .</p>";
                 html += "<p>Saludos</p>";
 
 
@@ -4094,7 +4095,7 @@ namespace WMS_API.Features.Repositories
             return areas;
         }
 
-        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion,int operacion)
+        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion,int operacion,int qty)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter> {
@@ -4102,7 +4103,9 @@ namespace WMS_API.Features.Repositories
                     new SqlParameter("@idDefecto",idDefecto),
                     new SqlParameter("@tipo",tipo),
                     new SqlParameter("@reparacion",Reparacion),
-                    new SqlParameter("@idOperacion",operacion)
+                    new SqlParameter("@idOperacion",operacion),
+                    new SqlParameter("@QTY",operacion)
+
             };
 
             IM_WMS_UpdateDetalleDefectoDevolucion resp = await executeProcedure.ExecuteStoredProcedure<IM_WMS_UpdateDetalleDefectoDevolucion>("[IM_WMS_UpdateDetalleDefectoDevolucion]", parametros);
@@ -4168,7 +4171,7 @@ namespace WMS_API.Features.Repositories
             etiqueta += "^FO50,200^FDAsesor: "+datos.Asesor+"^FS";
             etiqueta += "^CF0,250";
             etiqueta += "^FO125,400^FD"+caja.ToString("D2") + "/" + total.ToString("D2") + "^FS";
-            etiqueta += "^BY3,2,120^FO125,700^BC^FD"+datos.NumDevolucion+","+caja+"^FS";
+            etiqueta += "^BY3,2,120^FO125,700^BC^FD"+(datos.NumDevolucion.Length > 0 ? datos.NumDevolucion  : datos.NumeroRMA)+ ","+caja+"^FS";
             etiqueta += "^CF0,60^FO280,900^FD"+Tipo+"^FS";
             etiqueta += "^CF0,40^FO50,1100^FDAuditor: "+empleado.Nombre+"^FS"; //colocar al empleado
             etiqueta += "^FO50,1150^FDFecha: " + DateTime.Now.Day + "/" + DateTime.Now.Month + "/" + DateTime.Now.Year + "^FS"; //colocar fecha correcta
