@@ -696,6 +696,7 @@ namespace WMS_API.Controllers
             worksheet.Cells[fila, 15].Value = "Departamento";
             worksheet.Cells[fila, 16].Value = "SubCategoria";
             worksheet.Cells[fila, 17].Value = "Pedido";
+            worksheet.Cells[fila, 18].Value = "Tienda";
 
             fila++;
 
@@ -718,12 +719,12 @@ namespace WMS_API.Controllers
                 worksheet.Cells[fila, 15].Value = element.Departamento;
                 worksheet.Cells[fila, 16].Value = element.SubCategoria;
                 worksheet.Cells[fila, 17].Value = element.Pedido;
-
+                worksheet.Cells[fila, 18].Value = element.DeliveryName;
 
                 fila++;
             });
             fila--;
-            var rangeTable = worksheet.Cells[1, 1, fila, 17];
+            var rangeTable = worksheet.Cells[1, 1, fila, 18];
             var table = worksheet.Tables.Add(rangeTable, "MyTable");
             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
@@ -1104,10 +1105,17 @@ namespace WMS_API.Controllers
             var resp = await _WMS.GetObtenerDefectosDevolucions(id);
             return resp;
         }
-        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}")]
-        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion, int operacion)
+        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}/{qty}")]
+        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo,bool Reparacion, int operacion,int qty)
         {
-            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo,Reparacion,operacion);
+            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo,Reparacion,operacion,qty);
+            return resp;
+        }
+        //por si falla el anterior
+        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}/")]
+        public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo, bool Reparacion, int operacion)
+        {
+            var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo, Reparacion, operacion, 1);
             return resp;
         }
 
