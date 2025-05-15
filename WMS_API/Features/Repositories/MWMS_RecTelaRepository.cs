@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Core.DTOs.IM_WMS_RecTela.RecTelaByVendroll;
 
 namespace WMS_API.Features.Repositories
 {
@@ -408,5 +409,171 @@ namespace WMS_API.Features.Repositories
             }
 
         }
+
+        public async Task<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>> TopTelaPickingByVendroll(string? nombreProveedor)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>{
+            new SqlParameter("@nombreProveedor", nombreProveedor)
+            };
+
+            List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>("[IM_WMS_RecTela_TopTelaPickingByVendroll]", parametros);
+
+            return result;
+        }
+
+        //By Vendroll
+
+        public async Task<IM_WMS_RecTela_PostTelaPickingByVendrollDTO> PostTelaPickingByVendroll(IM_WMS_TelaPickingByVendrollBodyDTO body)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@VendRoll", body.VendRoll),
+                new SqlParameter("@ProveedorId", body.ProveedorId),
+                new SqlParameter("@Location", body.Location),
+                new SqlParameter("@CreatedBy", body.CreatedBy),
+                new SqlParameter("@ActivityUUID", body.ActivityUUID),
+                new SqlParameter("@TelaPickingTypeId", body.TelaPickingTypeId)
+            };
+
+            IM_WMS_RecTela_PostTelaPickingByVendrollDTO result = await executeProcedure.ExecuteStoredProcedure<IM_WMS_RecTela_PostTelaPickingByVendrollDTO>("[IM_WMS_RecTela_PostTelaPickingByVendroll]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_RecTela_GetRolloByUUIDDTO>> GetRolloByUUID(string activityUUI)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {
+             new SqlParameter("@ActivityUUID", activityUUI)
+            };
+
+            List<IM_WMS_RecTela_GetRolloByUUIDDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetRolloByUUIDDTO>("[IM_WMS_RecTela_GetRolloByUUID]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO>> GetListaDeTipoDeTela(string? proveedorId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@proveedorId", proveedorId)
+            };
+
+            List<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListaDeTipoDeTelaDTO>("[IM_WMS_RecTela_GetListaDeTipoDeTela]", parametros);
+
+            return result;
+        }
+
+
+        public async Task<List<IM_WMS_RecTela_GetListaProveedoresDTO>> GetListaProveedores(string nombreProveedor)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {
+             new SqlParameter("@nombreProveedor", nombreProveedor)
+            };
+
+            List<IM_WMS_RecTela_GetListaProveedoresDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_GetListaProveedoresDTO>("[IM_WMS_RecTela_GetListaProveedores]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_WMS_TelaPickingByVendrollCorreosDTO>> TelaPickingByVendrollCorreos()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {};
+
+            List<IM_WMS_TelaPickingByVendrollCorreosDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_TelaPickingByVendrollCorreosDTO>("[IM_WMS_RecTela_TelaPickingByVendrollCorreos]", parametros);
+
+            return result;
+        }
+
+
+        public async Task<string> PostCorreoTelaPickingByVendroll(List<IM_WMS_RecTela_GetRolloByUUIDDTO> dataList)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("TelaPicking");
+
+                string[] headers = { "Codigo de rollo", "Cuenta de proveedor", "Nombre proveedor", "Referencia", "Ubicación" };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = headers[i];
+                    worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                }
+
+                int row = 2;
+                foreach (var item in dataList)
+                {
+                    worksheet.Cells[row, 1].Value = item.VendRoll;
+                    worksheet.Cells[row, 2].Value = item.ProveedorId;
+                    worksheet.Cells[row, 3].Value = item.NameProveedor;
+                    worksheet.Cells[row, 4].Value = item.Reference;
+                    worksheet.Cells[row, 5].Value = item.Location;
+                    row++;
+                }
+
+                var range = worksheet.Cells[1, 1, worksheet.Dimension.End.Row, headers.Length];
+                var table = worksheet.Tables.Add(range, "TelaPickingTable");
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+                worksheet.Cells.AutoFitColumns();
+
+                Byte[] fileContents = package.GetAsByteArray();
+
+                try
+                {
+                    MailMessage mail = new MailMessage();
+                    mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                    var correos = await TelaPickingByVendrollCorreos();
+                    foreach (var correo in correos)
+                    {
+                        mail.To.Add(correo.Correo);
+                    }
+
+                    mail.Subject = "Reporte de Tela Picking por codigo";
+                    mail.Body = "Se adjunta el reporte de tela picking por codigo.";
+                    mail.IsBodyHtml = false;
+
+                    using (MemoryStream ms = new MemoryStream(fileContents))
+                    {
+                        string fileName = "TelaPickingPorCodigo" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
+                        Attachment attachment = new Attachment(ms, fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                        mail.Attachments.Add(attachment);
+
+                        SmtpClient smtp = new SmtpClient("smtp.office365.com", 587)
+                        {
+                            EnableSsl = true,
+                            UseDefaultCredentials = false,
+                            Credentials = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password)
+                        };
+
+                        smtp.Send(mail);
+                        smtp.Dispose();
+                    }
+
+                    return "ok";
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+    
+    
+
     }
 }
