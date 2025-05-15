@@ -85,9 +85,9 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("TopTelaPickingByVendroll")]
-        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> TopTelaPickingByVendroll()
+        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> TopTelaPickingByVendroll([FromQuery] string? nombreProveedor)
         {
-            var resp = await _IMWMS_RecTelaRepository.TopTelaPickingByVendroll();
+            var resp = await _IMWMS_RecTelaRepository.TopTelaPickingByVendroll(nombreProveedor);
             return Ok(resp);
         }
 
@@ -98,24 +98,31 @@ namespace WMS_API.Controllers
             return Ok(resp);
         }
 
-        [HttpGet("GetRollorByUUID/{activityUUI}")]
-        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> GetRollorByUUID(string activityUUI)
+        [HttpGet("GetRolloByUUID/{activityUUI}")]
+        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> GetRolloByUUID(string activityUUI)
         {
-            var resp = await _IMWMS_RecTelaRepository.GetRollorByUUID(activityUUI);
+            var resp = await _IMWMS_RecTelaRepository.GetRolloByUUID(activityUUI);
             return Ok(resp);
         }
 
-        [HttpGet("GetListaDeTipoDeTela")]
-        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> GetListaDeTipoDeTela()
+        [HttpGet("GetListaDeTipoDeTela/{proveedorId}")]
+        public async Task<ActionResult<List<IM_WMS_RecTela_TopTelaPickingByVendrollDTO>>> GetListaDeTipoDeTela(string? proveedorId)
         {
-            var resp = await _IMWMS_RecTelaRepository.GetListaDeTipoDeTela();
+            var resp = await _IMWMS_RecTelaRepository.GetListaDeTipoDeTela(proveedorId);
             return Ok(resp);
         }
 
         [HttpGet("GetListaProveedores")]
-        public async Task<ActionResult<List<IM_WMS_RecTela_GetListaProveedoresDTO>>> GetListaProveedores()
+        public async Task<ActionResult<List<IM_WMS_RecTela_GetListaProveedoresDTO>>> GetListaProveedores([FromQuery]  string? nombreProveedor)
         {
-            var resp = await _IMWMS_RecTelaRepository.GetListaProveedores();
+            var resp = await _IMWMS_RecTelaRepository.GetListaProveedores(nombreProveedor);
+            return Ok(resp);
+        }
+
+        [HttpPost("PostCorreoTelaPickingByVendroll")]
+        public async Task<ActionResult<List<IM_WMS_RecTela_GetListaProveedoresDTO>>> PostCorreoTelaPickingByVendroll( [FromBody] List<IM_WMS_RecTela_GetRolloByUUIDDTO> dataList)
+        {
+            var resp = await _IMWMS_RecTelaRepository.PostCorreoTelaPickingByVendroll(dataList);
             return Ok(resp);
         }
 

@@ -10,7 +10,7 @@ namespace Core.DTOs.IM_WMS_RecTela.RecTelaByVendroll
     {
         public int TelaPickingByVendrollId { get; set; }
         public string VendRoll { get; set; } = string.Empty;
-        public long ProveedorId { get; set; }
+        public string ProveedorId { get; set; }
         public string Location { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; } = string.Empty;

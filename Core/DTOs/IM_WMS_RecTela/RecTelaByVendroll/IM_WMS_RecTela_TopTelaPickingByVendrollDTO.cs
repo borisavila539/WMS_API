@@ -8,9 +8,11 @@ namespace Core.DTOs.IM_WMS_RecTela.RecTelaByVendroll
 {
     public class IM_WMS_RecTela_TopTelaPickingByVendrollDTO
     {
-        public long ProveedorId { get; set; }
+        public string ProveedorId { get; set; }
         public string ActivityUUID { get; set; } = string.Empty;
         public int CantidadEscaneados { get; set; }
-        public string NameProveedor { get; set; } = string.Empty;
+        public string NombreProveedor { get; set; } = string.Empty;
+        public DateTime FechaUltimoEscaneo { get; set; }
+        public DateTime FechaInicioEscaneo { get; set; }
     }
 }
