@@ -484,17 +484,31 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
+
         public async Task<List<IM_WMS_TelaPickingByVendrollCorreosDTO>> TelaPickingByVendrollCorreos()
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            var parametros = new List<SqlParameter> {};
+            var parametros = new List<SqlParameter> { };
 
             List<IM_WMS_TelaPickingByVendrollCorreosDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_TelaPickingByVendrollCorreosDTO>("[IM_WMS_RecTela_TelaPickingByVendrollCorreos]", parametros);
 
             return result;
         }
 
+
+        public async Task<List<IM_WMS_RecTela_PostIsSendByActivityUUIDDTO>> PostIsSendByActivityUUID(string activityUUID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter> {
+                new SqlParameter("@ActivityUUID", activityUUID)
+            };
+
+            List<IM_WMS_RecTela_PostIsSendByActivityUUIDDTO> result = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_RecTela_PostIsSendByActivityUUIDDTO>("[IM_WMS_RecTela_PostIsSendByActivityUUID]", parametros);
+
+            return result;
+        }
 
         public async Task<string> PostCorreoTelaPickingByVendroll(List<IM_WMS_RecTela_GetRolloByUUIDDTO> dataList)
         {
@@ -541,6 +555,8 @@ namespace WMS_API.Features.Repositories
                     {
                         mail.To.Add(correo.Correo);
                     }
+
+                    await PostIsSendByActivityUUID(dataList[0].ActivityUUID);
 
                     mail.Subject = "Reporte de Tela Picking por codigo";
                     mail.Body = "Se adjunta el reporte de tela picking por codigo.";
