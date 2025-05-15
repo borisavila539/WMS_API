@@ -696,6 +696,7 @@ namespace WMS_API.Controllers
             worksheet.Cells[fila, 15].Value = "Departamento";
             worksheet.Cells[fila, 16].Value = "SubCategoria";
             worksheet.Cells[fila, 17].Value = "Pedido";
+            worksheet.Cells[fila, 18].Value = "Tienda";
 
             fila++;
 
@@ -718,12 +719,12 @@ namespace WMS_API.Controllers
                 worksheet.Cells[fila, 15].Value = element.Departamento;
                 worksheet.Cells[fila, 16].Value = element.SubCategoria;
                 worksheet.Cells[fila, 17].Value = element.Pedido;
-
+                worksheet.Cells[fila, 18].Value = element.DeliveryName;
 
                 fila++;
             });
             fila--;
-            var rangeTable = worksheet.Cells[1, 1, fila, 17];
+            var rangeTable = worksheet.Cells[1, 1, fila, 18];
             var table = worksheet.Tables.Add(rangeTable, "MyTable");
             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
