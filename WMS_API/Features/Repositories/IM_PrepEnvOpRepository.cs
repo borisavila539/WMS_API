@@ -11,6 +11,8 @@ using System.Net.Mail;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace WMS_API.Features.Repositories
 {
@@ -20,7 +22,7 @@ namespace WMS_API.Features.Repositories
 
         public IM_PrepEnvOpRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
 
         public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
@@ -305,6 +307,105 @@ namespace WMS_API.Features.Repositories
             {
                 throw;
             }
+        }
+
+
+        public async Task<string> PostPrintEtiquetasMateriales(List<ArticuloDTO> data, string? ipImpresora)
+        {
+           ipImpresora = string.IsNullOrEmpty(ipImpresora) ? "0.0.0.0" : ipImpresora;
+
+            var listaDeEtiquetas = TransformarEtiquetas(data);
+
+            try
+            {
+                // Procesar etiquetas en bloques de 3
+                for (int i = 0; i < listaDeEtiquetas.Count; i += 3)
+                {
+                    string etiqueta = "^XA";
+                    etiqueta += "^FWN";
+                    etiqueta += "^PW1015";
+
+                    // Posiciones para 3 etiquetas por línea
+                    int[] posicionesX = new int[] { 720, 490, 260 };
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        if (i + j >= listaDeEtiquetas.Count)
+                            break;
+
+                        var item = listaDeEtiquetas[i + j];
+                        etiqueta += GenerarEtiquetaZPL(item, posicionesX[j]);
+                    }
+
+                    etiqueta += "^XZ";
+
+                    using (TcpClient client = new TcpClient(ipImpresora, 9100))
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep(1000); // 1 segundo
+                    }
+                }
+
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+        }
+
+
+
+
+        private List<EtiquetaMaterialesDTO> TransformarEtiquetas(List<ArticuloDTO> data)
+        {
+            var etiquetas = data
+                .SelectMany(articulo => articulo.ordenes.Select(orden => new EtiquetaMaterialesDTO
+                {
+                    codigoArticulo = articulo.codigoArticulo,
+                    nombreArticulo = articulo.nombreArticulo,
+                    color = articulo.color,
+                    area = articulo.area,
+                    ordenTrabajo = orden.ordenTrabajo,
+                    cantidadTransferida = orden.cantidadTransferida
+                }))
+                .ToList();
+
+            return etiquetas;
+        }
+
+        private string GenerarEtiquetaZPL(EtiquetaMaterialesDTO orden, int posX)
+        {
+            var zpl = "";
+
+            // OP
+            zpl += $"^FO{posX},10";
+            zpl += "^A0R,20,20";
+            zpl += $"^FD{orden.ordenTrabajo}^FS";
+
+            // Nombre del artículo
+            zpl += $"^FO{posX - 26},10";
+            zpl += "^A0R,15,15";
+            zpl += $"^FD{orden.nombreArticulo}^FS";
+
+            // Cantidad y área
+            zpl += $"^FO{posX - 54},10";
+            zpl += "^A0R,20,20";
+            zpl += $"^FDQTY: {orden.cantidadTransferida} T:{orden.area}^FS";
+
+            // Código QR
+            zpl += "^BY2,2";
+            zpl += $"^FO{posX - 160},200^BQR,4,4";
+            zpl += $"^FDLA,{orden.ordenTrabajo}^FS";
+
+            // Color
+            zpl += $"^FO{posX - 160},10";
+            zpl += "^A0R,20,20";
+            zpl += $"^FDCL:{orden.color}^FS";
+
+            return zpl;
         }
 
     }

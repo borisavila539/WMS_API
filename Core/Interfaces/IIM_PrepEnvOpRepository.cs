@@ -15,5 +15,6 @@ namespace Core.Interfaces
         Task<List<IM_PrepEnvOp_ListaOpPorEnviarDTO>> ListaOpPorEnviar(DateTime fechaInicioSemana, DateTime fechaFinSemana);
         Task<IM_PrepEnvOp_PostDetalleOpEnviadaDTO> PostDetalleOpEnviada(PostDetalleOpEnviadaResponseDTO response);
         Task<List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada(UpdateOpPreparadaEmpaquetadaRequestDTO data);
+        Task<string> PostPrintEtiquetasMateriales(List<ArticuloDTO> data, string? ipImpresora);
     }
 }

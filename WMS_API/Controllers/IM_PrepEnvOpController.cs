@@ -2,6 +2,7 @@
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WMS_API.Controllers
@@ -84,6 +85,20 @@ namespace WMS_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Error al enviar las OP: {ex.Message}");
+            }
+        }
+
+        [HttpPost("PostPrintEtiquetasMateriales")]
+        public async Task<ActionResult<string>> PostPrintEtiquetasMateriales([FromBody] List<ArticuloDTO> data, [FromQuery] string? ipImpresora)
+        {
+            try
+            {
+                var resp = await _IIM_PrepEnvOpRepository.PostPrintEtiquetasMateriales(data, ipImpresora);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al actualizar la OP preparada: {ex.Message}");
             }
         }
     }

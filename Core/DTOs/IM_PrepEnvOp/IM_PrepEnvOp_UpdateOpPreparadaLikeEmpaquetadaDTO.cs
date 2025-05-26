@@ -70,4 +70,16 @@ namespace Core.DTOs.IM_PrepEnvOp
         public string estilo { get; set; }
     }
 
+    public class EtiquetaMaterialesDTO
+    {
+        public string codigoArticulo { get; set; }
+        public string nombreArticulo { get; set; }
+        public string color { get; set; }
+        public string area { get; set; }
+        public string ordenTrabajo { get; set; }
+        public int cantidadTransferida { get; set; }
+    }
+
+    
+
 }
