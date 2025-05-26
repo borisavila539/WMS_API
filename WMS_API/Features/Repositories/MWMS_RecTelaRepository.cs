@@ -26,7 +26,7 @@ namespace WMS_API.Features.Repositories
         
         public MWMS_RecTelaRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
         }
 
         public async Task<List<IM_WMS_RecTela_GetListTelasDTO>> GetListTelas(string journalId)
