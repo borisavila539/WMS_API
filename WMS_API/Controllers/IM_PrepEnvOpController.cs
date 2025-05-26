@@ -2,8 +2,6 @@
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace WMS_API.Controllers
@@ -24,10 +22,9 @@ namespace WMS_API.Controllers
             GetListadoDeOp(
             [FromQuery] DateTime fechaInicioSemana,
             [FromQuery] DateTime fechaFinSemana,
-            [FromQuery] string? estilo,
             [FromQuery] string? area)
         {
-            var resp = await _IIM_PrepEnvOpRepository.GetListadoDeOp(fechaInicioSemana, fechaFinSemana, estilo, area);
+            var resp = await _IIM_PrepEnvOpRepository.GetListadoDeOp(fechaInicioSemana, fechaFinSemana, area);
             return Ok(resp);
         }
 
@@ -43,6 +40,20 @@ namespace WMS_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode( 500, $"Error al actualizar la OP preparada: {ex.Message}");
+            }
+        }
+
+        [HttpPost("UpdateOpPreparadaEmpaquetada")]
+        public async Task<ActionResult<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada([FromBody] UpdateOpPreparadaEmpaquetadaRequestDTO data)
+        {
+            try
+            {
+                var resp = await _IIM_PrepEnvOpRepository.UpdateOpPreparadaEmpaquetada(data);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al actualizar la OP preparada: {ex.Message}");
             }
         }
 

@@ -9,10 +9,11 @@ namespace Core.Interfaces
 {
     public interface IIM_PrepEnvOpRepository
     {
-        Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? estilo, string? area);
+        Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area);
         Task<IM_PrepEnvOp_UpdateOpPreparadaDTO> UpdateOpPreparada(int idOpPreparada,  string userCode);
         Task<List<IM_PrepEnvOp_CorreosHabilitadosDTO>> CorreosHabilitados();
         Task<List<IM_PrepEnvOp_ListaOpPorEnviarDTO>> ListaOpPorEnviar(DateTime fechaInicioSemana, DateTime fechaFinSemana);
         Task<IM_PrepEnvOp_PostDetalleOpEnviadaDTO> PostDetalleOpEnviada(PostDetalleOpEnviadaResponseDTO response);
+        Task<List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada(UpdateOpPreparadaEmpaquetadaRequestDTO data);
     }
 }

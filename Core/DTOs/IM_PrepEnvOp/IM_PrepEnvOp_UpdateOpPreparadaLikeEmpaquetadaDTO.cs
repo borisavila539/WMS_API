@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Core.DTOs.IM_PrepEnvOp
 {
-    public class IM_PrepEnvOp_ListadoDeOpDTO
+    public class IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO
     {
         public int IdOpPreparada { get; set; }
         public string OrdenTrabajo { get; set; } = string.Empty;
@@ -34,33 +37,37 @@ namespace Core.DTOs.IM_PrepEnvOp
         public string DesdeAlmacen { get; set; } = string.Empty;
         public string Almacen { get; set; } = string.Empty;
         public bool IsComplete { get; set; }
-        public bool IsHiddenWeek { get; set; }
         public bool IsEmpaquetada { get; set; }
-        public DateTime? FechaActualizado { get; set; }
+        public DateTime FechaActualizado { get; set; }
         public string? ActualizadoPor { get; set; }
         public int? IdDetalleOpEnviada { get; set; }
     }
-    public class ListadoDeOpResponseDTO
+
+    public class UpdateOpPreparadaEmpaquetadaRequestDTO
     {
-        public List<string> ListaDeEstilos { get; set; } = new();
-        public List<EstiloAgrupadoDTO> Agrupados { get; set; } = new();
-    }
-    public class MaterialDTO : IM_PrepEnvOp_ListadoDeOpDTO
-    {
-        // Hereda todas las propiedades del listado original
+        public string userCode { get; set; }
+        public List<ArticuloDTO> materiales { get; set; }
     }
 
-    public class OrdenDTO
+    public class ArticuloDTO
     {
-        public string OrdenTrabajo { get; set; } = string.Empty;
-        public decimal sumCantidadTransferida { get; set; }
-        public List<MaterialDTO> Materiales { get; set; } = new();
+        public string codigoArticulo { get; set; }
+        public string nombreArticulo { get; set; }
+        public string color { get; set; }
+        public string area { get; set; }
+        public List<OrdenesDTO> ordenes { get; set; }
     }
 
-    public class EstiloAgrupadoDTO
+    public class OrdenesDTO
     {
-        public string Estilo { get; set; } = string.Empty;
-        public List<OrdenDTO> Ordenes { get; set; } = new();
-        public int Semana { get; set; }
+        public string ordenTrabajo { get; set; }
+        public int idOpPreparada { get; set; }
+        public bool isComplete { get; set; }
+        public DateTime fechaTraslado { get; set; }
+        public int cantidadTransferida { get; set; }
+        public string semana { get; set; }
+        public string year { get; set; }
+        public string estilo { get; set; }
     }
+
 }

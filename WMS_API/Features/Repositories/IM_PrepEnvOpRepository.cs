@@ -23,7 +23,7 @@ namespace WMS_API.Features.Repositories
             _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
         }
 
-        public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? estilo, string? area)
+        public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -31,7 +31,6 @@ namespace WMS_API.Features.Repositories
             {
                 new SqlParameter("@FechaInicioSemana",fechaInicioSemana),
                 new SqlParameter("@FechaFinSemana",fechaFinSemana),
-                new SqlParameter("@estiloFilter",estilo),
                 new SqlParameter("@areaFilter",area)
             };
 
@@ -42,14 +41,19 @@ namespace WMS_API.Features.Repositories
             .Distinct()
             .ToList();
 
+            var firstWeek = result[0].Semana;
 
             var agrupado = result
-                    .GroupBy(r => r.Estilo)
+                .GroupBy(r => r.Semana) // Primero agrupas por Semana
+                .SelectMany(gSemana => gSemana
+                    .GroupBy(r => r.Estilo) // Luego agrupas por Estilo dentro de la semana
                     .Select(gEstilo => new EstiloAgrupadoDTO
                     {
                         Estilo = gEstilo.Key,
+                        // Aqui necesito la semana
+                        Semana = gSemana.Key,
                         Ordenes = gEstilo
-                            .GroupBy(r => r.OrdenTrabajo)
+                            .GroupBy(r => r.OrdenTrabajo) // Después por Orden de trabajo
                             .Select(gOrden => new OrdenDTO
                             {
                                 OrdenTrabajo = gOrden.Key,
@@ -86,14 +90,16 @@ namespace WMS_API.Features.Repositories
                                         DesdeAlmacen = m.DesdeAlmacen,
                                         Almacen = m.Almacen,
                                         IsComplete = m.IsComplete,
+                                        IsHiddenWeek = firstWeek == m.Semana,
                                         FechaActualizado = m.FechaActualizado,
+                                        IsEmpaquetada = m.IsEmpaquetada,
                                         ActualizadoPor = m.ActualizadoPor,
                                         IdDetalleOpEnviada = m.IdDetalleOpEnviada
                                     }).ToList()
                             }).ToList()
-                    }).ToList();
+                    })
+                ).ToList();
 
-            
 
             return new ListadoDeOpResponseDTO
             {
@@ -141,6 +147,40 @@ namespace WMS_API.Features.Repositories
             var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListaOpPorEnviarDTO>("[IM_PrepEnvOp_ListaOpPorEnviar]", parametros);
             return result;
         }
+
+        public async Task<List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada(UpdateOpPreparadaEmpaquetadaRequestDTO data)
+        {
+            var response = new List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>();
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            for (int i = 0; i < data.materiales.Count; i++)
+            {
+                var item = data.materiales[i];
+
+                for (int j = 0; j < item.ordenes.Count; j++)
+                {
+                    var row = item.ordenes[j];
+
+                    var parametros = new List<SqlParameter>
+                    {
+                        new SqlParameter("@idOpPreparada", row.idOpPreparada),
+                        new SqlParameter("@userCode", data.userCode),
+                    };
+
+                    var result = await executeProcedure.ExecuteStoredProcedure<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>(
+                        "[IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetada]",
+                        parametros
+                    );
+
+                    response.Add(result);
+                }
+            }
+
+            return response;
+        }
+
+
 
         public async Task<IM_PrepEnvOp_PostDetalleOpEnviadaDTO> PostDetalleOpEnviada(PostDetalleOpEnviadaResponseDTO response)
         {
