@@ -344,11 +344,11 @@ namespace WMS_API.Features.Repositories
                 for (int i = 0; i < listaDeEtiquetas.Count; i += 3)
                 {
                     string etiqueta = "^XA";
-                    etiqueta += "^FWN";
+                    etiqueta += "^MD5^PRB^FWN";
                     etiqueta += "^PW1015";
 
                     // Posiciones para 3 etiquetas por línea
-                    int[] posicionesX = new int[] { 720, 490, 260 };
+                    int[] posicionesX = new int[] { 710, 480, 250 };
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -421,7 +421,7 @@ namespace WMS_API.Features.Repositories
 
             // Código QR
             zpl += "^BY2,2";
-            zpl += $"^FO{posX - 160},200^BQR,4,4";
+            zpl += $"^FO{posX - 150},190^BQR,4,4";
             zpl += $"^FDLA,{orden.ordenTrabajo}^FS";
 
             // Color
