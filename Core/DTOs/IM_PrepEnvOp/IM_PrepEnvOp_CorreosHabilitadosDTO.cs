@@ -11,6 +11,7 @@ namespace Core.DTOs.IM_PrepEnvOp
         public int IdCorreoPrepEnvOP { get; set; }
         public string Correo { get; set; }
         public bool IsActive { get; set; }
+        public string Area { get; set; }
     }
 
 }
