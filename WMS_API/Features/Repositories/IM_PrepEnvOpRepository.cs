@@ -227,11 +227,33 @@ namespace WMS_API.Features.Repositories
                 mail.From = new MailAddress(VariablesGlobales.Correo);
 
                 var correos = await CorreosHabilitados();
+                var correosFiltrados = new List<string>();
 
-                foreach (IM_PrepEnvOp_CorreosHabilitadosDTO correo in correos)
+
+                foreach (var op in response.ListaOpPorEnviar)
                 {
-                    mail.To.Add(correo.Correo);
+                    foreach (var correo in correos)
+                    {
+                        if (op.MetalicosCount > 0 && correo.Area == "METALICOS")
+                        {
+                            correosFiltrados.Add(correo.Correo.Trim());
+                        }
+
+                        if (op.EmpaqueCount > 0 && correo.Area == "EMPAQUE")
+                        {
+                            correosFiltrados.Add(correo.Correo.Trim());
+                        }
+                    }
                 }
+
+                // Eliminar correos duplicados
+                var correosUnicos = correosFiltrados.Distinct().ToList();
+
+                foreach (var correo in correosUnicos)
+                {
+                    mail.To.Add(correo);
+                }
+
 
                 mail.Subject = "Preparacion y envio de ordenes metalicos y empaque" ;
                 mail.IsBodyHtml = true;
@@ -312,7 +334,7 @@ namespace WMS_API.Features.Repositories
 
         public async Task<string> PostPrintEtiquetasMateriales(List<ArticuloDTO> data, string? ipImpresora)
         {
-           ipImpresora = string.IsNullOrEmpty(ipImpresora) ? "0.0.0.0" : ipImpresora;
+           ipImpresora = string.IsNullOrEmpty(ipImpresora) ? "10.1.1.164" : ipImpresora;
 
             var listaDeEtiquetas = TransformarEtiquetas(data);
 
@@ -368,6 +390,8 @@ namespace WMS_API.Features.Repositories
                     nombreArticulo = articulo.nombreArticulo,
                     color = articulo.color,
                     area = articulo.area,
+                    semana = orden.semana,
+                    year = orden.year,
                     ordenTrabajo = orden.ordenTrabajo,
                     cantidadTransferida = orden.cantidadTransferida
                 }))
@@ -381,17 +405,17 @@ namespace WMS_API.Features.Repositories
             var zpl = "";
 
             // OP
-            zpl += $"^FO{posX},10";
-            zpl += "^A0R,20,20";
+            zpl += $"^FO{posX},20";
+            zpl += "^A0R,25,25";
             zpl += $"^FD{orden.ordenTrabajo}^FS";
 
             // Nombre del artículo
-            zpl += $"^FO{posX - 26},10";
+            zpl += $"^FO{posX - 26},20";
             zpl += "^A0R,15,15";
             zpl += $"^FD{orden.nombreArticulo}^FS";
 
             // Cantidad y área
-            zpl += $"^FO{posX - 54},10";
+            zpl += $"^FO{posX - 54},20";
             zpl += "^A0R,20,20";
             zpl += $"^FDQTY: {orden.cantidadTransferida} T:{orden.area}^FS";
 
@@ -401,9 +425,14 @@ namespace WMS_API.Features.Repositories
             zpl += $"^FDLA,{orden.ordenTrabajo}^FS";
 
             // Color
-            zpl += $"^FO{posX - 160},10";
+            zpl += $"^FO{posX - 160},20";
             zpl += "^A0R,20,20";
-            zpl += $"^FDCL:{orden.color}^FS";
+            zpl += $"^FDCOLOR:{orden.color}^FS";
+
+            // Semana y año
+            zpl += $"^FO{posX - 100},20";
+            zpl += "^A0R,20,20";
+            zpl += $"^FD{orden.semana} - {orden.year}^FS";
 
             return zpl;
         }

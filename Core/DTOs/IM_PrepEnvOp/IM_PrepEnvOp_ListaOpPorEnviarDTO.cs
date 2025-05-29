@@ -15,6 +15,8 @@ namespace Core.DTOs.IM_PrepEnvOp
         public int Completados { get; set; }
         public int NoCompletados { get; set; }
         public int Enviados { get; set; }
+        public int MetalicosCount { get; set; }
+        public int EmpaqueCount { get; set; }
         public int NoEnviados { get; set; }
     }
 

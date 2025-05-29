@@ -77,6 +77,8 @@ namespace Core.DTOs.IM_PrepEnvOp
         public string color { get; set; }
         public string area { get; set; }
         public string ordenTrabajo { get; set; }
+        public string semana { get; set; }
+        public string year { get; set; }
         public int cantidadTransferida { get; set; }
     }
 
