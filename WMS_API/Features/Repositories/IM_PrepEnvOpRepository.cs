@@ -348,7 +348,7 @@ namespace WMS_API.Features.Repositories
                     etiqueta += "^PW1015";
 
                     // Posiciones para 3 etiquetas por línea
-                    int[] posicionesX = new int[] { 710, 480, 250 };
+                    int[] posicionesX = new int[] { 700, 470, 240 };
 
                     for (int j = 0; j < 3; j++)
                     {
@@ -406,33 +406,37 @@ namespace WMS_API.Features.Repositories
 
             // OP
             zpl += $"^FO{posX},20";
-            zpl += "^A0R,25,25";
+            zpl += "^A0R,42,42";
             zpl += $"^FD{orden.ordenTrabajo}^FS";
 
-            // Nombre del artículo
-            zpl += $"^FO{posX - 26},20";
+            // Nombre
+            string nombre = orden.nombreArticulo;
+            string lineaUno = nombre.Length > 31 ? nombre.Substring(0, 31) : nombre;
+            string lineaDos = nombre.Length > 31 ? nombre.Substring(31) : string.Empty;
+
+            // primera linea
+            zpl += $"^FO{posX - 28},20";
             zpl += "^A0R,15,15";
-            zpl += $"^FD{orden.nombreArticulo}^FS";
+            zpl += $"^FD{lineaUno}^FS";
 
-            // Cantidad y área
-            zpl += $"^FO{posX - 54},20";
-            zpl += "^A0R,20,20";
-            zpl += $"^FDQTY: {orden.cantidadTransferida} T:{orden.area}^FS";
-
-            // Código QR
-            zpl += "^BY2,2";
-            zpl += $"^FO{posX - 150},190^BQR,4,4";
-            zpl += $"^FDLA,{orden.ordenTrabajo}^FS";
+            // segunda linea
+            if (!string.IsNullOrEmpty(lineaDos))
+            {
+                zpl += $"^FO{posX - 48},20";
+                zpl += "^A0R,15,15";
+                zpl += $"^FD{lineaDos}^FS";
+            }
 
             // Color
-            zpl += $"^FO{posX - 160},20";
-            zpl += "^A0R,20,20";
-            zpl += $"^FDCOLOR:{orden.color}^FS";
+            zpl += $"^FO{posX - 90},20";
+            zpl += "^A0R,25,25";
+            zpl += $"^FDCOLOR:{orden.color}   QTY: {orden.cantidadTransferida}^FS";
 
-            // Semana y año
-            zpl += $"^FO{posX - 100},20";
-            zpl += "^A0R,20,20";
-            zpl += $"^FD{orden.semana} - {orden.year}^FS";
+            // Area, semana y año
+            zpl += $"^FO{posX - 124},20";
+            zpl += "^A0R,25,25";
+            zpl += $"^FDT:{orden.area}   {orden.semana} - {orden.year}^FS";
+
 
             return zpl;
         }
