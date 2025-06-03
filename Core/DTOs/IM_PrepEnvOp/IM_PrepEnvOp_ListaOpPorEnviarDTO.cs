@@ -11,6 +11,8 @@ namespace Core.DTOs.IM_PrepEnvOp
         public string Estilo { get; set; }
         public string OrdenTrabajo { get; set; }
         public string Estado { get; set; }
+        public string Area { get; set; }
+        public string NoTraslado { get; set; }
         public int Total { get; set; }
         public int Completados { get; set; }
         public int NoCompletados { get; set; }
