@@ -22,7 +22,7 @@ namespace WMS_API.Features.Repositories
 
         public IM_PrepEnvOpRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
         }
 
         public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
@@ -203,7 +203,9 @@ namespace WMS_API.Features.Repositories
                 {
                     new SqlParameter("@estilo",item.Estilo),
                     new SqlParameter("@ordenTrabajo",item.OrdenTrabajo),
-                    new SqlParameter("@idDetalleOpEnviada",detalleOpEnviada.IdDetalleOpEnviada)
+                    new SqlParameter("@idDetalleOpEnviada",detalleOpEnviada.IdDetalleOpEnviada),
+                    new SqlParameter("@idDetalleOpEnviada",item.Area),
+                    new SqlParameter("@idDetalleOpEnviada",item.NoTraslado)
                 };
 
                 await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_UpdateOpPreByEstiloAndOpDTO>("[IM_PrepEnvOp_UpdateOpPreByEstiloAndOp]", parametrosByOpAndEstilo);
