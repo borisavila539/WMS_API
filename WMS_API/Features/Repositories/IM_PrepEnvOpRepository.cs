@@ -203,7 +203,9 @@ namespace WMS_API.Features.Repositories
                 {
                     new SqlParameter("@estilo",item.Estilo),
                     new SqlParameter("@ordenTrabajo",item.OrdenTrabajo),
-                    new SqlParameter("@idDetalleOpEnviada",detalleOpEnviada.IdDetalleOpEnviada)
+                    new SqlParameter("@idDetalleOpEnviada",detalleOpEnviada.IdDetalleOpEnviada),
+                    new SqlParameter("@area",item.Area),
+                    new SqlParameter("@noTraslado",item.NoTraslado)
                 };
 
                 await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_UpdateOpPreByEstiloAndOpDTO>("[IM_PrepEnvOp_UpdateOpPreByEstiloAndOp]", parametrosByOpAndEstilo);
@@ -290,13 +292,22 @@ namespace WMS_API.Features.Repositories
                 htmlTable.Append("<th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Estado</th>");
                 htmlTable.Append("</tr>");
 
+                var combinacionesUnicas = new HashSet<string>();
+
                 foreach (var op in response.ListaOpPorEnviar)
                 {
-                    htmlTable.Append("<tr>");
-                    htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.Estilo}</td>");
-                    htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.OrdenTrabajo}</td>");
-                    htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.Estado}</td>");
-                    htmlTable.Append("</tr>");
+                    string clave = $"{op.Estilo}-{op.OrdenTrabajo}";
+
+                    if (!combinacionesUnicas.Contains(clave))
+                    {
+                        combinacionesUnicas.Add(clave);
+
+                        htmlTable.Append("<tr>");
+                        htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.Estilo}</td>");
+                        htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.OrdenTrabajo}</td>");
+                        htmlTable.Append($"<td style='border: 1px solid #ddd; padding: 8px;'>{op.Estado}</td>");
+                        htmlTable.Append("</tr>");
+                    }
                 }
 
                 htmlTable.Append("</table>");
