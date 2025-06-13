@@ -2934,9 +2934,24 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        public string imprimirEtiquetaCajaDividir(string caja,string impresora)
+        public string imprimirEtiquetaCajaDividir(string caja, string impresora)
         {
-            
+
+            string ipPrintTela = "10.1.1.114";
+
+            if (ipPrintTela != impresora)
+            {
+
+                return imprimirEtiquetaCajaXS(caja, impresora);
+            }
+            else
+            {
+                return imprimirEtiquetaCajaNormal(caja, impresora);
+            }
+        }
+
+        private string imprimirEtiquetaCajaNormal(string caja, string impresora)
+        {
             string etiqueta = @"^XA^FWN^PW1200^PR2";
 
             etiqueta += @"^FO915,25";
@@ -2962,6 +2977,38 @@ namespace WMS_API.Features.Repositories
             {
                 return err.ToString();
             };
+
+            return "OK";
+        }
+
+        private string imprimirEtiquetaCajaXS(string caja, string impresora)
+        {
+            string etiqueta = @"^XA^FWN^PW1200^PR2";
+
+            etiqueta += @"^FO700,25";
+            etiqueta += @"^A0R,30,30";
+            etiqueta += @"^FD" + caja + "^FS";
+
+            etiqueta += @"^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient(impresora, 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep(500);
+
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            };
+
             return "OK";
         }
 
@@ -3193,10 +3240,10 @@ namespace WMS_API.Features.Repositories
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
                 etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "140" : "140");
-                etiqueta += @"^A0R,45,45";
+                etiqueta += @"^A0R,38,38";
                 etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
-                fila -= 75;
+                fila -= 65;
 
 
 
