@@ -2941,8 +2941,8 @@ namespace WMS_API.Features.Repositories
 
             if (ipPrintTela != impresora)
             {
-
-                return imprimirEtiquetaCajaXS(caja, impresora);
+                int filaStartInt = impresora == "10.1.1.86" ? 645 : 700;
+                return imprimirEtiquetaCajaXS(caja, impresora, filaStartInt);
             }
             else
             {
@@ -2981,11 +2981,13 @@ namespace WMS_API.Features.Repositories
             return "OK";
         }
 
-        private string imprimirEtiquetaCajaXS(string caja, string impresora)
+        private string imprimirEtiquetaCajaXS(string caja, string impresora, int filaStartInt)
         {
             string etiqueta = @"^XA^FWN^PW1200^PR2";
 
-            etiqueta += @"^FO700,25";
+            
+
+            etiqueta += @"^FO"+ filaStartInt +",25";
             etiqueta += @"^A0R,30,30";
             etiqueta += @"^FD" + caja + "^FS";
 
@@ -3019,8 +3021,9 @@ namespace WMS_API.Features.Repositories
 
             if (ipPrintTela != impresora)
             {
+                int filaStartInt = impresora == "10.1.1.86" ? 645 : 700;
 
-                return imprimirEtiquetaXs(data, fecha, impresora);
+                return imprimirEtiquetaXs(data, fecha, impresora, filaStartInt);
             }
             else
             {
@@ -3167,10 +3170,10 @@ namespace WMS_API.Features.Repositories
             return "OK";
         }
 
-        private string imprimirEtiquetaXs(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data, string fecha, string impresora)
+        private string imprimirEtiquetaXs(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data, string fecha, string impresora, int filaStartInt)
         {
             int cont = 1;
-            int fila = 700;
+            int fila = filaStartInt;
             string etiqueta = "";
             foreach (var element in data)
             {
@@ -3184,7 +3187,7 @@ namespace WMS_API.Features.Repositories
                 etiqueta += @"^FD" + element.Nombre + "^FS";
                 fila -= 10;
 
-                etiqueta += @"^FO" + fila + ",15";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Estilo + "^FS";
 
@@ -3196,50 +3199,50 @@ namespace WMS_API.Features.Repositories
                 }
                 else
                 {
-                    etiqueta += @"^FO" + fila + ",250";
+                    etiqueta += @"^FO" + fila + ",260";
                     etiqueta += @"^A0R,35,35";
                     etiqueta += @"^FD" + element.Talla + "^FS";
                 }
 
                 fila -= 16;
-                etiqueta += @"^FO" + fila + ",15";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Articulo + "^FS";
 
 
                 fila -= 16;
 
-                etiqueta += @"^FO" + fila + ",15";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Descripcion + "^FS";
 
                 fila -= 36;
 
                 etiqueta += @"^BY3,5,54";
-                etiqueta += @"^FO" + fila + ",18";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^BER,35,Y,N";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
                 fila -= 62;
 
-                etiqueta += @"^FO" + fila + ",15";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,18,18";
                 etiqueta += @"^FD" + element.IDColor + "^FS";
 
                 fila -= 20;
 
-                etiqueta += @"^FO" + fila + ",15";
+                etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,18,18";
                 etiqueta += @"^FDIVA incluido^FS";
 
-                etiqueta += @"^FO" + fila + ",250";
+                etiqueta += @"^FO" + fila + ",270";
                 etiqueta += @"^A0R,20,20";
                 var dia = DateTime.Now;
                 string fechatxt = dia.Month.ToString() + dia.Year.ToString().Substring(2, 2);
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "140" : "140");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
                 etiqueta += @"^A0R,38,38";
                 etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
@@ -3269,7 +3272,7 @@ namespace WMS_API.Features.Repositories
                         return err.ToString();
                     };
                     //imprimir
-                    fila = 700;
+                    fila = filaStartInt;
                     cont = 1;
                 }
                 else
