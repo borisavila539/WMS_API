@@ -3242,7 +3242,7 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "118" : "140");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
 
                 if (element.Moneda != "" || element.Decimal) 
                 {
