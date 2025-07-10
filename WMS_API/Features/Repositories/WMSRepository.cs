@@ -3182,7 +3182,7 @@ namespace WMS_API.Features.Repositories
                     etiqueta = @"^XA^MD5^PRB^FWN";
                 }
 
-                 etiqueta += @"^FO" + fila + ",100";
+                etiqueta += @"^FO" + fila + ",100";
                 etiqueta += @"^A0R,30,30";
                 etiqueta += @"^FD" + element.Nombre + "^FS";
                 fila -= 10;
@@ -3242,8 +3242,17 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
-                etiqueta += @"^A0R,38,38";
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "118" : "140");
+
+                if (element.Moneda != "" || element.Decimal) 
+                {
+                    etiqueta += @"^A0R,32,32";
+                }
+                else
+                {
+                    etiqueta += @"^A0R,38,38";
+                }
+
                 etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
                 fila -= 65;
