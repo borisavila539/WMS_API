@@ -3030,7 +3030,6 @@ namespace WMS_API.Features.Repositories
                 return imprimirEtiquetaNormal(data, fecha, impresora);
             }
             
-
         }
 
         private string imprimirEtiquetaNormal(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data, string fecha, string impresora)
@@ -3083,10 +3082,16 @@ namespace WMS_API.Features.Repositories
                 fila -= 60;
 
                 etiqueta += @"^BY4,2,60";
-                etiqueta += @"^FO" + fila + ",60^BER";
+                etiqueta += @"^FO" + fila + ",60^BER,N,N";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 70;
+                fila -= 36;
+
+                etiqueta += @"^FO" + fila + ",100";
+                etiqueta += "^A0R,23,50";
+                etiqueta += "^FD" + element.CodigoBarra + "^FS";
+
+                fila -= 34;
 
                 etiqueta += @"^FO" + fila + ",50";
                 etiqueta += @"^A0R,30,30";
@@ -3220,10 +3225,16 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^BY3,5,54";
                 etiqueta += @"^FO" + fila + ",20";
-                etiqueta += @"^BER,35,Y,N";
+                etiqueta += @"^BER,35,N,N";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 62;
+                fila -= 44;
+
+                etiqueta += @"^FO" +fila +",40";
+                etiqueta += "^A0R,30,39";
+                etiqueta += "^FD" + element.CodigoBarra + "^FS";
+
+                fila -= 18;
 
                 etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,18,18";
