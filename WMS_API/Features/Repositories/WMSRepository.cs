@@ -2984,10 +2984,9 @@ namespace WMS_API.Features.Repositories
         private string imprimirEtiquetaCajaXS(string caja, string impresora, int filaStartInt)
         {
             string etiqueta = @"^XA^FWN^PW1200^PR2";
-
-            
-
-            etiqueta += @"^FO"+ filaStartInt +",25";
+            int fila = filaStartInt;
+            fila -= 15;
+            etiqueta += @"^FO"+ fila +",25";
             etiqueta += @"^A0R,30,30";
             etiqueta += @"^FD" + caja + "^FS";
 
@@ -3187,18 +3186,21 @@ namespace WMS_API.Features.Repositories
                     etiqueta = @"^XA^MD5^PRB^FWN";
                 }
 
-                etiqueta += @"^FO" + fila + ",100";
+                fila -= 8;
+
+                etiqueta += @"^FO" + fila + ",110";
                 etiqueta += @"^A0R,30,30";
                 etiqueta += @"^FD" + element.Nombre + "^FS";
+
                 fila -= 10;
 
-                etiqueta += @"^FO" + fila + ",20";
+                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Estilo + "^FS";
 
                 if (element.Talla.Length > 2)
                 {
-                    etiqueta += @"^FO" + (fila) + ",220";
+                    etiqueta += @"^FO" + (fila) + ",230";
                     etiqueta += @"^A0R,20,20";
                     etiqueta += @"^FD" + element.Talla.Replace("-", "") + "^FS";
                 }
@@ -3209,15 +3211,15 @@ namespace WMS_API.Features.Repositories
                     etiqueta += @"^FD" + element.Talla + "^FS";
                 }
 
-                fila -= 16;
-                etiqueta += @"^FO" + fila + ",20";
+                fila -= 17;
+                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Articulo + "^FS";
 
 
-                fila -= 16;
+                fila -= 17;
 
-                etiqueta += @"^FO" + fila + ",20";
+                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,15,15";
                 etiqueta += @"^FD" + element.Descripcion + "^FS";
 
@@ -3228,21 +3230,21 @@ namespace WMS_API.Features.Repositories
                 etiqueta += @"^BER,35,N,N";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 44;
+                fila -= 32;
 
-                etiqueta += @"^FO" +fila +",40";
-                etiqueta += "^A0R,30,39";
+                etiqueta += @"^FO" +fila +",50";
+                etiqueta += "^A0R,15,35";
                 etiqueta += "^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 18;
+                fila -= 30;
 
-                etiqueta += @"^FO" + fila + ",20";
+                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,18,18";
                 etiqueta += @"^FD" + element.IDColor + "^FS";
 
                 fila -= 20;
 
-                etiqueta += @"^FO" + fila + ",20";
+                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,18,18";
                 etiqueta += @"^FDIVA incluido^FS";
 
@@ -3253,7 +3255,7 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "130" : "170");
 
                 if (element.Moneda != "" || element.Decimal) 
                 {
