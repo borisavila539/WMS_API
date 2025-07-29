@@ -1112,7 +1112,7 @@ namespace WMS_API.Controllers
             return resp;
         }
         //por si falla el anterior
-        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}/")]
+        [HttpGet("Devolucion/DefectosDetalle/{id}/{idDefecto}/{tipo}/{Reparacion}/{operacion}")]
         public async Task<IM_WMS_UpdateDetalleDefectoDevolucion> getActualizarDetalleDefectoDevolucion(int id, int idDefecto, string tipo, bool Reparacion, int operacion)
         {
             var resp = await _WMS.getActualizarDetalleDefectoDevolucion(id, idDefecto, tipo, Reparacion, operacion, 1);

@@ -4331,7 +4331,7 @@ namespace WMS_API.Features.Repositories
                     new SqlParameter("@tipo",tipo),
                     new SqlParameter("@reparacion",Reparacion),
                     new SqlParameter("@idOperacion",operacion),
-                    new SqlParameter("@QTY",operacion)
+                    new SqlParameter("@QTY",qty)
 
             };
 
