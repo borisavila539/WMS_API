@@ -13,6 +13,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace WMS_API.Features.Repositories
 {
@@ -22,7 +23,7 @@ namespace WMS_API.Features.Repositories
 
         public IM_PrepEnvOpRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
         }
 
         public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
@@ -390,6 +391,44 @@ namespace WMS_API.Features.Repositories
         }
 
 
+        public async Task<string> PostPrintEtiquetasEnvio(List<IM_PrepEnvOp_ListaOpPorEnviarDTO> data, string? ipImpresora)
+        {
+            ipImpresora = string.IsNullOrEmpty(ipImpresora) ? "10.1.1.164" : ipImpresora;
+
+            try
+            {
+             
+                for (int i = 0; i < data.Count; i += 1)
+                {
+                    string etiqueta = "^XA";
+                    etiqueta += "^MD5^PRB^FWN";
+                    etiqueta += "^PW1015";
+                    
+                    var item = data[i];
+                     
+                    etiqueta += GenerarEtiquetaEnvioZPL(item);
+                    
+
+                    etiqueta += "^XZ";
+
+                    using (TcpClient client = new TcpClient(ipImpresora, 9100))
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep(1000); // 1 segundo
+                    }
+                }
+
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+        }
+
+
 
 
         private List<EtiquetaMaterialesDTO> TransformarEtiquetas(List<ArticuloDTO> data)
@@ -447,6 +486,41 @@ namespace WMS_API.Features.Repositories
             zpl += $"^FO{posX - 124},20";
             zpl += "^A0R,25,25";
             zpl += $"^FDT:{orden.area}   {orden.semana} - {orden.year}^FS";
+
+
+            return zpl;
+        }
+
+
+        private string GenerarEtiquetaEnvioZPL(IM_PrepEnvOp_ListaOpPorEnviarDTO traslado)
+        {
+            var zpl = "";
+
+            // OP
+            zpl += "^FO50,50";
+            zpl += "^A0N,120,120";
+            zpl += $"^FD{Regex.Replace(traslado.OrdenTrabajo, @"-0+", "-")}^FS";
+            
+            //QR
+            zpl += "^FO660,30";
+            zpl += "^BQN,2,6";
+            zpl += $"^FDLA,{traslado.OrdenTrabajo}^FS";
+
+            // Estilo y cantidad de items / piezas 
+            zpl += "^FO50,200";
+            zpl += "^A0N,65,65";
+            zpl += $"^FDQTY: {traslado.SumCantidadTransferida}^FS";
+
+            // Area
+            zpl += "^FO50,300";
+            zpl += "^A0N,65,65";
+            zpl += $"^FDT: {traslado.Area}^FS";
+
+
+            // Area, semana y año
+            zpl += "^FO420,220";
+            zpl += "^A0N,85,85";
+            zpl += $"^FD{traslado.Semana} - {traslado.Year}^FS";
 
 
             return zpl;

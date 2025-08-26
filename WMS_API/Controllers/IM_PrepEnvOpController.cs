@@ -98,7 +98,21 @@ namespace WMS_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al actualizar la OP preparada: {ex.Message}");
+                return StatusCode(500, $"Error al imprimr materiales: {ex.Message}");
+            }
+        }
+
+        [HttpPost("PostPrintEtiquetasEnvio")]
+        public async Task<ActionResult<string>> PostPrintEtiquetasEnvio([FromBody] List<IM_PrepEnvOp_ListaOpPorEnviarDTO> data, [FromQuery] string? ipImpresora)
+        {
+            try
+            {
+                var resp = await _IIM_PrepEnvOpRepository.PostPrintEtiquetasEnvio(data, ipImpresora);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al imprimir los traslados enviados: {ex.Message}");
             }
         }
     }
