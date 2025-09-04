@@ -3192,10 +3192,10 @@ namespace WMS_API.Features.Repositories
                 etiqueta += @"^A0R,30,30";
                 etiqueta += @"^FD" + element.Nombre + "^FS";
 
-                fila -= 10;
+                fila -= 13;
 
                 etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,15,15";
+                etiqueta += @"^A0R,17,17";
                 etiqueta += @"^FD" + element.Estilo + "^FS";
 
                 if (element.Talla.Length > 2)
@@ -3211,32 +3211,40 @@ namespace WMS_API.Features.Repositories
                     etiqueta += @"^FD" + element.Talla + "^FS";
                 }
 
-                fila -= 17;
+                fila -= 18;
                 etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,15,15";
+                etiqueta += @"^A0R,17,17";
                 etiqueta += @"^FD" + element.Articulo + "^FS";
 
 
                 fila -= 17;
 
                 etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,15,15";
+                etiqueta += @"^A0R,17,17";
                 etiqueta += @"^FD" + element.Descripcion + "^FS";
 
-                fila -= 36;
+                fila -= 34;
 
                 etiqueta += @"^BY3,5,54";
                 etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^BER,35,N,N";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 32;
+                fila -= 37;
+
+                string miCadena = element.CodigoBarra;
+                int puntoDeInsercion = miCadena.Length / 2;
+
+                string primeraParte = miCadena.Substring(0, puntoDeInsercion);
+                string segundaParte = miCadena.Substring(puntoDeInsercion);
+
+                string codigoBarraFormat = $"{primeraParte} {segundaParte}";
 
                 etiqueta += @"^FO" +fila +",50";
-                etiqueta += "^A0R,15,35";
-                etiqueta += "^FD" + element.CodigoBarra + "^FS";
+                etiqueta += "^A0R,20,37";
+                etiqueta += "^FD" + codigoBarraFormat + "^FS";
 
-                fila -= 30;
+                fila -= 23;
 
                 etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,18,18";
