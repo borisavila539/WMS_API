@@ -10,7 +10,7 @@ namespace Core.DTOs.IM_PrepEnvOp
     {
         public string Estilo { get; set; }
         public string OrdenTrabajo { get; set; }
-        public string Estado { get; set; }
+        public string Estado { get; set; } = string.Empty;
         public string Area { get; set; }
         public string NoTraslado { get; set; }
         public string Semana { get; set; }
@@ -21,7 +21,7 @@ namespace Core.DTOs.IM_PrepEnvOp
         public int Enviados { get; set; }
         public int MetalicosCount { get; set; }
         public int EmpaqueCount { get; set; }
-        public int SumCantidadTransferida { get; set; }
+        public int CantidadEstimada { get; set; }
         public int NoEnviados { get; set; }
     }
 

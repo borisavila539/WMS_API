@@ -124,6 +124,10 @@ namespace WMS_API.Features.Utilities
                 {
                     prop.SetValue(obj, Convert.ToDateTime(reader[prop.Name]));
                 }
+                else if (prop.PropertyType == typeof(byte[]))
+                {
+                    prop.SetValue(obj, reader[prop.Name] as byte[]);
+                }
                 // Añadir más tipos según sea necesario
             }
 

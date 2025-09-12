@@ -38,7 +38,7 @@ namespace Core.DTOs.IM_PrepEnvOp
         public bool IsEmpaquetada { get; set; }
         public DateTime? FechaActualizado { get; set; }
         public string? ActualizadoPor { get; set; }
-        public int? IdDetalleOpEnviada { get; set; }
+        public int IdDetalleOpEnviada { get; set; }
     }
     public class ListadoDeOpResponseDTO
     {

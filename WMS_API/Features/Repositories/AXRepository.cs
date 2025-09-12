@@ -5,6 +5,7 @@ using IM_WMS_ReduccionCajas;
 using IM_WMS_Traslado_Enviar_Recibir;
 using ServiceReferenceIM_WMS_Trasferir_Inventario;
 using ServiceReferenceIM_WMS_InventarioCiclicoTela;
+using IM_PreparacionDeOpGP;
 using ServiceReference1;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ using System.Xml.Serialization;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Cajasrecicladas;
 using IM_WMS_CajaRecladasGP;
+using System.Threading.Tasks;
+using Core.DTOs.IM_PrepEnvOp;
 
 namespace WMS_API.Features.Repositories
 {
@@ -249,15 +252,70 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        public async Task<IM_PrepEnvOp_TrasladoResultDTO> MarcarTrasladoComoRecibido(string inventTransferId, string tipo)
+        {
+            var result = new IM_PrepEnvOp_TrasladoResultDTO
+            {
+                NoTraslado = inventTransferId,
+                IsComplete = true, 
+                Message = ""
+            };
+
+            IM_PreparacionDeOpGP.CallContext context = new IM_PreparacionDeOpGP.CallContext { Company = "IMHN" };
+            var serviceClient = new M_PreparacionDeOpClient(GetBindingPreOp(), GetEndpointAddrPreOp());
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+                //Empacar
+                //Enviar
+                var resp = await serviceClient.initRunAsync(context, dataValidation, inventTransferId, tipo);
+
+                result.IsComplete = resp.response.Contains("OK:");
+                result.Message = resp.response;
+            }
+            catch (FaultException<IM_PreparacionDeOpGP.AifFault> faultEx)
+            {
+                result.IsComplete = false;
+                var fault = faultEx.Detail;
+
+                if (fault.InfologMessageList != null)
+                {
+                    var mensajes = new List<string>();
+
+                    foreach (var mensaje in fault.InfologMessageList)
+                    {
+                        string texto = mensaje.Message
+                            .Replace("OK:", "\n")
+                            .Replace("\t", " ")
+                            .Trim();
+
+                        mensajes.Add(texto);
+                    }
+
+                    result.Message = string.Join("\n", mensajes);
+                }
+                else
+                {
+                    result.Message = faultEx.ToString();
+                }
+            }
+
+            return result;
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
             netTcpBinding.Name = "NetTcpBinding_IM_WMSCreateJournalServices";
             netTcpBinding.MaxBufferSize = int.MaxValue;
             netTcpBinding.MaxReceivedMessageSize = int.MaxValue;
+
             return netTcpBinding;
         }
-
         private EndpointAddress GetEndpointAddr()
         {
 
@@ -270,6 +328,33 @@ namespace WMS_API.Features.Repositories
             var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
             return endpointAddr;
         }
+
+        private NetTcpBinding GetBindingPreOp()
+        {
+            var netTcpBinding = new NetTcpBinding();
+            netTcpBinding.Name = "NetTcpBinding_IM_PreparacionDeOp";
+            netTcpBinding.MaxBufferSize = int.MaxValue;
+            netTcpBinding.MaxReceivedMessageSize = int.MaxValue;
+
+            netTcpBinding.SendTimeout = TimeSpan.FromMinutes(10);
+            netTcpBinding.ReceiveTimeout = TimeSpan.FromMinutes(10);
+
+            return netTcpBinding;
+        }
+
+        private EndpointAddress GetEndpointAddrPreOp()
+        {
+
+            string url = "net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_PreparacionDeOpGP";
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+           
+            var endpointAddr = new EndpointAddress(uri, epid);
+            return endpointAddr;
+        }
+
         private EndpointAddress GetEndpointAddrT()
         {
 
