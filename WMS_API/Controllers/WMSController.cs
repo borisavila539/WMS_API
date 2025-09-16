@@ -843,10 +843,10 @@ namespace WMS_API.Controllers
 
         }
 
-        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}")]
-        public async Task<IEnumerable<IM_WMS_DetalleImpresionEtiquetasPrecio>> getDatosPrecioCodigos(string pedido, string ruta, string caja)
+        [HttpGet("GetPrecioCodigos")]
+        public async Task<IEnumerable<IM_WMS_DetalleImpresionEtiquetasPrecio>> getDatosPrecioCodigos([FromQuery] ImpresionEtiqueta impresionEtiquetaParm)
         {
-            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
+            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(impresionEtiquetaParm);
             return data;
         }
 
@@ -913,13 +913,20 @@ namespace WMS_API.Controllers
         }*/
 
         //version 2 de impresion de etiquetas
-        [HttpGet("ImpresionPrecioCodigos/{pedido}/{ruta}/{caja}/{fecha}/{impresora}")]
-        public async Task<string> getimpresionPrecioCodigos2(string pedido, string ruta, string caja, string fecha, string impresora)
+        [HttpGet("ImpresionPrecioCodigos")]
+        public async Task<string> getimpresionPrecioCodigos2([FromQuery] ImpresionEtiqueta param)
         {
             string resp = "";
             string resp2 = "";
+            bool hayCantidad = param.CantidadImprimir != null && param.CantidadImprimir != "" && param.CantidadImprimir != "0";
+            param.Normalizar(param);
+            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(param);
 
-            var data = await _WMS.GetDetalleImpresionEtiquetasPrecio(pedido, ruta, caja);
+            if(hayCantidad && data.Count == 1)
+            {
+                data[0].QTY = Convert.ToInt32(param.CantidadImprimir);
+            }
+
             var tmp = data.FindAll(x => x.Precio == 0);
             string cajas = "";
             if (tmp.Count() != 0)
@@ -937,7 +944,7 @@ namespace WMS_API.Controllers
                         if(listado.Count > 0)
                         {
                             //imprimir
-                            resp2 = _WMS.imprimirEtiquetaprecios2(listado, fecha, impresora);
+                            resp2 = _WMS.imprimirEtiquetaprecios2(listado,param.Fecha , param.Impresora);
                             if (resp2 != "OK")
                             {
                                 resp += "Fallo Impresion :" + resp2 + ",";
@@ -946,7 +953,7 @@ namespace WMS_API.Controllers
                         }
 
                         cajas = element.IMIB_BOXCODE;
-                        resp2 = _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE, impresora);
+                        resp2 = _WMS.imprimirEtiquetaCajaDividir(element.IMIB_BOXCODE,param.Impresora);
                         if (resp2 != "OK")
                         {
                             resp += "Fallo Impresion :" + resp2 + ",";
@@ -964,7 +971,7 @@ namespace WMS_API.Controllers
                 if (listado.Count > 0)
                 {
                     //imprimir
-                    resp2 = _WMS.imprimirEtiquetaprecios2(listado, fecha, impresora);
+                    resp2 = _WMS.imprimirEtiquetaprecios2(listado, param.Fecha, param.Impresora);
                     if (resp2 != "OK")
                     {
                         resp += "Fallo Impresion :" + resp2 + ",";
