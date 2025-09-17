@@ -1,36 +1,38 @@
-﻿using Core.DTOs;
+﻿using Azure;
+using Core.DTOs;
+using Core.DTOs.AuditoriaCajasDenim;
+using Core.DTOs.BusquedaRolloAX;
+using Core.DTOs.Cajasrecicladas;
+using Core.DTOs.ControCajasEtiquetado;
+using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
+using Core.DTOs.Despacho_PT.Liquidacion;
+using Core.DTOs.Devoluciones;
+using Core.DTOs.DiarioTransferir;
+using Core.DTOs.GeneracionPrecios;
+using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Reduccion_Cajas;
+using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Table.PivotTable;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using OfficeOpenXml.Style;
-using Core.DTOs.DiarioTransferir;
-using WMS_API.Features.Utilities;
-using Core.DTOs.BusquedaRolloAX;
-using Core.DTOs.Despacho_PT.Liquidacion;
-using Core.DTOs.InventarioCiclicoTela;
-using Core.DTOs.RecepcionUbicacionCajas;
-using Core.DTOs.DeclaracionEnvio;
-using Core.DTOs.ControCajasEtiquetado;
-using OfficeOpenXml.Table.PivotTable;
-using Core.DTOs.GeneracionPrecios;
-using Core.DTOs.TrackingPedidos;
 using System.Threading;
-using Core.DTOs.AuditoriaCajasDenim;
-using Core.DTOs.Cajasrecicladas;
-using Core.DTOs.Devoluciones;
+using System.Threading.Tasks;
+using WMS_API.Features.Utilities;
 
 namespace WMS_API.Features.Repositories
 {
@@ -2915,21 +2917,46 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
-        public async Task<List<IM_WMS_DetalleImpresionEtiquetasPrecio>> GetDetalleImpresionEtiquetasPrecio(string Pedido, string Ruta, string Caja)
+        public async Task<List<IM_WMS_DetalleImpresionEtiquetasPrecio>> GetDetalleImpresionEtiquetasPrecio(ImpresionEtiqueta parms)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
-            Pedido = Pedido == "-" ? "" : Pedido;
-            Ruta = Ruta == "-" ? "" : Ruta;
-            Caja = Caja == "-" ? "" : Caja;
+            parms.Normalizar(parms);
+            List<IM_WMS_DetalleImpresionEtiquetasPrecio> response;
+
+            if (parms.EsGeneracionLibre)
+            {
+                var parametro = new List<SqlParameter>
+                {
+                    new SqlParameter("@SalesID", parms.Pedido),
+                    new SqlParameter("@Ruta",parms.Ruta)
+                };
+
+                response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecioSinEmpaque]", parametro);
+
+                if (!string.IsNullOrWhiteSpace(parms.CodigoArticulo) ||
+               !string.IsNullOrWhiteSpace(parms.Talla) ||
+               !string.IsNullOrWhiteSpace(parms.Color))
+                {
+                    response = response
+                        .Where(x => string.IsNullOrWhiteSpace(parms.CodigoArticulo) || x.Articulo == parms.CodigoArticulo)
+                        .Where(x => string.IsNullOrWhiteSpace(parms.Talla) || x.Talla == parms.Talla)
+                        .Where(x => string.IsNullOrWhiteSpace(parms.Color) || x.IDColor == parms.Color)
+                        .ToList();
+                }
+
+                return response;
+
+            }
 
             var parametros = new List<SqlParameter>
-            {
-                new SqlParameter("@SalesID", Pedido),
-                new SqlParameter("@Ruta", Ruta),
-                new SqlParameter("@boxCode", Caja)
-            };
+                {
+                    new SqlParameter("@SalesID", parms.Pedido),
+                    new SqlParameter("@Ruta", parms.Ruta),
+                    new SqlParameter("@boxCode",parms.Caja)
+                };
 
-            List<IM_WMS_DetalleImpresionEtiquetasPrecio> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecio]", parametros);
+            response = await executeProcedure.
+                ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecio]", parametros);
 
             return response;
         }
