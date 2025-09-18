@@ -345,7 +345,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointAddrPreOp()
         {
 
-            string url = "net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_PreparacionDeOpGP";
+            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_PreparacionDeOpGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);

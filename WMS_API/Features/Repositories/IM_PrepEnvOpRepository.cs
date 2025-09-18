@@ -23,7 +23,7 @@ namespace WMS_API.Features.Repositories
 
         public IM_PrepEnvOpRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
 
         public async Task<ListadoDeOpResponseDTO> GetListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
