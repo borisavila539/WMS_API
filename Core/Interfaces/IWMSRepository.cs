@@ -125,7 +125,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_ObtenerDetalleGeneracionPrecios>> GetObtenerDetalleGeneracionPrecios(string pedido, string empresa);
         public Task<List<IM_WMS_ObtenerPreciosCodigos>> GetObtenerPreciosCodigos(string cuentaCliente);
         public Task<IM_WMS_ObtenerPreciosCodigos> postInsertUpdatePrecioCodigos(IM_WMS_ObtenerPreciosCodigos data);
-        public Task<List<IM_WMS_DetalleImpresionEtiquetasPrecio>> GetDetalleImpresionEtiquetasPrecio(string Pedido, string Ruta, string Caja);
+        public Task<List<IM_WMS_DetalleImpresionEtiquetasPrecio>> GetDetalleImpresionEtiquetasPrecio(ImpresionEtiqueta impresionEtiquetaParm);
         public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha,string impresora);
         public string imprimirEtiquetaprecios2(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data,string fecha,string impresora);
         public string imprimirEtiquetaCajaDividir(string caja,string impresora);
