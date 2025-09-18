@@ -2933,16 +2933,19 @@ namespace WMS_API.Features.Repositories
 
                 response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecioSinEmpaque]", parametro);
 
-                if (!string.IsNullOrWhiteSpace(parms.CodigoArticulo) ||
-               !string.IsNullOrWhiteSpace(parms.Talla) ||
-               !string.IsNullOrWhiteSpace(parms.Color))
-                {
-                    response = response
-                        .Where(x => string.IsNullOrWhiteSpace(parms.CodigoArticulo) || x.Articulo == parms.CodigoArticulo)
-                        .Where(x => string.IsNullOrWhiteSpace(parms.Talla) || x.Talla == parms.Talla)
-                        .Where(x => string.IsNullOrWhiteSpace(parms.Color) || x.IDColor == parms.Color)
-                        .ToList();
-                }
+                var query = response.AsEnumerable();
+
+                if (!string.IsNullOrWhiteSpace(parms.CodigoArticulo))
+                    query = query.Where(x => x.Articulo.Contains(parms.CodigoArticulo));
+
+                if (!string.IsNullOrWhiteSpace(parms.Talla))
+                    query = query.Where(x => x.Talla == parms.Talla);
+
+                if (!string.IsNullOrWhiteSpace(parms.Color))
+                    query = query.Where(x => x.IDColor == parms.Color);
+
+                response = query.ToList();
+
 
                 return response;
 
