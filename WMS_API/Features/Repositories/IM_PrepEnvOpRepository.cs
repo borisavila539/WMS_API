@@ -13,6 +13,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace WMS_API.Features.Repositories
 {
@@ -109,8 +110,54 @@ namespace WMS_API.Features.Repositories
                 Agrupados = agrupado
             };
         }
-    
-    
+
+
+        public async Task<List<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>> HistoricoOpPreparada(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@FechaInicioSemana",fechaInicioSemana),
+                new SqlParameter("@FechaFinSemana",fechaFinSemana),
+                new SqlParameter("@areaFilter",area)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>("[IM_PrepEnvOp_HistoricoOpPreparada]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>> HistoricoByOp( string ordenDeProduccion)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@OrdenProduccion",ordenDeProduccion),
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>("[IM_PrepEnvOp_HistoricoByOp]", parametros);
+
+            return result;
+        }
+
+        public async Task<List<IM_PrepEnvOp_ListadoDeOpDTO>> SyncListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@FechaInicioSemana",fechaInicioSemana),
+                new SqlParameter("@FechaFinSemana",fechaFinSemana),
+                new SqlParameter("@areaFilter",null)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListadoDeOpDTO>("[IM_PrepEnvOp_SyncListadoDeOp]", parametros);
+
+            return result;
+        }
+
         public async Task<IM_PrepEnvOp_UpdateOpPreparadaDTO> UpdateOpPreparada(int idOpPreparada, string userCode)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -150,36 +197,25 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
-        public async Task<List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada(UpdateOpPreparadaEmpaquetadaRequestDTO data)
+        public async Task<List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>> UpdateOpPreparadaEmpaquetada(string ordenTrabajo, string traslado, string userCode)
         {
-            var response = new List<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>();
 
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
-            for (int i = 0; i < data.materiales.Count; i++)
-            {
-                var item = data.materiales[i];
 
-                for (int j = 0; j < item.ordenes.Count; j++)
-                {
-                    var row = item.ordenes[j];
-
-                    var parametros = new List<SqlParameter>
+            var parametros = new List<SqlParameter>
                     {
-                        new SqlParameter("@idOpPreparada", row.idOpPreparada),
-                        new SqlParameter("@userCode", data.userCode),
+                        new SqlParameter("@ordenTrabajo", ordenTrabajo),
+                        new SqlParameter("@userCode", userCode),
+                        new SqlParameter("@noTraslado", traslado),
                     };
 
-                    var result = await executeProcedure.ExecuteStoredProcedure<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>(
-                        "[IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetada]",
-                        parametros
-                    );
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetadaDTO>(
+                "[IM_PrepEnvOp_UpdateOpPreparadaLikeEmpaquetada]",
+                parametros
+            );
 
-                    response.Add(result);
-                }
-            }
-
-            return response;
+            return result;
         }
 
 
@@ -187,6 +223,10 @@ namespace WMS_API.Features.Repositories
         public async Task<IM_PrepEnvOp_PostDetalleOpEnviadaDTO> PostDetalleOpEnviada(PostDetalleOpEnviadaResponseDTO response)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            
+            string convertBase64 = Convert.ToBase64String(response.FirmaBase64);
+            response.FirmaBase64 = Convert.FromBase64String(convertBase64);
+
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@nombreRecibidaPor",response.NombreRecibidaPor),
@@ -194,6 +234,7 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@firmaBase64",response.FirmaBase64),
                 new SqlParameter("@creadoPor",response.CreadoPor),
             };
+
 
             var detalleOpEnviada = await executeProcedure.ExecuteStoredProcedure<IM_PrepEnvOp_PostDetalleOpEnviadaDTO>("[IM_PrepEnvOp_PostDetalleOpEnviada]", parametros);
 
@@ -212,8 +253,6 @@ namespace WMS_API.Features.Repositories
 
             }
 
-            string convertBase64 = Convert.ToBase64String(response.FirmaBase64);
-            response.FirmaBase64 = Convert.FromBase64String(convertBase64);
 
 
             await EnvioDeCorreo(response, convertBase64);
@@ -390,7 +429,59 @@ namespace WMS_API.Features.Repositories
         }
 
 
+        public async Task<string> PostPrintEtiquetasEnvio(List<IM_PrepEnvOp_OpEtiqueta> data, string? ipImpresora)
+        {
+            ipImpresora = string.IsNullOrEmpty(ipImpresora) ? "10.1.1.164" : ipImpresora;
 
+            try
+            {
+             
+                for (int i = 0; i < data.Count; i += 1)
+                {
+                    string etiqueta = "^XA";
+                    etiqueta += "^MD5^PRB^FWN";
+                    etiqueta += "^PW1015";
+                    
+                    var item = data[i];
+                     
+                    etiqueta += GenerarEtiquetaEnvioZPL(item);
+                    
+
+                    etiqueta += "^XZ";
+
+                    using (TcpClient client = new TcpClient(ipImpresora, 9100))
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        stream.Write(bytes, 0, bytes.Length);
+                        Thread.Sleep(1000); // 1 segundo
+                    }
+                }
+
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+        }
+
+
+        public async Task<List<IM_PrepEnvOp_ListaDeTrasladosPorOpDTO>> ListaDeTrasladosPorOp(string ordenTrabajo, List<string>? areas)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            string areasFiltradas = (areas != null && areas.Any())? string.Join(",", areas): null;
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@OrdenTrabajo",ordenTrabajo),
+                new SqlParameter("@Areas",areasFiltradas)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListaDeTrasladosPorOpDTO>("[IM_PrepEnvOp_ListaDeTrasladosPorOp]", parametros);
+            return result;
+        }
 
         private List<EtiquetaMaterialesDTO> TransformarEtiquetas(List<ArticuloDTO> data)
         {
@@ -450,6 +541,67 @@ namespace WMS_API.Features.Repositories
 
 
             return zpl;
+        }
+
+
+        private string GenerarEtiquetaEnvioZPL(IM_PrepEnvOp_OpEtiqueta traslado)
+        {
+            var zpl = "";
+
+            // OP
+            zpl += "^FO50,50";
+            zpl += "^A0N,120,120";
+            zpl += $"^FD{Regex.Replace(traslado.OrdenTrabajo, @"-0+", "-")}^FS";
+            
+            //QR
+            zpl += "^FO660,30";
+            zpl += "^BQN,2,6";
+            zpl += $"^FDLA,{traslado.OrdenTrabajo}^FS";
+
+            // Estilo y cantidad de items / piezas 
+            zpl += "^FO50,200";
+            zpl += "^A0N,65,65";
+            zpl += $"^FDQTY: {traslado.CantidadEstimada}^FS";
+
+            // Area
+            zpl += "^FO50,300";
+            zpl += "^A0N,65,65";
+            zpl += $"^FDT: {traslado.Area}^FS";
+
+
+            // Area, semana y año
+            zpl += "^FO420,220";
+            zpl += "^A0N,85,85";
+            zpl += $"^FD{traslado.Semana} - {traslado.Year}^FS";
+
+
+            return zpl;
+        }
+
+        public async Task<int> CantidadEstimadaPorOP(string ordenTrabajo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@ordenTrabajo",ordenTrabajo)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedure<IM_PrepEnvOp_CantidadEstimadaPorOPDTO>("[IM_PrepEnvOp_CantidadEstimadaPorOP]", parametros);
+            return result.CantidadEstimada;
+        }
+
+        public async Task<IM_PrepEnvOp_FirmaBase64> FirmaByIdDetalle(int idDetalleOpEnviada)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@idDetalleOpEnviada",idDetalleOpEnviada)
+            };
+
+            var result = await executeProcedure.ExecuteStoredProcedure<IM_PrepEnvOp_FirmaBase64>("[IM_PrepEnvOp_FirmaBase64]", parametros);
+            return result;
         }
 
     }
