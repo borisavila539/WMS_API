@@ -3021,7 +3021,7 @@ namespace WMS_API.Features.Repositories
 
             if (ipPrintTela != impresora)
             {
-                int filaStartInt = impresora == "10.1.1.86" ? 645 : 700;
+                int filaStartInt = impresora == "10.1.1.86" ? 618 : 700; //645
 
                 return imprimirEtiquetaXs(data, fecha, impresora, filaStartInt);
             }
@@ -3184,9 +3184,9 @@ namespace WMS_API.Features.Repositories
             {
                 if (cont == 1)
                 {
-                    etiqueta = @"^XA^MD5^PRB^FWN";
+                    etiqueta = @"^XA^MD5^PRC^FWN";
                 }
-
+                
                 etiqueta += @"^FO" + fila + ",100";
                 etiqueta += @"^A0R,30,30";
                 etiqueta += @"^FD" + element.Nombre + "^FS";
@@ -3223,18 +3223,18 @@ namespace WMS_API.Features.Repositories
 
                 fila -= 36;
 
-                etiqueta += @"^BY3,5,54";
-                etiqueta += @"^FO" + fila + ",20";
-                etiqueta += @"^BER,35,N,N";
+                etiqueta += @"^BY2,5,54";
+                etiqueta += @"^FO" + fila + ",60";
+                etiqueta += @"^BER,35,S,S";
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 44;
+                //fila -= 42;
 
-                etiqueta += @"^FO" +fila +",40";
-                etiqueta += "^A0R,30,39";
-                etiqueta += "^FD" + element.CodigoBarra + "^FS";
+                //etiqueta += @"^FO" +fila +",40";
+                //etiqueta += "^A0R,28,35";
+                //etiqueta += "^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 18;
+                fila -= 62;
 
                 etiqueta += @"^FO" + fila + ",20";
                 etiqueta += @"^A0R,18,18";
@@ -3266,7 +3266,7 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
-                fila -= 65;
+                fila -= 67;
 
 
 
