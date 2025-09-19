@@ -3205,167 +3205,249 @@ namespace WMS_API.Features.Repositories
         }
 
         private string imprimirEtiquetaXs(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data, string fecha, string impresora, int filaStartInt)
+
         {
+
             int cont = 1;
+
             int fila = filaStartInt;
+
             string etiqueta = "";
+
             foreach (var element in data)
+
             {
+
                 if (cont == 1)
+
                 {
-                    etiqueta = @"^XA^MD5^PRB^FWN";
+
+                    etiqueta = @"^XA^MD5^PRC^FWN";
+
                 }
 
-                fila -= 8;
+                etiqueta += @"^FO" + fila + ",100";
 
-                etiqueta += @"^FO" + fila + ",110";
                 etiqueta += @"^A0R,30,30";
+
                 etiqueta += @"^FD" + element.Nombre + "^FS";
 
-                fila -= 13;
+                fila -= 10;
 
-                etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,17,17";
+                etiqueta += @"^FO" + fila + ",20";
+
+                etiqueta += @"^A0R,15,15";
+
                 etiqueta += @"^FD" + element.Estilo + "^FS";
 
                 if (element.Talla.Length > 2)
+
                 {
-                    etiqueta += @"^FO" + (fila) + ",230";
+
+                    etiqueta += @"^FO" + (fila) + ",220";
+
                     etiqueta += @"^A0R,20,20";
+
                     etiqueta += @"^FD" + element.Talla.Replace("-", "") + "^FS";
-                }
-                else
-                {
-                    etiqueta += @"^FO" + fila + ",260";
-                    etiqueta += @"^A0R,35,35";
-                    etiqueta += @"^FD" + element.Talla + "^FS";
+
                 }
 
-                fila -= 18;
-                etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,17,17";
+                else
+
+                {
+
+                    etiqueta += @"^FO" + fila + ",260";
+
+                    etiqueta += @"^A0R,35,35";
+
+                    etiqueta += @"^FD" + element.Talla + "^FS";
+
+                }
+
+                fila -= 16;
+
+                etiqueta += @"^FO" + fila + ",20";
+
+                etiqueta += @"^A0R,15,15";
+
                 etiqueta += @"^FD" + element.Articulo + "^FS";
 
 
-                fila -= 17;
+                fila -= 16;
 
-                etiqueta += @"^FO" + fila + ",25";
-                etiqueta += @"^A0R,17,17";
+                etiqueta += @"^FO" + fila + ",20";
+
+                etiqueta += @"^A0R,15,15";
+
                 etiqueta += @"^FD" + element.Descripcion + "^FS";
 
-                fila -= 34;
+                fila -= 36;
 
-                etiqueta += @"^BY3,5,54";
-                etiqueta += @"^FO" + fila + ",20";
-                etiqueta += @"^BER,35,N,N";
+                etiqueta += @"^BY2,5,54";
+
+                etiqueta += @"^FO" + fila + ",60";
+
+                etiqueta += @"^BER,35,S,S";
+
                 etiqueta += @"^FD" + element.CodigoBarra + "^FS";
 
-                fila -= 37;
+                //fila -= 42;
 
-                string miCadena = element.CodigoBarra;
-                int puntoDeInsercion = miCadena.Length / 2;
+                //etiqueta += @"^FO" +fila +",40";
 
-                string primeraParte = miCadena.Substring(0, puntoDeInsercion);
-                string segundaParte = miCadena.Substring(puntoDeInsercion);
+                //etiqueta += "^A0R,28,35";
 
-                string codigoBarraFormat = $"{primeraParte} {segundaParte}";
+                //etiqueta += "^FD" + element.CodigoBarra + "^FS";
 
-                etiqueta += @"^FO" +fila +",50";
-                etiqueta += "^A0R,20,37";
-                etiqueta += "^FD" + codigoBarraFormat + "^FS";
+                fila -= 62;
 
-                fila -= 23;
+                etiqueta += @"^FO" + fila + ",20";
 
-                etiqueta += @"^FO" + fila + ",25";
                 etiqueta += @"^A0R,18,18";
+
                 etiqueta += @"^FD" + element.IDColor + "^FS";
 
                 fila -= 20;
 
-                etiqueta += @"^FO" + fila + ",25";
+                etiqueta += @"^FO" + fila + ",20";
+
                 etiqueta += @"^A0R,18,18";
+
                 etiqueta += @"^FDIVA incluido^FS";
 
                 etiqueta += @"^FO" + fila + ",270";
+
                 etiqueta += @"^A0R,20,20";
+
                 var dia = DateTime.Now;
+
                 string fechatxt = dia.Month.ToString() + dia.Year.ToString().Substring(2, 2);
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "130" : "170");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
 
-                if (element.Moneda != "" || element.Decimal) 
+                if (element.Moneda != "" || element.Decimal)
+
                 {
+
                     etiqueta += @"^A0R,32,32";
+
                 }
+
                 else
+
                 {
+
                     etiqueta += @"^A0R,38,38";
+
                 }
 
                 etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
-                fila -= 65;
-
+                fila -= 67;
 
 
                 if (cont == 3)
+
                 {
+
                     etiqueta += @"^XZ";
+
                     try
+
                     {
+
                         using (TcpClient client = new TcpClient(impresora, 9100))
+
                         {
+
                             using (NetworkStream stream = client.GetStream())
+
                             {
+
                                 byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
 
                                 stream.Write(bytes, 0, bytes.Length);
+
                                 Thread.Sleep(1200);
 
                             }
+
                         }
+
                     }
+
                     catch (Exception err)
+
                     {
+
                         return err.ToString();
+
                     };
+
                     //imprimir
+
                     fila = filaStartInt;
+
                     cont = 1;
+
                 }
+
                 else
+
                 {
+
                     cont++;
+
                 }
 
             }
 
             if (cont != 1)
+
             {
+
                 etiqueta += @"^XZ";
+
                 try
+
                 {
+
                     using (TcpClient client = new TcpClient(impresora, 9100))
+
                     {
+
                         using (NetworkStream stream = client.GetStream())
+
                         {
+
                             byte[] bytes = System.Text.Encoding.ASCII.GetBytes(etiqueta);
 
                             stream.Write(bytes, 0, bytes.Length);
+
                             Thread.Sleep(1200);
 
                         }
+
                     }
+
                 }
+
                 catch (Exception err)
+
                 {
+
                     return err.ToString();
+
                 };
+
             }
+
             return "OK";
+
         }
+
 
 
         public string imprimirEtiquetaprecios(IM_WMS_DetalleImpresionEtiquetasPrecio data, int multiplo, int faltante,string fecha,string impresora)
