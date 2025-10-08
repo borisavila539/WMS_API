@@ -1,4 +1,5 @@
-﻿using Core.DTOs.MB;
+﻿using Core.DTOs.CAEX.Guia;
+using Core.DTOs.MB;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -88,7 +89,7 @@ namespace WMS_API.Controllers
                 int fila = 2;
 
                 foreach (var element in data)
-                {                    
+                {
                     worksheet.Cells[fila, 1].Value = element.ID;
                     worksheet.Cells[fila, 2].Value = element.IDConsolidado;
                     worksheet.Cells[fila, 3].Value = element.Lote;
@@ -106,7 +107,7 @@ namespace WMS_API.Controllers
                 var rangeTable = worksheet.Cells[1, 1, fila, 11];
                 rangeTable.AutoFitColumns();
                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
-                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;               
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
 
                 fileContents = package.GetAsByteArray();
@@ -127,7 +128,7 @@ namespace WMS_API.Controllers
             Filtro.Size = 0;
             var data = await _WMSMB.GetCajasDisponiblesTodo(Filtro);
 
-            foreach(var item in data)
+            foreach (var item in data)
             {
                 await _WMSMB.getActualizarCajasParaDespacho(item.ID, false);
             }
@@ -343,9 +344,9 @@ namespace WMS_API.Controllers
                 mail.Subject = "Desapcho MB " + resp.ID;
                 mail.IsBodyHtml = true;
 
-                mail.Body = "<p>Buen dia,</p>"; 
-                mail.Body += "<p>Adjunto lista de empaque del despacho #"+resp.ID+" de producto MB.</p>";
-                mail.Body += "<p>Cajas: " + cajas + ", Unidades: "+unidades+"</p>";
+                mail.Body = "<p>Buen dia,</p>";
+                mail.Body += "<p>Adjunto lista de empaque del despacho #" + resp.ID + " de producto MB.</p>";
+                mail.Body += "<p>Cajas: " + cajas + ", Unidades: " + unidades + "</p>";
 
                 mail.Body += "<p>Saludos</p>";
 
@@ -379,7 +380,7 @@ namespace WMS_API.Controllers
                 return null;
             }
 
-            
+
         }
 
         [HttpGet("DespachosPendientes")]
@@ -420,7 +421,7 @@ namespace WMS_API.Controllers
         public async Task<ActionResult<IEnumerable<IM_WMS_MB_Tracking>>> getTracking(int id)
         {
             var resp = await _WMSMB.getTracking(id);
-            return resp;            
+            return resp;
         }
 
         [HttpGet("TrackingPallet/{id}")]
@@ -477,13 +478,38 @@ namespace WMS_API.Controllers
                 var rangeTable = worksheet.Cells[1, 1, fila, 13];
                 rangeTable.AutoFitColumns();
                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
-                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11; 
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
                 fileContents = package.GetAsByteArray();
             }
-            return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Despacho MB "+id+".xlsx");
+            return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Despacho MB " + id + ".xlsx");
 
         }
 
+        [HttpGet("GetEtiquetaDespacho/{workOrderId}/{boxNum}")]
+        public async Task<ActionResult<IM_WMS_MB_ReimpresionEtiqueta>> GetEtiquetaDespacho(string workOrderId, string boxNum)
+        {
+            var resultado = await _WMSMB.GetEtiquetaDespacho(workOrderId, boxNum);
+            if (resultado == null) return BadRequest(resultado);
+            return Ok(resultado);
+        }
+
+        [HttpPost("ReimpirmirEtiquetaDespachoMB/{impresora}")]
+        public async Task<ActionResult> ReimprimirEtiquetaD([FromBody] IM_WMS_MB_ReimpresionEtiqueta iM_WMS_MB_ReimpresionEtiqueta, string impresora)
+        {
+            var resultado = await _WMSMB.ImprimirEtiquetaDespachoNormal(iM_WMS_MB_ReimpresionEtiqueta,impresora);
+            impresora = resultado.ToString();
+            return Ok(resultado);
+        }
+
+        [HttpGet("ValidarAcceso/{codigoUsuario}")]
+        public async Task<ActionResult> ValidarAccesoPorPantalla(string codigoUsuario)
+        {
+            var resultado = await _WMSMB.ValidarAccesoAPantlla(codigoUsuario);
+            
+            return Ok(resultado);
+            
+        }
+        
     }
 }
