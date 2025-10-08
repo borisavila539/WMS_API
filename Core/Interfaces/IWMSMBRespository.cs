@@ -29,6 +29,9 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_MB_Trackingpallet>> getTrackingPallet(int id);
         public Task<List<IM_WMS_MB_ResumenDespachoPallet>> GetResumenDespachoPallets(int id);
         public  Task<List<IM_WMS_Correos_DespachoPTDTO>> getCorreosDespachoMB();
+        public Task<IM_WMS_MB_ReimpresionEtiqueta> GetEtiquetaDespacho(string wordOrderId, string boxNum);
+        public Task<string> ImprimirEtiquetaDespachoNormal(IM_WMS_MB_ReimpresionEtiqueta data, string impresora);
+        public Task<bool> ValidarAccesoAPantlla(string codigoUsuario);
 
     }
 }

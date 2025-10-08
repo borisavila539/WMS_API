@@ -39,7 +39,7 @@ namespace WMS_API
             services.AddTransient<IWMSMBRespository, WMSMBRepository>();
             services.AddTransient<IMWMS_RecTelaRepository, MWMS_RecTelaRepository>();
             services.AddTransient<IIM_PrepEnvOpRepository, IM_PrepEnvOpRepository>();
-
+            services.AddTransient<IWMSSerigrafiaRepository, WMSSerigrafiaReposotory>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WMS_API", Version = "v1" });
