@@ -31,7 +31,7 @@ namespace WMS_API.Features.Repositories
         private readonly string _connectionString;
         public WMSMBRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
 
         public async Task<IM_WMS_MB_InsertBox> getInsertBox(string Orden, int Caja, string Ubicacion, int Consolidado, string usuarioRecepcion, string Camion)

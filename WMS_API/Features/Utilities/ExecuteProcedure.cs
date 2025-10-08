@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +18,27 @@ namespace WMS_API.Features.Utilities
         {
             _connectionString = connectionString;
         }
+
+        public async Task<T> ExecuteStoredProcedureJson<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 900)
+        {
+            using (SqlConnection sql = new SqlConnection(_connectionString))
+            using (SqlCommand cmd = new SqlCommand(storedProcedureName, sql))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                if (parameters != null)
+                    cmd.Parameters.AddRange(parameters.ToArray());
+                cmd.CommandTimeout = timeoutInSeconds;
+
+                await sql.OpenAsync();
+
+                var result = await cmd.ExecuteScalarAsync();
+                if (result == null || result == DBNull.Value)
+                    return default;
+
+                return JsonConvert.DeserializeObject<T>(result.ToString());
+            }
+        }
+
 
         public async Task<List<T>> ExecuteStoredProcedureList<T>(string storedProcedureName, List<SqlParameter> parameters, int timeoutInSeconds = 900) where T : new()
         {
