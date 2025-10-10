@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core.DTOs.MB
 {
-    public class RespuestaUpdateReimpresión
+    public class IM_WMS_MB_RespuestaUpdateReimpresión
     {
         public int Cantidad {  get; set; }  
         public int CantidadOriginal { get; set; }

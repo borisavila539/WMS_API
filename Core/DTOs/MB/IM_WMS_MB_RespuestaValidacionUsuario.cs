@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core.DTOs.MB
 {
-    public class RespuestaValidacionUsuario
+    public class IM_WMS_MB_RespuestaValidacionUsuario
     { 
         public string NombreUsuario { get; set; }
         public string CodigoUsuario { get; set; }
