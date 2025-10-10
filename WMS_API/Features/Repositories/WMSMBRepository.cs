@@ -675,7 +675,7 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@NuevaCantidad", nuevaCantidad),
                 new SqlParameter("@BoxNum", boxNum)
             };
-            var resultado = await executeProcedure.ExecuteStoredProcedure<RespuestaUpdateReimpresión>("UpdateCantidad_MB_Cajas", parameters);
+            var resultado = await executeProcedure.ExecuteStoredProcedure<RespuestaUpdateReimpresión>("IM_WMS_MB_UpdateCantidad_MB_Cajas", parameters);
 
             return resultado;
         }
