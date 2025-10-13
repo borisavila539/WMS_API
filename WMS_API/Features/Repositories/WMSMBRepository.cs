@@ -665,7 +665,7 @@ namespace WMS_API.Features.Repositories
             return limpio;
         }
 
-        public async Task<RespuestaUpdateReimpresión> UpdateCantidad(string op, int nuevaCantidad, string boxNum)
+        public async Task<IM_WMS_MB_RespuestaUpdateReimpresión> UpdateCantidad(string op, int nuevaCantidad, string boxNum)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -675,7 +675,7 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@NuevaCantidad", nuevaCantidad),
                 new SqlParameter("@BoxNum", boxNum)
             };
-            var resultado = await executeProcedure.ExecuteStoredProcedure<RespuestaUpdateReimpresión>("UpdateCantidad_MB_Cajas", parameters);
+            var resultado = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_RespuestaUpdateReimpresión>("IM_WMS_MB_UpdateCantidad_MB_Cajas", parameters);
 
             return resultado;
         }
@@ -688,7 +688,7 @@ namespace WMS_API.Features.Repositories
             {
                 new SqlParameter("@CodigoUsuario", codigoUsuario)
             };
-            var resultado = await executeProcedure.ExecuteStoredProcedure<RespuestaValidacionUsuario>("IM_WMS_MB_ValidarAcessoPantalla", parameters);
+            var resultado = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_RespuestaValidacionUsuario>("IM_WMS_MB_ValidarAcessoPantalla", parameters);
 
             var esUsuarioValido = codigoUsuario == resultado.CodigoUsuario; 
 
