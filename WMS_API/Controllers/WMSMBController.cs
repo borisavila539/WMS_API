@@ -250,6 +250,8 @@ namespace WMS_API.Controllers
             int unidades = 0;
             int cajas = 0;
             Byte[] fileContents;
+            Byte[] fileTemplate;
+            
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage())
@@ -261,7 +263,7 @@ namespace WMS_API.Controllers
                 worksheet.Cells[1, 4].Value = "Color";
                 worksheet.Cells[1, 5].Value = "QTYTotal";
                 worksheet.Cells[1, 6].Value = "QTYCajas";
-
+              
                 int fila = 2;
 
                 foreach (var element in data)
@@ -270,6 +272,7 @@ namespace WMS_API.Controllers
                     worksheet.Cells[fila, 2].Value = element.descripcioMB;
                     worksheet.Cells[fila, 3].Value = element.Talla;
                     worksheet.Cells[fila, 4].Value = element.Color;
+                    worksheet.Cells[fila, 5].Value = $"{element.NombreColor}({element.Color})";
                     worksheet.Cells[fila, 5].Value = element.QTYTotal;
                     worksheet.Cells[fila, 6].Value = element.QTYCajas;
 
@@ -323,6 +326,34 @@ namespace WMS_API.Controllers
                 fileContents = package.GetAsByteArray();
             }
 
+            using (ExcelPackage packageSimple = new ExcelPackage())
+            {
+                ExcelWorksheet worksheet = packageSimple.Workbook.Worksheets.Add("Articulos");
+
+                worksheet.Cells[1, 1].Value = "Articulo";
+                worksheet.Cells[1, 2].Value = "Talla";
+                worksheet.Cells[1, 3].Value = "Color";
+                worksheet.Cells[1, 4].Value = "Cantidad";
+
+                int fila = 2;
+
+                foreach (var element in data)
+                {
+                    worksheet.Cells[fila, 1].Value = element.Articulo;
+                    worksheet.Cells[fila, 2].Value = element.Talla;
+                    worksheet.Cells[fila, 3].Value = element.Color;
+                    worksheet.Cells[fila, 4].Value = element.QTYTotal;
+                    fila++;
+                }
+
+                var rangeTable = worksheet.Cells[1, 1, fila - 1, 4];
+                rangeTable.AutoFitColumns();
+                var table = worksheet.Tables.Add(rangeTable, "TablaArticulos");
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+                fileTemplate = packageSimple.GetAsByteArray();
+            }
+
             var resp = await _WMSMB.getGenerarDespacho(usuario);
 
             try
@@ -352,12 +383,15 @@ namespace WMS_API.Controllers
 
 
 
-
+                using  (MemoryStream pl=new MemoryStream(fileTemplate)) 
                 using (MemoryStream ms = new MemoryStream(fileContents))
                 {
 
                     Attachment attachment = new Attachment(ms, "Desapcho MB " + resp.ID + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    Attachment attachmentPantilla= new Attachment(pl, "Pantilla Pedidos " + resp.ID + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                     mail.Attachments.Add(attachment);
+                    mail.Attachments.Add(attachmentPantilla);
+
 
                     SmtpClient oSmtpClient = new SmtpClient();
 
