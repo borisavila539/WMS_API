@@ -1,4 +1,5 @@
-﻿using Core.DTOs.MB;
+﻿using Core.DTOs.CAEX.Guia;
+using Core.DTOs.MB;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -88,7 +89,7 @@ namespace WMS_API.Controllers
                 int fila = 2;
 
                 foreach (var element in data)
-                {                    
+                {
                     worksheet.Cells[fila, 1].Value = element.ID;
                     worksheet.Cells[fila, 2].Value = element.IDConsolidado;
                     worksheet.Cells[fila, 3].Value = element.Lote;
@@ -106,7 +107,7 @@ namespace WMS_API.Controllers
                 var rangeTable = worksheet.Cells[1, 1, fila, 11];
                 rangeTable.AutoFitColumns();
                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
-                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;               
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
 
                 fileContents = package.GetAsByteArray();
@@ -127,7 +128,7 @@ namespace WMS_API.Controllers
             Filtro.Size = 0;
             var data = await _WMSMB.GetCajasDisponiblesTodo(Filtro);
 
-            foreach(var item in data)
+            foreach (var item in data)
             {
                 await _WMSMB.getActualizarCajasParaDespacho(item.ID, false);
             }
@@ -249,6 +250,8 @@ namespace WMS_API.Controllers
             int unidades = 0;
             int cajas = 0;
             Byte[] fileContents;
+            Byte[] fileTemplate;
+            
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage package = new ExcelPackage())
@@ -260,7 +263,7 @@ namespace WMS_API.Controllers
                 worksheet.Cells[1, 4].Value = "Color";
                 worksheet.Cells[1, 5].Value = "QTYTotal";
                 worksheet.Cells[1, 6].Value = "QTYCajas";
-
+              
                 int fila = 2;
 
                 foreach (var element in data)
@@ -269,6 +272,7 @@ namespace WMS_API.Controllers
                     worksheet.Cells[fila, 2].Value = element.descripcioMB;
                     worksheet.Cells[fila, 3].Value = element.Talla;
                     worksheet.Cells[fila, 4].Value = element.Color;
+                    worksheet.Cells[fila, 5].Value = $"{element.NombreColor}({element.Color})";
                     worksheet.Cells[fila, 5].Value = element.QTYTotal;
                     worksheet.Cells[fila, 6].Value = element.QTYCajas;
 
@@ -322,6 +326,34 @@ namespace WMS_API.Controllers
                 fileContents = package.GetAsByteArray();
             }
 
+            using (ExcelPackage packageSimple = new ExcelPackage())
+            {
+                ExcelWorksheet worksheet = packageSimple.Workbook.Worksheets.Add("Articulos");
+
+                worksheet.Cells[1, 1].Value = "Articulo";
+                worksheet.Cells[1, 2].Value = "Talla";
+                worksheet.Cells[1, 3].Value = "Color";
+                worksheet.Cells[1, 4].Value = "Cantidad";
+
+                int fila = 2;
+
+                foreach (var element in data)
+                {
+                    worksheet.Cells[fila, 1].Value = element.Articulo;
+                    worksheet.Cells[fila, 2].Value = element.Talla;
+                    worksheet.Cells[fila, 3].Value = element.Color;
+                    worksheet.Cells[fila, 4].Value = element.QTYTotal;
+                    fila++;
+                }
+
+                var rangeTable = worksheet.Cells[1, 1, fila - 1, 4];
+                rangeTable.AutoFitColumns();
+                var table = worksheet.Tables.Add(rangeTable, "TablaArticulos");
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
+
+                fileTemplate = packageSimple.GetAsByteArray();
+            }
+
             var resp = await _WMSMB.getGenerarDespacho(usuario);
 
             try
@@ -343,20 +375,23 @@ namespace WMS_API.Controllers
                 mail.Subject = "Desapcho MB " + resp.ID;
                 mail.IsBodyHtml = true;
 
-                mail.Body = "<p>Buen dia,</p>"; 
-                mail.Body += "<p>Adjunto lista de empaque del despacho #"+resp.ID+" de producto MB.</p>";
-                mail.Body += "<p>Cajas: " + cajas + ", Unidades: "+unidades+"</p>";
+                mail.Body = "<p>Buen dia,</p>";
+                mail.Body += "<p>Adjunto lista de empaque del despacho #" + resp.ID + " de producto MB.</p>";
+                mail.Body += "<p>Cajas: " + cajas + ", Unidades: " + unidades + "</p>";
 
                 mail.Body += "<p>Saludos</p>";
 
 
 
-
+                using  (MemoryStream pl=new MemoryStream(fileTemplate)) 
                 using (MemoryStream ms = new MemoryStream(fileContents))
                 {
 
                     Attachment attachment = new Attachment(ms, "Desapcho MB " + resp.ID + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    Attachment attachmentPantilla= new Attachment(pl, "Pantilla Pedidos " + resp.ID + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                     mail.Attachments.Add(attachment);
+                    mail.Attachments.Add(attachmentPantilla);
+
 
                     SmtpClient oSmtpClient = new SmtpClient();
 
@@ -379,7 +414,7 @@ namespace WMS_API.Controllers
                 return null;
             }
 
-            
+
         }
 
         [HttpGet("DespachosPendientes")]
@@ -420,7 +455,7 @@ namespace WMS_API.Controllers
         public async Task<ActionResult<IEnumerable<IM_WMS_MB_Tracking>>> getTracking(int id)
         {
             var resp = await _WMSMB.getTracking(id);
-            return resp;            
+            return resp;
         }
 
         [HttpGet("TrackingPallet/{id}")]
@@ -477,13 +512,38 @@ namespace WMS_API.Controllers
                 var rangeTable = worksheet.Cells[1, 1, fila, 13];
                 rangeTable.AutoFitColumns();
                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
-                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11; 
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
 
                 fileContents = package.GetAsByteArray();
             }
-            return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Despacho MB "+id+".xlsx");
+            return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Despacho MB " + id + ".xlsx");
 
         }
 
+        [HttpGet("GetEtiquetaDespacho/{workOrderId}/{boxNum}")]
+        public async Task<ActionResult<IM_WMS_MB_ReimpresionEtiqueta>> GetEtiquetaDespacho(string workOrderId, string boxNum)
+        {
+            var resultado = await _WMSMB.GetEtiquetaDespacho(workOrderId, boxNum);
+            if (resultado == null) return BadRequest(resultado);
+            return Ok(resultado);
+        }
+
+        [HttpPost("ReimpirmirEtiquetaDespachoMB/{impresora}")]
+        public async Task<ActionResult> ReimprimirEtiquetaD([FromBody] IM_WMS_MB_ReimpresionEtiqueta iM_WMS_MB_ReimpresionEtiqueta, string impresora)
+        {
+            var resultado = await _WMSMB.ImprimirEtiquetaDespachoNormal(iM_WMS_MB_ReimpresionEtiqueta,impresora);
+            impresora = resultado.ToString();
+            return Ok(resultado);
+        }
+
+        [HttpGet("ValidarAcceso/{codigoUsuario}")]
+        public async Task<ActionResult> ValidarAccesoPorPantalla(string codigoUsuario)
+        {
+            var resultado = await _WMSMB.ValidarAccesoAPantlla(codigoUsuario);
+            
+            return Ok(resultado);
+            
+        }
+        
     }
 }

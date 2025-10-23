@@ -2971,7 +2971,7 @@ namespace WMS_API.Features.Repositories
 
             if (ipPrintTela != impresora)
             {
-                int filaStartInt = impresora == "10.1.1.86" ? 645 : 700;
+                int filaStartInt = impresora == "10.1.1.86" ? 615 : 700;
                 return imprimirEtiquetaCajaXS(caja, impresora, filaStartInt);
             }
             else
@@ -3050,7 +3050,7 @@ namespace WMS_API.Features.Repositories
 
             if (ipPrintTela != impresora)
             {
-                int filaStartInt = impresora == "10.1.1.86" ? 645 : 700;
+                int filaStartInt = impresora == "10.1.1.86" ? 615 : 700;//
 
                 return imprimirEtiquetaXs(data, fecha, impresora, filaStartInt);
             }
