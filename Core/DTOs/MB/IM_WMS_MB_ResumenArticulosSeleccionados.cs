@@ -13,7 +13,6 @@ namespace Core.DTOs.MB
         public string Talla { get; set; }
         public string NombreColor { get; set; }
         public string Color { get; set; }
-        public string NombreColor { get; set; }
         public int QTYTotal { get; set; }
         public int QTYCajas { get; set; }
     }
