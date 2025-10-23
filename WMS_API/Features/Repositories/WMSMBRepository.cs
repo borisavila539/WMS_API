@@ -497,33 +497,32 @@ namespace WMS_API.Features.Repositories
             {
                 return "No se pudo actualizar la cantidad";
             }
-
             string etiqueta = "^XA";
             etiqueta += "^PW800";      // Ancho total de la etiqueta
-            etiqueta += "^LL1200";    // Largo total de la etiqueta
-            etiqueta += "^MD8";     // Densidad media de impresión
-            etiqueta += "^PRC";     // Velocidad de impresión
+            etiqueta += "^LL1200";     // Largo total de la etiqueta
+            etiqueta += "^MD8";        // Densidad media de impresión
+            etiqueta += "^PRC";        // Velocidad de impresión
 
             etiqueta += "^CF0,40";
-            etiqueta += @"^FO70,60^FD" + data.DescripcionCompleta + " ^FS";
+            etiqueta += @"^FO70,60^FD" + data.DescripcionCompleta + "^FS";
 
             data.UbicacionCompleta = QuitarCaracteresEspeciales(data.UbicacionCompleta);
             etiqueta += @"^CF0,28";
             etiqueta += @"^FO75,110^FD" + data.UbicacionCompleta + "^FS";
 
-            //lineas
-            etiqueta += @"^FO30,30^GB740,1140,2^FS  
-            ^FO30,150^GB740,2,2^FS   
-            ^FO30,300^GB502,2,2^FS   
-            ^FO30,510^GB740,2,2^FS   
-            ^FO30,680^GB442,2,2^FS   
-            ^FO30,732^GB320,2,2^FS   
-            ^FO30,790^GB740,2,2^FS   
+            etiqueta += @"^FO10,10^GB780,1140,2^FS
+                        ^FO10,150^GB775,2,2^FS
+                        ^FO10,300^GB522,2,2^FS
+                        ^FO10,510^GB775,2,2^FS
+                        ^FO10,680^GB398,2,2^FS
+                        ^FO10,732^GB310,2,2^FS
+                        ^FO10,790^GB775,2,2^FS
 
-            ^FO530,150^GB2,360,2^FS   
-            ^FO300,300^GB2,210,2^FS   
-            ^FO470,510^GB2,280,2^FS   
-            ^FO350,680^GB2,110,2^FS";
+                        ^FO530,150^GB2,360,2^FS
+                        ^FO300,300^GB2,210,2^FS
+                        ^FO405,510^GB2,280,2^FS
+                        ^FO320,680^GB2,110,2^FS";
+
             etiqueta += @"^CF0,50";
             etiqueta += @"^FO70,200^FD" + data.WorkOrderId + "^FS";
 
@@ -533,7 +532,6 @@ namespace WMS_API.Features.Repositories
             etiqueta += "^CF0,80";
             etiqueta += "^FO610,220^FD" + data.BoxNum + "^FS";
             etiqueta += "^FO570,290^BQN,2,6";
-
             etiqueta += @"^FDQA," + data.WorkOrderId + "," + data.BoxNum + "^FS";
 
             etiqueta += @"^CF0,35";
@@ -548,10 +546,9 @@ namespace WMS_API.Features.Repositories
             etiqueta += @"^CF0,80";
             etiqueta += @"^FO350,385^FD" + data.Qty + "^FS";
 
-
             List<string> parrafosAceptables = new List<string> { "" };
 
-            int espacioDisponible = 35;
+            int espacioDisponible = 26;
             if (data.ProductNameMB.Length > espacioDisponible)
             {
                 string[] palabras = data.ProductNameMB.Split(' ');
@@ -586,33 +583,30 @@ namespace WMS_API.Features.Repositories
                 etiqueta += @"^FO40,550^FD" + data.ProductNameMB + "^FS";
             }
 
-
-            etiqueta += "^BY1,3,1";
-            etiqueta += "^FO530,600^BCN,100,N,N,N";
+            etiqueta += "^BY2,3,1";
+            etiqueta += "^FO420,600^BCN,100,N,N,N";
             etiqueta += @"^FD" + data.Barcode + "^FS";
-            etiqueta += "^CF,25,30";
+
+            etiqueta += "^CF0,25";
             etiqueta += @"^FO530,720^FD" + data.Barcode + "^FS";
 
-
-
             etiqueta += @"^CF0,30";
-            etiqueta += @"^FO50,700^FD" + data.ProductId + "^FS";
-            etiqueta += @"^FO50,750^FD" + data.Style + "^FS";
+            etiqueta += @"^FO30,700^FD" + data.ProductId + "^FS";   
+            etiqueta += @"^FO30,750^FD" + data.Style + "^FS";       
 
             etiqueta += "^CF0,25";
-            etiqueta += "^FO380,690^FDTalla^FS";
+            etiqueta += "^FO340,690^FDTalla^FS";
             etiqueta += "^CF0,60";
-            etiqueta += "^FO375,720^FD" + data.Size + "^FS";
+            etiqueta += "^FO340,720^FD" + data.Size + "^FS";
 
             etiqueta += "^CF0,25";
-            etiqueta += "^FO70,1100^FD" + DateTime.Now.ToString("d/M/yyyy HH:mm:ss") + " " +
-                        QuitarCaracteresEspeciales(DateTime.Now.ToString("tt")) + " " + data.BoxCategoryDescription + "^FS";
+            etiqueta += "^FO70,1100^FD" + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt", System.Globalization.CultureInfo.InvariantCulture) + " " + data.BoxCategoryDescription + "^FS";
 
             etiqueta += "^CF0,20";
-            etiqueta += "^FO590,1100^FD Reimpresion # " + resultadoUpdateCantidad.ReimpresionNum + " ^FS";
-
+            etiqueta += "^FO590,1100^FDReimpresion # " + resultadoUpdateCantidad.ReimpresionNum + "^FS";
 
             etiqueta += "^XZ";
+
             try
             {
                 using (TcpClient client = new TcpClient(impresora, 9100))
