@@ -14,6 +14,7 @@ namespace Core.DTOs.MB
         public string Lote { get; set; }
         public string Orden { get; set; }
         public string Articulo { get; set; }
+        public string DescripcioMB { get; set; }
         public string talla { get; set; }
         public string Color { get; set; }
         public int Cantidad { get; set; }

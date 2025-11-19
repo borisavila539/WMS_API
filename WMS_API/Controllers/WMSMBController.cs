@@ -481,13 +481,14 @@ namespace WMS_API.Controllers
                 worksheet.Cells[fila, 4].Value = "Lote";
                 worksheet.Cells[fila, 5].Value = "Orden";
                 worksheet.Cells[fila, 6].Value = "Articulo";
-                worksheet.Cells[fila, 7].Value = "talla";
-                worksheet.Cells[fila, 8].Value = "Color";
-                worksheet.Cells[fila, 9].Value = "Cantidad";
-                worksheet.Cells[fila, 10].Value = "UbicacionRecepcion";
-                worksheet.Cells[fila, 11].Value = "Picking";
-                worksheet.Cells[fila, 12].Value = "Packing";
-                worksheet.Cells[fila, 13].Value = "Pallet";
+                worksheet.Cells[fila, 7].Value = "DescripcionMB";
+                worksheet.Cells[fila, 8].Value = "talla";
+                worksheet.Cells[fila, 9].Value = "Color";
+                worksheet.Cells[fila, 10].Value = "Cantidad";
+                worksheet.Cells[fila, 11].Value = "UbicacionRecepcion";
+                worksheet.Cells[fila, 12].Value = "Picking";
+                worksheet.Cells[fila, 13].Value = "Packing";
+                worksheet.Cells[fila, 14].Value = "Pallet";
 
                 fila++;
 
@@ -499,17 +500,18 @@ namespace WMS_API.Controllers
                     worksheet.Cells[fila, 4].Value = element.Lote;
                     worksheet.Cells[fila, 5].Value = element.Orden;
                     worksheet.Cells[fila, 6].Value = element.Articulo;
-                    worksheet.Cells[fila, 7].Value = element.talla;
-                    worksheet.Cells[fila, 8].Value = element.Color;
-                    worksheet.Cells[fila, 9].Value = element.Cantidad;
-                    worksheet.Cells[fila, 10].Value = element.UbicacionRecepcion;
-                    worksheet.Cells[fila, 11].Value = element.Picking;
-                    worksheet.Cells[fila, 12].Value = element.Packing;
-                    worksheet.Cells[fila, 13].Value = element.Pallet;
+                    worksheet.Cells[fila, 7].Value = element.DescripcioMB;
+                    worksheet.Cells[fila, 8].Value = element.talla;
+                    worksheet.Cells[fila, 9].Value = element.Color;
+                    worksheet.Cells[fila, 10].Value = element.Cantidad;
+                    worksheet.Cells[fila, 11].Value = element.UbicacionRecepcion;
+                    worksheet.Cells[fila, 12].Value = element.Picking;
+                    worksheet.Cells[fila, 13].Value = element.Packing;
+                    worksheet.Cells[fila, 14].Value = element.Pallet;
                     fila++;
                 }
                 fila--;
-                var rangeTable = worksheet.Cells[1, 1, fila, 13];
+                var rangeTable = worksheet.Cells[1, 1, fila, 14];
                 rangeTable.AutoFitColumns();
                 var table = worksheet.Tables.Add(rangeTable, "MyTable");
                 table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
