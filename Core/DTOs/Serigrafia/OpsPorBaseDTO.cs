@@ -11,6 +11,7 @@ namespace Core.DTOs.Serigrafia
         public string ProdMasterId { get; set; }
         public string ItemIdEstilo { get; set; }
         public string INVENTCOLORID { get; set; }
+        public string ColorName { get; set; }
         public int EstadoOp {  get; set; }
         public List<TallaOpDTO> Tallas { get; set; }
     }

@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Core.DTOs.Serigrafia
 {
-    public class ConsolidadoOpBaseColor
+    public class IM_WMS_SRG_ArticulosGenericosSegundas
     {
-
+        public string ItemId { get; set; }
+        public string Name { get; set; }
     }
 }

@@ -1,23 +1,30 @@
 ﻿using Core.DTOs;
+using Core.DTOs.Cajasrecicladas;
+using Core.DTOs.IM_PrepEnvOp;
+using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.Serigrafia;
 using Core.Interfaces;
+using IM_PreparacionDeOpGP;
+using IM_WMS_CajaRecladasGP;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_ReduccionCajas;
+using IM_WMS_SRG_ChangeOpEST;
+using IM_WMS_SRG_ProductDispatchGP;
 using IM_WMS_Traslado_Enviar_Recibir;
-using ServiceReferenceIM_WMS_Trasferir_Inventario;
-using ServiceReferenceIM_WMS_InventarioCiclicoTela;
-using IM_PreparacionDeOpGP;
+using OfficeOpenXml.Utils;
 using ServiceReference1;
+using ServiceReferenceIM_WMS_InventarioCiclicoTela;
+using ServiceReferenceIM_WMS_Trasferir_Inventario;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Xml.Serialization;
-using Core.DTOs.InventarioCiclicoTela;
-using Core.DTOs.Cajasrecicladas;
-using IM_WMS_CajaRecladasGP;
+using System.Text;
 using System.Threading.Tasks;
-using Core.DTOs.IM_PrepEnvOp;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace WMS_API.Features.Repositories
 {
@@ -307,6 +314,286 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
+        public string CrearDiario(DiarioHeaderDTO headerDTO, DiarioLineasDTO lineasDTO,string accíon)
+        {
+            DAILYMOVEMENTHEADER HEADER = new DAILYMOVEMENTHEADER();
+            DAILYMOVEMENPARAMETRS HEADERPARM = new DAILYMOVEMENPARAMETRS();
+         
+            
+            HEADERPARM.PERSONNELNUMBER = headerDTO.PersonnelNumber;
+            HEADERPARM.JOURNALNAME = headerDTO.JournalName;
+            HEADERPARM.DESCRIPTION = headerDTO.Description;
+
+            HEADER.PARAM = HEADERPARM;
+
+            DAILYMOVEMENTLINESHEADER LINEHEADER = new DAILYMOVEMENTLINESHEADER();
+            DAILYMOVEMENTLINES LINES = new DAILYMOVEMENTLINES();
+            List<DAILYMOVEMENTLINEPARAMS> LIST = new List<DAILYMOVEMENTLINEPARAMS>();
+            LINEHEADER.JOURNALID = lineasDTO.JournalId;
+
+            foreach (var linea in lineasDTO.Lineas)
+            {
+                DAILYMOVEMENTLINEPARAMS LINE = new DAILYMOVEMENTLINEPARAMS();
+                LINE.ITEMID = linea.ItemId;
+                LINE.SITE = linea.Site;
+                LINE.WAREHOUSE = linea.WareHouse;
+                LINE.COLOR = linea.Color;
+                LINE.BATCH = linea.Batch;
+                LINE.WMSLOCATION = linea.WMSLocation;
+                LINE.TRANSDATE = linea.TransDate;
+                LINE.SIZE = linea.Size;
+                LINE.QTY = linea.Qty;
+                LIST.Add(LINE);
+            };
+
+            LINES.DAILYMOVEMENTLINEPARAMS = LIST.ToArray();
+
+            LINEHEADER.LINES = LINES;
+
+
+            string XML = "";
+            if (accíon == "HEADER")
+            {
+                XML = SerializationService.Serialize(HEADER);
+            }
+            else if (accíon == "LINES")
+            {
+                XML = SerializationService.Serialize(LINEHEADER);
+            }
+
+            IM_WMS_SRG_ProductDispatchGP.CallContext context = new IM_WMS_SRG_ProductDispatchGP.CallContext { Company = "IMHN" };
+
+            var serviceClient = new M_WMS_SRG_ProductDispatchClient(
+                GetBindingGeneric("NetTcpBinding_IM_WMS_SRG_ProductDispatch"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ProductDispatchGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                string dataValidation = string.Format("<INTEGRATION><COMPANY><CODE>{0}</CODE><USER>{1}</USER></COMPANY></INTEGRATION>", context.Company, "servicio_ax");
+              
+                var resp = serviceClient.initDiariosAsync(context, accíon,dataValidation,XML);
+
+                return resp.Result.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
+        public async Task<string> CrearTrasladosPorArticulo(TrasladoDTO trasladoDTO)
+        {
+            IM_WMS_SRG_ProductDispatchGP.CallContext context = new IM_WMS_SRG_ProductDispatchGP.CallContext
+            {
+                Company = "IMHN"
+            };
+
+            var serviceClient = new M_WMS_SRG_ProductDispatchClient(
+                GetBindingGeneric("NetTcpBinding_IM_WMS_SRG_ProductDispatch"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ProductDispatchGP")
+            ); 
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var xml = new StringBuilder();
+
+               // xml.Append("<TransferOrders>");
+
+                  xml.Append("<TransferOrder>");
+
+                    // HEADER
+                    xml.Append("<Header>");
+                    xml.AppendFormat("<FromWarehouse>{0}</FromWarehouse>", trasladoDTO.AlmacenDeSalida);
+                    xml.AppendFormat("<ToWarehouse>{0}</ToWarehouse>", trasladoDTO.AlmacenDeEntrada);
+                    xml.Append("</Header>");
+
+                    // LINES
+                    xml.Append("<Lines>");
+
+                    foreach (var linea in trasladoDTO.Lineas)
+                    {
+                        xml.Append("<Line>");
+                        xml.AppendFormat("<ItemId>{0}</ItemId>", linea.ItemId);
+                        xml.AppendFormat("<ColorId>{0}</ColorId>", linea.Color);
+                        xml.AppendFormat("<BatchNumber>{0}</BatchNumber>", linea.LoteId);
+                        xml.AppendFormat("<LocationId>{0}</LocationId>", linea.LocationId);
+                        xml.AppendFormat("<Qty>{0}</Qty>", linea.CantidadEnviar);
+                        xml.AppendFormat("<sizeId>{0}</sizeId>", linea.SizeId);
+                        xml.Append("</Line>");
+                    }
+
+                    xml.Append("</Lines>");
+                 xml.Append("</TransferOrder>");
+                
+
+                //xml.Append("</TransferOrders>");
+
+                string xmlInput = xml.ToString();
+
+                // LLAMADA AL SERVICIO
+                var resp = await serviceClient.createTransferAsync(context, xmlInput);
+
+                return resp.response;
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
+        public async Task<string> CambioIniciadoEstadoOpSerigrafia(OpPorBaseDTO orden)
+        {
+            IM_WMS_SRG_ChangeOpEST.CallContext context = new IM_WMS_SRG_ChangeOpEST.CallContext
+            {
+                Company = "IMHN"
+            };
+
+            var serviceClient = new M_WMS_SRG_ChangeEstOpClient(
+                GetBindingGeneric("NetTcpBinding_IMChangeEstadoOP"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                // Construcción del XML basado en la estructura solicitada
+                var xml = new StringBuilder();
+                xml.Append("<INTEGRATION>");
+                xml.Append("<COMPANIES>");
+
+                foreach (var talla in orden.Tallas)
+                {
+                    xml.Append("<COMPANY>");
+                    xml.AppendFormat("<CODE>{0}</CODE>", "IMHN");
+                    xml.AppendFormat("<PRODUCTIONORDER>{0}</PRODUCTIONORDER>", orden.ProdMasterId);
+                    xml.AppendFormat("<ITEMID>{0}</ITEMID>", orden.ItemIdEstilo);
+                    xml.AppendFormat("<SIZEID>{0}</SIZEID>", talla.Talla);
+                    xml.Append("</COMPANY>");
+                }
+
+                xml.Append("</COMPANIES>");
+                xml.Append("</INTEGRATION>");
+
+                string xmlInput = xml.ToString();
+
+                // Llamada al servicio
+                var resp = await serviceClient.changeOpStateToStartedUpAsync(context, xmlInput);
+
+                // XmlToHtmlUsingLinq(resp.response.ToString());
+                return resp.response.ToString();
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
+        public async Task<string> CambioTerminadoEstadoOPSerigrafia(OpPorBaseDTO orden)
+        {
+            IM_WMS_SRG_ChangeOpEST.CallContext context = new IM_WMS_SRG_ChangeOpEST.CallContext
+            {
+                Company = "IMHN"
+            };
+
+            var serviceClient = new M_WMS_SRG_ChangeEstOpClient(
+                GetBindingGeneric("NetTcpBinding_IMChangeEstadoOP"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                // Construcción del XML basado en la estructura solicitada
+                var xml = new StringBuilder();
+                xml.Append("<INTEGRATION>");
+                xml.Append("<COMPANIES>");
+
+                foreach (var talla in orden.Tallas)
+                {
+                    xml.Append("<COMPANY>");
+                    xml.AppendFormat("<CODE>{0}</CODE>", "IMHN");
+                    xml.AppendFormat("<PRODUCTIONORDER>{0}</PRODUCTIONORDER>", orden.ProdMasterId);
+                    xml.AppendFormat("<ITEMID>{0}</ITEMID>", orden.ItemIdEstilo);
+                    xml.AppendFormat("<SIZEID>{0}</SIZEID>", talla.Talla);
+                    xml.Append("</COMPANY>");
+                }
+
+                xml.Append("</COMPANIES>");
+                xml.Append("</INTEGRATION>");
+
+                string xmlInput = xml.ToString();
+
+                // Llamada al servicio
+                var resp = await serviceClient.changeOpStateToNotifyAsFinishedAsync(context, xmlInput);
+
+                return resp.response.ToString();
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+        public async Task<string> AjustarCantidadPorOP(OpPorBaseDTO orden)
+        {
+            IM_WMS_SRG_ChangeOpEST.CallContext context = new IM_WMS_SRG_ChangeOpEST.CallContext
+            {
+                Company = "IMHN"
+            };
+
+            var serviceClient = new M_WMS_SRG_ChangeEstOpClient(
+                GetBindingGeneric("NetTcpBinding_IMChangeEstadoOP"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                // Construcción del XML basado en la estructura solicitada
+                var xml = new StringBuilder();
+                xml.Append("<INTEGRATION>");
+                xml.Append("<COMPANIES>");
+
+                foreach (var talla in orden.Tallas)
+                {
+                    xml.Append("<COMPANY>");
+                    xml.AppendFormat("<CODE>{0}</CODE>", "IMHN");
+                    xml.AppendFormat("<PRODUCTIONORDER>{0}</PRODUCTIONORDER>", orden.ProdMasterId);
+                    xml.AppendFormat("<ITEMID>{0}</ITEMID>", orden.ItemIdEstilo);
+                    xml.AppendFormat("<SIZEID>{0}</SIZEID>", talla.Talla);
+                    xml.AppendFormat("<QTYSCHED>{0}</QTYSCHED>", talla.CantidadPreparada);
+                    xml.Append("</COMPANY>");
+                }
+
+                xml.Append("</COMPANIES>");
+                xml.Append("</INTEGRATION>");
+
+                string xmlInput = xml.ToString();
+
+                // Llamada al servicio
+                var resp = await serviceClient.quantityAdjustmenByOrderAsync(context, xmlInput);
+
+                return resp.response.ToString();
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+        }
+
         private NetTcpBinding GetBinding()
         {
             var netTcpBinding = new NetTcpBinding();
@@ -358,7 +645,7 @@ namespace WMS_API.Features.Repositories
         private EndpointAddress GetEndpointAddrT()
         {
 
-            string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
+             string url = "net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_Traslado_Enviar_RecibirGP";
             string user = "sqladmin@intermoda.com.hn";
 
             var uri = new Uri(url);
@@ -432,6 +719,29 @@ namespace WMS_API.Features.Repositories
             return endpointAddr;
         }
 
+        private NetTcpBinding GetBindingGeneric(string name)
+        {
+            var netTcpBinding = new NetTcpBinding();
+            netTcpBinding.Name = name;
+            netTcpBinding.MaxBufferSize = int.MaxValue;
+            netTcpBinding.MaxReceivedMessageSize = int.MaxValue;
+            netTcpBinding.SendTimeout = TimeSpan.FromMinutes(10);
+            netTcpBinding.ReceiveTimeout = TimeSpan.FromMinutes(10);
+            return netTcpBinding;
+
+
+        }
+        private EndpointAddress GetEndpointGeneric(string url)
+        {
+            string user = "sqladmin@intermoda.com.hn";
+
+            var uri = new Uri(url);
+            var epid = new UpnEndpointIdentity(user);
+            var addrHdrs = new AddressHeader[0];
+            var endpointAddr = new EndpointAddress(uri, addrHdrs); //, epid, addrHdrs);
+            return endpointAddr;
+        }
+
 
     }
     public static class SerializationService
@@ -457,5 +767,6 @@ namespace WMS_API.Features.Repositories
 
             return type;
         }
+
     }
 }
