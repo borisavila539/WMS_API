@@ -220,22 +220,6 @@ namespace WMS_API.Features.Repositories
             return tallasPreparadas;
         }
 
-        private DataTable ConvertTallasToDataTable(List<TallaOpDTO> tallas)
-        {
-            var table = new DataTable();
-            table.Columns.Add("Talla", typeof(string));
-            table.Columns.Add("CantidadSolicitada", typeof(int));
-            table.Columns.Add("CantidadPreparada", typeof(int));
-            table.Columns.Add("EstadoOp", typeof(int));
-
-            foreach (var t in tallas)
-            {
-                table.Rows.Add(t.Talla, t.CantidadSolicitada, t.CantidadPreparada, t.EstadoOP);
-            }
-
-            return table;
-        }
-
         public async Task<List<OpPorBaseDTO>> GetOpsPrepardasAsync(string ItemId)
         {
             var resultado = new List<OpPorBaseDTO>();
