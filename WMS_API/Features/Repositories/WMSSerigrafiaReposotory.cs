@@ -29,7 +29,7 @@ namespace WMS_API.Features.Repositories
 
         public WMSSerigrafiaReposotory(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
         }
         public async Task<List<ConsultaLote>> GetLotesAsync()
         {
