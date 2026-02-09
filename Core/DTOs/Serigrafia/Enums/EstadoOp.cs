@@ -8,10 +8,12 @@ namespace Core.DTOs.Serigrafia.Enums
 {
     public enum EstadoOp
     {
-        PREPARADO = 1,
-        INICIADO,
-        EN_PULPO,
-        EMPAQUETADO,
-        TERMINADO,
+        Creado = 0,
+        Estimado = 1,
+        Programado = 2,
+        Liberado = 3,
+        Iniciado = 4,
+        NotificadoT = 5,
+        Termiando = 7
     }
 }
