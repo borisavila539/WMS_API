@@ -456,6 +456,16 @@ namespace WMS_API.Controllers
         }
 
 
+        [HttpGet("GetUsuariosPorAccion/{accion}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_SRG_UsuarioAccion>>> GetUsuariosPorAccion(string accion)
+        {
+            var resp = await _repository.GetUsuariosPorAccion(accion);
+            if (resp == null || resp.Count == 0)
+            {
+                return BadRequest("No se encontraron registros");
+            }
+            return Ok(resp);
+        }
 
 
     }
