@@ -41,5 +41,7 @@ namespace Core.Interfaces
 
         public Task<Respuesta<List<IM_WMS_SRG_ArticulosGenericosSegundas>>> GetArticulosGenericoSegundas(string itemId);
 
+        public Task<List<IM_WMS_SRG_UsuarioAccion>> GetUsuariosPorAccion(string accion);
+
     }
 }

@@ -768,5 +768,21 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        public async Task<List<IM_WMS_SRG_UsuarioAccion>> GetUsuariosPorAccion(string accion)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@Accion", accion),
+                };
+
+            var response = await executeProcedure
+                .ExecuteStoredProcedureList<IM_WMS_SRG_UsuarioAccion>("[IM_WMS_SRG_GetUsuariosPorAccion]", parameters
+                );
+
+            return response;
+        }
+
     }
 }
