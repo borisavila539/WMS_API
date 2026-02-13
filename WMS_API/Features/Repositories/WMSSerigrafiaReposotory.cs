@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
@@ -536,9 +537,7 @@ namespace WMS_API.Features.Repositories
                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
                var parameterHeader = new List<SqlParameter>
                  {
-                      new SqlParameter("@Driver", despacho.Driver),
-                      new SqlParameter("@Truck", despacho.Truck),
-                      new SqlParameter("@StatusId", despacho.StatusId),
+                      new SqlParameter("@Descripcion", despacho.Descripcion),
                       new SqlParameter("@CreatedBy", despacho.CreatedBy),
                       new SqlParameter("@Store", despacho.Store)
                  };
@@ -590,7 +589,71 @@ namespace WMS_API.Features.Repositories
             }
             return despachoId.ToString();
         }
+        public async Task<string> AgregarTrasladoDespacho(string DespachoId, TrasladoDespachoDTO trasladoDespacho)
+        {
+            try
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parameterDespachoTraslado = new List<SqlParameter>
+                    {
+                        new SqlParameter("@DespachoId", DespachoId),
+                        new SqlParameter("@TransferId", trasladoDespacho.TransferId),
+                        new SqlParameter("@InventLocationIdFrom",trasladoDespacho.InventLocationIdFrom),
+                        new SqlParameter("@InventLocationIdTo", trasladoDespacho.InventLocationIdTo),
+                        new SqlParameter("@ItemId", trasladoDespacho.ItemId),
+                        new SqlParameter("@MontoTraslado", trasladoDespacho.MontoTraslado),
 
+                    };
+                var parameterLineas = new List<SqlParameter>
+                    {
+                        new SqlParameter("@ItemId", trasladoDespacho.ItemId),
+                        new SqlParameter("@TransferId", trasladoDespacho.TransferId),
+                        new SqlParameter("@DespachoId", DespachoId),
+
+                    };
+                var resultadoDespachoTralados = await executeProcedure.ExecuteStoredProcedureList<TrasladoDespachoDTO>("[IM_WMS_SRG_CreateDespachoTraslado]", parameterDespachoTraslado);
+                if (resultadoDespachoTralados.Count == 0)
+                {
+                    return "Error al crear las lineas de traslado del despacho";
+                }
+                var resultadoLineas = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_SRG_Despacho_Lines_Packing>("[IM_WMS_SRG_CreateDepachoLine_Picking]", parameterLineas);
+                if (resultadoLineas.Count == 0)
+                {
+                    return "Error al crear las lineas del despacho";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+            return "OK";
+        }
+        public async Task<string> EliminarTrasladoDespacho(TrasladoDespachoDTO trasladoDespacho)
+        {
+           
+            try
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parm = new List<SqlParameter>
+                {
+                    new SqlParameter("@DespachoId",trasladoDespacho.DespachoId),
+                    new SqlParameter("@TrasladoId",trasladoDespacho.TransferId)
+
+                };
+
+                var respuesta = await executeProcedure.ExecuteStoredProcedureList<TrasladoDespachoDTO>("IM_WMS_SRG_EliminarTrasladoDespacho", parm);
+                if(respuesta.Count != 0)
+                {
+                    return "Error: no se eliminó el traslado";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return "OK";
+        }
         public async Task<List<IM_WMS_SRG_Despacho>> GetDespachosByBatchId(string batchId, int tipo)
         {
             var respuesta = new List<IM_WMS_SRG_Despacho>();
@@ -712,7 +775,7 @@ namespace WMS_API.Features.Repositories
         }
 
 
-        public async Task<string> ChangeEstadoTraslado(int despachoId, int statusId)
+        public async Task<string> ChangeEstadoTraslado(int despachoId, int statusId,string trasladoId)
         {
 
             try
@@ -723,6 +786,7 @@ namespace WMS_API.Features.Repositories
                 {
                     new SqlParameter("@DespachoId", despachoId),
                     new SqlParameter("@StatusId", statusId),
+                    new SqlParameter("@TrasladoId",trasladoId)
                 };
 
                 var response = await executeProcedure

@@ -31,11 +31,13 @@ namespace Core.Interfaces
         public Task<List<DiariosAbiertosDTO>> GetDiariosAbiertosAsync(string userId, string diarioId);
         public Task<List<IM_WMS_SRG_TipoDiario>> GetTiposDiario();
         public Task<string> CrearDespacho(IM_WMS_SRG_Despacho despacho);
+        public Task<string> AgregarTrasladoDespacho(string DespachoId, TrasladoDespachoDTO trasladoDespacho);
+        public Task<string> EliminarTrasladoDespacho(TrasladoDespachoDTO trasladoDespacho);
         public Task<List<IM_WMS_SRG_Despacho>> GetDespachosByBatchId(string batchId, int tipo);
         public Task<List<IM_WMS_SRG_Despacho_Lines_Packing>> GetDespachoLinesByIdAEnviar(string despachoId);
         public Task<List<TrasladoDespachoDTO>> GetDespachoTrasladosById(string despachoId);
         public Task<List<PackingResponseDTO>> SetPackingAsync(PackingRequestDTO requestDTO);
-        public Task<string> ChangeEstadoTraslado(int despachoId,int statusId);
+        public Task<string> ChangeEstadoTraslado(int despachoId,int statusId, string trasladoId);
         public Task<List<IM_WMS_SRG_Despacho_Lines_Packing>> GetDespachoLinesByIdARecibir(string despachoId);
         public Task<List<PackingResponseDTO>> SetReceiveAsync(PackingRequestDTO packingRequestDTO);
 
