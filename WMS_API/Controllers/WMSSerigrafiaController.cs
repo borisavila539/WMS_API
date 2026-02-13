@@ -231,6 +231,23 @@ namespace WMS_API.Controllers
             return Ok(respuesta);
         }
 
+        [HttpPost("AgregarTrasladoDespacho/{despachoId}")]
+        public async Task<ActionResult<IEnumerable<LineasTrasladoDTO>>> AgregarTrasladoDespacho([FromBody] TrasladoDespachoDTO trasladoDespacho, string despachoId)
+        {
+
+            var resp = await _repository.AgregarTrasladoDespacho(despachoId,trasladoDespacho);
+
+            return Ok(resp);
+        }
+
+        [HttpPost("EliminarTrasladoDespacho")]
+        public async Task<ActionResult<IEnumerable<LineasTrasladoDTO>>> AgregarTrasladoDespacho([FromBody] TrasladoDespachoDTO trasladoDespacho)
+        {
+
+            var resp = await _repository.EliminarTrasladoDespacho(trasladoDespacho);
+
+            return Ok(resp);
+        }
 
         [HttpGet("GetArticulosGenericoSegundas/{ItemId}")]
         public async Task<ActionResult<IEnumerable<IM_WMS_SRG_ArticulosGenericosSegundas>>> GetArticulosGenericoSegundas(string ItemId)
@@ -405,6 +422,7 @@ namespace WMS_API.Controllers
         public async Task<ActionResult<string>> EnviarTraslado([FromBody] List<TrasladoDespachoDTO> trasladoDespachoDTOs, int despachoId)
         {
             int contadorErroresAx = 0;
+            int contadorErroresLocal= 0;
             foreach (var traslado in trasladoDespachoDTOs)
             {
                 var respAX = _ax.EnviarRecibirTraslados(traslado.TransferId, "ENVIAR");
@@ -419,9 +437,17 @@ namespace WMS_API.Controllers
                 return BadRequest("Se presentaron errores al enviar los traslados a AX.");
             }
             int statudId = 1;
-            var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId);
-            var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
-            if (!SeActualizoCorrectamente)
+           foreach(var trasado in trasladoDespachoDTOs)
+            {
+                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId,trasado.TransferId);
+                var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
+                if (!SeActualizoCorrectamente)
+                {
+                    contadorErroresLocal++;
+                }
+
+            }
+            if (contadorErroresLocal>0)
             {
                 return BadRequest("No se pudo actualizar el estado del despacho en la base local.");
             } 
@@ -432,6 +458,7 @@ namespace WMS_API.Controllers
         public async Task<ActionResult<string>> RecibirDespacho([FromBody] List<TrasladoDespachoDTO> trasladoDespachoDTOs, int despachoId)
         {
             int contadorErroresAx = 0;
+            int contadorErroresLocal = 0;
             foreach (var traslado in trasladoDespachoDTOs)
             {
                 var respAX = _ax.EnviarRecibirTraslados(traslado.TransferId, "RECIBIR");
@@ -446,9 +473,17 @@ namespace WMS_API.Controllers
                 return BadRequest("Se presentaron errores al enviar los traslados a AX.");
             }
             int statudId = 2;
-            var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId);
-            var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
-            if (!SeActualizoCorrectamente)
+            foreach (var trasado in trasladoDespachoDTOs)
+            {
+                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId, trasado.TransferId);
+                var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
+                if (!SeActualizoCorrectamente)
+                {
+                    contadorErroresLocal++;
+                }
+
+            }
+            if (contadorErroresLocal > 0)
             {
                 return BadRequest("No se pudo actualizar el estado del despacho en la base local.");
             }

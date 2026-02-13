@@ -23,5 +23,6 @@ namespace Core.DTOs.Serigrafia
         public bool Receive { get; set; }
         public string UserReceive { get; set; }
         public DateTime ReceiveDateTime { get; set; }
+        public string BoxCategoryId { get; set; }
     }
 }
