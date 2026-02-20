@@ -42,11 +42,13 @@ namespace WMS_API.Features.Repositories
         private readonly string _connectionString;
         private readonly string _connectionStringPiso;
         private readonly string _ImpresoraDevolucion;
+        private readonly string _connectionstringComercial;
 
         public WMSRepository(IConfiguration configuracion)
         {
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
+            _connectionstringComercial = configuracion.GetConnectionString("Comercial");
             _ImpresoraDevolucion = "192.168.10.128";
             //_ImpresoraDevolucion = "10.1.1.208";
 
@@ -2960,6 +2962,35 @@ namespace WMS_API.Features.Repositories
 
             response = await executeProcedure.
                 ExecuteStoredProcedureList<IM_WMS_DetalleImpresionEtiquetasPrecio>("[IM_WMS_DetalleImpresionEtiquetasPrecio]", parametros);
+
+
+            ExecuteProcedure executeProcedureCliente = new ExecuteProcedure(_connectionString);
+            var parametrosCliente = new List<SqlParameter> { };
+            List<IM_WMS_ClientesGeneracionprecios> responseClientes = await executeProcedureCliente.ExecuteStoredProcedureList<IM_WMS_ClientesGeneracionprecios>("[IM_WMS_ObtenerClientesGeneracionPrecio]", parametrosCliente);
+
+
+            ExecuteProcedure executeProcedureLote = new ExecuteProcedure(_connectionString);
+            var parametrosLote = new List<SqlParameter> { 
+                new SqlParameter("@SalesId", parms.Pedido),
+                new SqlParameter("@Ruta", parms.Ruta)
+            };
+            List<IM_WMS_ConsultaObtenerLoteIdPorPedidoORuta> responselote = await executeProcedureLote.ExecuteStoredProcedureList<IM_WMS_ConsultaObtenerLoteIdPorPedidoORuta>("[IM_WMS_ObtenerLoteIdPorPedidoORuta]", parametrosLote);
+
+            ExecuteProcedure executeProcedureComercial = new ExecuteProcedure(_connectionstringComercial);
+            var cuentaCliente = responseClientes.FirstOrDefault(x => x.Nombre == response.FirstOrDefault()?.Nombre)?.CuentaCliente;
+            var loteId = responselote.FirstOrDefault()?.LoteId;
+            var parametrosComercial = new List<SqlParameter>
+            {
+                new SqlParameter("@empresa", "IMHN"),
+                 new SqlParameter("@paquete", loteId),
+                  new SqlParameter("@cliente", cuentaCliente)
+            };
+             List<IM_WMS_ConsultaPrecioPorPaqueteCliente> responseComercial = await executeProcedureComercial.ExecuteStoredProcedureList<IM_WMS_ConsultaPrecioPorPaqueteCliente>("[IM_ConsultarPrecioPorPaqueteCliente]", parametrosComercial);
+
+            response.ForEach(element =>
+            {
+                element.Precio = responseComercial.FirstOrDefault(x => x.codigo == element.Articulo.Split('/')[0] && x.Talla == element.Talla && x.Color == element.IDColor)?.precio ?? element.Precio;
+            });
 
             return response;
         }
