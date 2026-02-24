@@ -487,6 +487,28 @@ namespace WMS_API.Features.Repositories
             return resutl;
         }
 
+        public async Task<List<TrasladoDespachoDTO>> GetTrasladoPorLoteGeneral(string LoteId)
+        {
+            var resutl = new List<TrasladoDespachoDTO>();
+            try
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parameter = new List<SqlParameter>
+                {
+                    new SqlParameter("@LoteId", LoteId)
+                };
+
+                resutl = await executeProcedure.ExecuteStoredProcedureList<TrasladoDespachoDTO>("[IM_WMS_SRG_GetTrasladosPorLoteGeneral]", parameter);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return resutl;
+        }
+
+
         public async Task<List<DiariosAbiertosDTO>> GetDiariosAbiertosAsync(string userId, string diarioId)
         {
             var result = new List<DiariosAbiertosDTO>();
@@ -590,7 +612,7 @@ namespace WMS_API.Features.Repositories
             return despachoId.ToString();
         }
         public async Task<string> AgregarTrasladoDespacho(string DespachoId, TrasladoDespachoDTO trasladoDespacho)
-        {
+        {   
             try
             {
                 ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -737,7 +759,7 @@ namespace WMS_API.Features.Repositories
             return respuesta;
         }
 
-        public async Task<List<PackingResponseDTO>> SetPackingAsync(PackingRequestDTO packingRequestDTO)
+        public async Task<int> SetPackingAsync(PackingRequestDTO packingRequestDTO)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -750,12 +772,12 @@ namespace WMS_API.Features.Repositories
                 };
 
             var response = await executeProcedure
-                .ExecuteStoredProcedureList<PackingResponseDTO>("[IM_WMS_SRG_SetPacking_ByDespachoOpBox]",parameters
+                .ExecuteStoredProcedure<PackingResponseDTO>("[IM_WMS_SRG_SetPacking_ByDespachoOpBox]",parameters
                 );
 
-            return response;
+            return response.RowsUpdated;
         }
-        public async Task<List<PackingResponseDTO>> SetReceiveAsync(PackingRequestDTO packingRequestDTO)
+        public async Task<int> SetReceiveAsync(PackingRequestDTO packingRequestDTO)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -768,10 +790,10 @@ namespace WMS_API.Features.Repositories
                 };
 
             var response = await executeProcedure
-                .ExecuteStoredProcedureList<PackingResponseDTO>("[IM_WMS_SRG_SetReceive_ByDespachoOpBox]", parameters
+                .ExecuteStoredProcedure<PackingResponseDTO>("[IM_WMS_SRG_SetReceive_ByDespachoOpBox]", parameters
                 );
 
-            return response;
+            return response.RowsUpdated;
         }
 
 
