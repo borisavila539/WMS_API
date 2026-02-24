@@ -235,7 +235,7 @@ namespace WMS_API.Controllers
         public async Task<ActionResult<IEnumerable<LineasTrasladoDTO>>> AgregarTrasladoDespacho([FromBody] TrasladoDespachoDTO trasladoDespacho, string despachoId)
         {
 
-            var resp = await _repository.AgregarTrasladoDespacho(despachoId,trasladoDespacho);
+           var resp = await _repository.AgregarTrasladoDespacho(despachoId,trasladoDespacho);
 
             return Ok(resp);
         }
@@ -267,7 +267,14 @@ namespace WMS_API.Controllers
                 return BadRequest(resp.ToString());
             return Ok(resp);
         }
-
+        [HttpGet("GetTrasladoParaDespachoPorLoteGeneral/{LoteId}")]
+        public async Task<ActionResult<IEnumerable<TrasladoDespachoDTO>>> GetTrasladoParaDespachoPorLoteGeneral(string LoteId)
+        {
+            var resp = await _repository.GetTrasladoPorLoteGeneral(LoteId);
+            if (resp == null)
+                return BadRequest(resp.ToString());
+            return Ok(resp);
+        }
         [HttpPost("CrearDiarioHeader")]
         public string CrearDiarioHeader([FromBody] DiarioHeaderDTO headerDTO)
         {
@@ -348,73 +355,15 @@ namespace WMS_API.Controllers
         [HttpPost("SetPacking")]
         public async Task<ActionResult<string>> SetPacking([FromBody] PackingRequestDTO request)
         {
-            if (request == null)
-                return BadRequest("Request inválido.");
-
-            try
-            {
                 var result = await _repository.SetPackingAsync(request);
-
-                var rowsUpdated = result.FirstOrDefault()?.RowsUpdated ?? 0;
-
-                if (rowsUpdated == 0)
-                {
-                    return NotFound(new
-                    {
-                        message = "No se encontró información para empacar o la caja ya fue empacada."
-                    });
-                }
-
-                return Ok(new
-                {
-                    message = "Caja empacada correctamente.",
-                    rowsUpdated
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "Error al empacar la caja.",
-                    error = ex.Message
-                });
-            }
+            return result.ToString();
         }
 
         [HttpPost("SetReceiveAsync")]
         public async Task<ActionResult<string>> SetReceiveAsync([FromBody] PackingRequestDTO request)
         {
-            if (request == null)
-                return BadRequest("Request inválido.");
-
-            try
-            {
-                var result = await _repository.SetReceiveAsync(request);
-
-                var rowsUpdated = result.FirstOrDefault()?.RowsUpdated ?? 0;
-
-                if (rowsUpdated == 0)
-                {
-                    return NotFound(new
-                    {
-                        message = "No se encontró información para empacar o la caja ya fue empacada."
-                    });
-                }
-
-                return Ok(new
-                {
-                    message = "Caja empacada correctamente.",
-                    rowsUpdated
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "Error al empacar la caja.",
-                    error = ex.Message
-                });
-            }
+            var result = await _repository.SetReceiveAsync(request);
+            return result.ToString();
         }
 
 
