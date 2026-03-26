@@ -38,7 +38,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_SRG_Despacho_Lines_Packing>> GetDespachoLinesByIdAEnviar(string despachoId);
         public Task<List<TrasladoDespachoDTO>> GetDespachoTrasladosById(string despachoId);
         public Task<int> SetPackingAsync(PackingRequestDTO requestDTO);
-        public Task<string> ChangeEstadoTraslado(int despachoId,int statusId, string trasladoId);
+        public Task<string> ChangeEstadoTraslado(int despachoId, string trasladoId);
         public Task<List<IM_WMS_SRG_Despacho_Lines_Packing>> GetDespachoLinesByIdARecibir(string despachoId);
         public Task<int> SetReceiveAsync(PackingRequestDTO packingRequestDTO);
 
