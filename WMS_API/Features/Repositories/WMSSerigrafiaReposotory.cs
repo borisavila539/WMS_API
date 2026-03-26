@@ -78,10 +78,10 @@ namespace WMS_API.Features.Repositories
 
                 ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
                 var parametros = new List<SqlParameter>
-                {
-                    new SqlParameter("@ItemId", ItemId),
-                    new SqlParameter("@Lote", lote)
-                };
+         {
+             new SqlParameter("@ItemId", ItemId),
+             new SqlParameter("@Lote", lote)
+         };
                 var listPlanaOpsContalla = await executeProcedure
                     .ExecuteStoredProcedureList<ConsultaPlanaOpsContallaDTO>("[IM_WMS_SRG_GetOpsConTallasAx_V2]", parametros);
 
@@ -371,27 +371,6 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
-
-        public async Task<List<ArticulosDisponiblesTraslado>> GetDetallaArticuloATrasladar(string ItemId)
-        {
-            var result = new List<ArticulosDisponiblesTraslado>();
-            try
-            {
-                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
-
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@ItemId",ItemId)
-                };
-
-                result = await executeProcedure.ExecuteStoredProcedureList<ArticulosDisponiblesTraslado>("[IM_WMS_SRG_GetDetalleArticuloPorTrasladar]", parameters);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            return result;
-        }
 
         public async Task<List<LineasTrasladoDTO>> GetLineasDeTraslado(string ItemId)
         {
@@ -797,7 +776,7 @@ namespace WMS_API.Features.Repositories
         }
 
 
-        public async Task<string> ChangeEstadoTraslado(int despachoId, int statusId,string trasladoId)
+        public async Task<string> ChangeEstadoTraslado(int despachoId,string trasladoId)
         {
 
             try
@@ -807,7 +786,6 @@ namespace WMS_API.Features.Repositories
                 var parameters = new List<SqlParameter>
                 {
                     new SqlParameter("@DespachoId", despachoId),
-                    new SqlParameter("@StatusId", statusId),
                     new SqlParameter("@TrasladoId",trasladoId)
                 };
 

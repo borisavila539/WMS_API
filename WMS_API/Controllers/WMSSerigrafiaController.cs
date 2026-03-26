@@ -381,25 +381,24 @@ namespace WMS_API.Controllers
                     contadorErroresAx++;
                 }
             }
-            if (contadorErroresAx > 0)
-            {
-                return BadRequest("Se presentaron errores al enviar los traslados a AX.");
-            }
-            int statudId = 1;
            foreach(var trasado in trasladoDespachoDTOs)
             {
-                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId,trasado.TransferId);
-                var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
+                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId,trasado.TransferId);
+                var SeActualizoCorrectamente = respBaseLocal.Contains("Ok"); 
                 if (!SeActualizoCorrectamente)
                 {
                     contadorErroresLocal++;
                 }
 
             }
+            if (contadorErroresAx > 0)
+            {
+                return BadRequest("Se presentaron errores al enviar los traslados a AX.");
+            }
             if (contadorErroresLocal>0)
             {
                 return BadRequest("No se pudo actualizar el estado del despacho en la base local.");
-            } 
+            }  
             return  "Se envio el despacho";
         }
 
@@ -417,20 +416,19 @@ namespace WMS_API.Controllers
                     contadorErroresAx++;
                 }
             }
-            if (contadorErroresAx > 0)
-            {
-                return BadRequest("Se presentaron errores al enviar los traslados a AX.");
-            }
-            int statudId = 2;
             foreach (var trasado in trasladoDespachoDTOs)
             {
-                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, statudId, trasado.TransferId);
+                var respBaseLocal = await _repository.ChangeEstadoTraslado(despachoId, trasado.TransferId);
                 var SeActualizoCorrectamente = respBaseLocal.Contains("Ok");
                 if (!SeActualizoCorrectamente)
                 {
                     contadorErroresLocal++;
                 }
 
+            }
+            if (contadorErroresAx > 0)
+            {
+                return BadRequest("Se presentaron errores al enviar los traslados a AX.");
             }
             if (contadorErroresLocal > 0)
             {
