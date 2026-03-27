@@ -1558,7 +1558,7 @@ namespace WMS_API.Features.Repositories
                                     }
 
                                     //mail.To.Add("bavila@intermoda.com.hn");
-                                    mail.Subject = "Despacho PT No." + DespachoID.ToString().PadLeft(8, '0') + ", " + packing.Secuencia + "." + packing.Anio;
+                                    mail.Subject = encabezado.NAME+ ", Despacho PT No." + DespachoID.ToString().PadLeft(8, '0') + ", " + packing.Secuencia + "." + packing.Anio;
                                     mail.IsBodyHtml = false;
 
                                     mail.Body = "Despacho de PT desde " + encabezado.NAME + " a " + data[0].InventLocation;
