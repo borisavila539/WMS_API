@@ -1,14 +1,14 @@
 {
   "ExtendedData": {
     "inputs": [
-      "http://GIM-DEV-AOS:8101/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP"
+      "http://ax3-acc-aos2:8101/DynamicsAx/Services/IMReportAsFinishedOPGP"
     ],
     "collectionTypes": [
       "System.Array",
       "System.Collections.Generic.Dictionary`2"
     ],
     "namespaceMappings": [
-      "*, IM_WMS_SRG_ChangeOpEST"
+      "*, IM_WMS_SRG_ReporteAsFinishedOPGP"
     ],
     "references": [
       "Azure.Core, {Azure.Core, 1.6.0}",

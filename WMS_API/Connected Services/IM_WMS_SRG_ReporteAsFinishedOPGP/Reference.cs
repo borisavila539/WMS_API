@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace IM_WMS_SRG_ChangeOpEST
+namespace IM_WMS_SRG_ReporteAsFinishedOPGP
 {
     using System.Runtime.Serialization;
     
@@ -117,9 +117,9 @@ namespace IM_WMS_SRG_ChangeOpEST
         
         private string CustomDetailXmlField;
         
-        private IM_WMS_SRG_ChangeOpEST.FaultMessageList[] FaultMessageListArrayField;
+        private IM_WMS_SRG_ReporteAsFinishedOPGP.FaultMessageList[] FaultMessageListArrayField;
         
-        private IM_WMS_SRG_ChangeOpEST.InfologMessage[] InfologMessageListField;
+        private IM_WMS_SRG_ReporteAsFinishedOPGP.InfologMessage[] InfologMessageListField;
         
         private string StackTraceField;
         
@@ -139,7 +139,7 @@ namespace IM_WMS_SRG_ChangeOpEST
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public IM_WMS_SRG_ChangeOpEST.FaultMessageList[] FaultMessageListArray
+        public IM_WMS_SRG_ReporteAsFinishedOPGP.FaultMessageList[] FaultMessageListArray
         {
             get
             {
@@ -152,7 +152,7 @@ namespace IM_WMS_SRG_ChangeOpEST
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public IM_WMS_SRG_ChangeOpEST.InfologMessage[] InfologMessageList
+        public IM_WMS_SRG_ReporteAsFinishedOPGP.InfologMessage[] InfologMessageList
         {
             get
             {
@@ -201,7 +201,7 @@ namespace IM_WMS_SRG_ChangeOpEST
         
         private string DocumentOperationField;
         
-        private IM_WMS_SRG_ChangeOpEST.FaultMessage[] FaultMessageArrayField;
+        private IM_WMS_SRG_ReporteAsFinishedOPGP.FaultMessage[] FaultMessageArrayField;
         
         private string FieldField;
         
@@ -244,7 +244,7 @@ namespace IM_WMS_SRG_ChangeOpEST
         }
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public IM_WMS_SRG_ChangeOpEST.FaultMessage[] FaultMessageArray
+        public IM_WMS_SRG_ReporteAsFinishedOPGP.FaultMessage[] FaultMessageArray
         {
             get
             {
@@ -354,12 +354,12 @@ namespace IM_WMS_SRG_ChangeOpEST
     public partial class InfologMessage : object
     {
         
-        private IM_WMS_SRG_ChangeOpEST.InfologMessageType InfologMessageTypeField;
+        private IM_WMS_SRG_ReporteAsFinishedOPGP.InfologMessageType InfologMessageTypeField;
         
         private string MessageField;
         
         [System.Runtime.Serialization.DataMemberAttribute()]
-        public IM_WMS_SRG_ChangeOpEST.InfologMessageType InfologMessageType
+        public IM_WMS_SRG_ReporteAsFinishedOPGP.InfologMessageType InfologMessageType
         {
             get
             {
@@ -438,115 +438,69 @@ namespace IM_WMS_SRG_ChangeOpEST
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
-    [System.ServiceModel.ServiceContractAttribute(Namespace="http://tempuri.org", ConfigurationName="IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp")]
-    public interface IM_WMS_SRG_ChangeEstOp
+    [System.ServiceModel.ServiceContractAttribute(Namespace="http://tempuri.org", ConfigurationName="IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD")]
+    public interface IMReportAsFinishedPROD
     {
         
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/quantityAdjustmenByOrder", ReplyAction="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/quantityAdjustmenByOrderResponse")]
-        [System.ServiceModel.FaultContractAttribute(typeof(IM_WMS_SRG_ChangeOpEST.AifFault), Action="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/quantityAdjustmenByOrderAifFaultFault", Name="AifFault", Namespace="http://schemas.microsoft.com/dynamics/2008/01/documents/Fault")]
-        System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse> quantityAdjustmenByOrderAsync(IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest request);
-        
-        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/changeOpStateToStartedUp", ReplyAction="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/changeOpStateToStartedUpResponse")]
-        [System.ServiceModel.FaultContractAttribute(typeof(IM_WMS_SRG_ChangeOpEST.AifFault), Action="http://tempuri.org/IM_WMS_SRG_ChangeEstOp/changeOpStateToStartedUpAifFaultFault", Name="AifFault", Namespace="http://schemas.microsoft.com/dynamics/2008/01/documents/Fault")]
-        System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse> changeOpStateToStartedUpAsync(IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest request);
+        [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IMReportAsFinishedPROD/changeOpStateToNotifyAsFinished", ReplyAction="http://tempuri.org/IMReportAsFinishedPROD/changeOpStateToNotifyAsFinishedResponse" +
+            "")]
+        [System.ServiceModel.FaultContractAttribute(typeof(IM_WMS_SRG_ReporteAsFinishedOPGP.AifFault), Action="http://tempuri.org/IMReportAsFinishedPROD/changeOpStateToNotifyAsFinishedAifFault" +
+            "Fault", Name="AifFault", Namespace="http://schemas.microsoft.com/dynamics/2008/01/documents/Fault")]
+        System.Threading.Tasks.Task<IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse> changeOpStateToNotifyAsFinishedAsync(IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest request);
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    [System.ServiceModel.MessageContractAttribute(WrapperName="IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
-    public partial class IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest
+    [System.ServiceModel.MessageContractAttribute(WrapperName="IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
+    public partial class IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest
     {
         
         [System.ServiceModel.MessageHeaderAttribute(Namespace="http://schemas.microsoft.com/dynamics/2010/01/datacontracts")]
-        public IM_WMS_SRG_ChangeOpEST.CallContext CallContext;
+        public IM_WMS_SRG_ReporteAsFinishedOPGP.CallContext CallContext;
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://tempuri.org", Order=0)]
-        public string _receiveToReverseXML;
+        public string _receiveXML;
         
-        public IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest()
+        public IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest()
         {
         }
         
-        public IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest(IM_WMS_SRG_ChangeOpEST.CallContext CallContext, string _receiveToReverseXML)
+        public IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest(IM_WMS_SRG_ReporteAsFinishedOPGP.CallContext CallContext, string _receiveXML)
         {
             this.CallContext = CallContext;
-            this._receiveToReverseXML = _receiveToReverseXML;
+            this._receiveXML = _receiveXML;
         }
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    [System.ServiceModel.MessageContractAttribute(WrapperName="IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
-    public partial class IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse
+    [System.ServiceModel.MessageContractAttribute(WrapperName="IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
+    public partial class IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse
     {
         
         [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://tempuri.org", Order=0)]
         public string response;
         
-        public IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse()
+        public IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse()
         {
         }
         
-        public IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse(string response)
-        {
-            this.response = response;
-        }
-    }
-    
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    [System.ServiceModel.MessageContractAttribute(WrapperName="IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
-    public partial class IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest
-    {
-        
-        [System.ServiceModel.MessageHeaderAttribute(Namespace="http://schemas.microsoft.com/dynamics/2010/01/datacontracts")]
-        public IM_WMS_SRG_ChangeOpEST.CallContext CallContext;
-        
-        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://tempuri.org", Order=0)]
-        public string _receiveToReverseXML;
-        
-        public IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest()
-        {
-        }
-        
-        public IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest(IM_WMS_SRG_ChangeOpEST.CallContext CallContext, string _receiveToReverseXML)
-        {
-            this.CallContext = CallContext;
-            this._receiveToReverseXML = _receiveToReverseXML;
-        }
-    }
-    
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    [System.ServiceModel.MessageContractAttribute(WrapperName="IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse", WrapperNamespace="http://tempuri.org", IsWrapped=true)]
-    public partial class IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse
-    {
-        
-        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://tempuri.org", Order=0)]
-        public string response;
-        
-        public IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse()
-        {
-        }
-        
-        public IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse(string response)
+        public IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse(string response)
         {
             this.response = response;
         }
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
-    public interface IM_WMS_SRG_ChangeEstOpChannel : IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp, System.ServiceModel.IClientChannel
+    public interface IMReportAsFinishedPRODChannel : IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD, System.ServiceModel.IClientChannel
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
-    public partial class M_WMS_SRG_ChangeEstOpClient : System.ServiceModel.ClientBase<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp>, IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp
+    public partial class MReportAsFinishedPRODClient : System.ServiceModel.ClientBase<IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD>, IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD
     {
         
         /// <summary>
@@ -556,65 +510,51 @@ namespace IM_WMS_SRG_ChangeOpEST
         /// <param name="clientCredentials">Credenciales de cliente</param>
         static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
         
-        public M_WMS_SRG_ChangeEstOpClient() : 
-                base(M_WMS_SRG_ChangeEstOpClient.GetDefaultBinding(), M_WMS_SRG_ChangeEstOpClient.GetDefaultEndpointAddress())
+        public MReportAsFinishedPRODClient() : 
+                base(MReportAsFinishedPRODClient.GetDefaultBinding(), MReportAsFinishedPRODClient.GetDefaultEndpointAddress())
         {
-            this.Endpoint.Name = EndpointConfiguration.NetTcpBinding_IM_WMS_SRG_ChangeEstOp.ToString();
+            this.Endpoint.Name = EndpointConfiguration.NetTcpBinding_IMReportAsFinishedPROD.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public M_WMS_SRG_ChangeEstOpClient(EndpointConfiguration endpointConfiguration) : 
-                base(M_WMS_SRG_ChangeEstOpClient.GetBindingForEndpoint(endpointConfiguration), M_WMS_SRG_ChangeEstOpClient.GetEndpointAddress(endpointConfiguration))
-        {
-            this.Endpoint.Name = endpointConfiguration.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public M_WMS_SRG_ChangeEstOpClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
-                base(M_WMS_SRG_ChangeEstOpClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
+        public MReportAsFinishedPRODClient(EndpointConfiguration endpointConfiguration) : 
+                base(MReportAsFinishedPRODClient.GetBindingForEndpoint(endpointConfiguration), MReportAsFinishedPRODClient.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public M_WMS_SRG_ChangeEstOpClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(M_WMS_SRG_ChangeEstOpClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
+        public MReportAsFinishedPRODClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+                base(MReportAsFinishedPRODClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public M_WMS_SRG_ChangeEstOpClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+        public MReportAsFinishedPRODClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(MReportAsFinishedPRODClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
+        {
+            this.Endpoint.Name = endpointConfiguration.ToString();
+            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
+        }
+        
+        public MReportAsFinishedPRODClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
                 base(binding, remoteAddress)
         {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse> IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp.quantityAdjustmenByOrderAsync(IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest request)
+        System.Threading.Tasks.Task<IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse> IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD.changeOpStateToNotifyAsFinishedAsync(IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest request)
         {
-            return base.Channel.quantityAdjustmenByOrderAsync(request);
+            return base.Channel.changeOpStateToNotifyAsFinishedAsync(request);
         }
         
-        public System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderResponse> quantityAdjustmenByOrderAsync(IM_WMS_SRG_ChangeOpEST.CallContext CallContext, string _receiveToReverseXML)
+        public System.Threading.Tasks.Task<IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedResponse> changeOpStateToNotifyAsFinishedAsync(IM_WMS_SRG_ReporteAsFinishedOPGP.CallContext CallContext, string _receiveXML)
         {
-            IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest inValue = new IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpQuantityAdjustmenByOrderRequest();
+            IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest inValue = new IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPRODChangeOpStateToNotifyAsFinishedRequest();
             inValue.CallContext = CallContext;
-            inValue._receiveToReverseXML = _receiveToReverseXML;
-            return ((IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp)(this)).quantityAdjustmenByOrderAsync(inValue);
-        }
-        
-        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse> IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp.changeOpStateToStartedUpAsync(IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest request)
-        {
-            return base.Channel.changeOpStateToStartedUpAsync(request);
-        }
-        
-        public System.Threading.Tasks.Task<IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpResponse> changeOpStateToStartedUpAsync(IM_WMS_SRG_ChangeOpEST.CallContext CallContext, string _receiveToReverseXML)
-        {
-            IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest inValue = new IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOpChangeOpStateToStartedUpRequest();
-            inValue.CallContext = CallContext;
-            inValue._receiveToReverseXML = _receiveToReverseXML;
-            return ((IM_WMS_SRG_ChangeOpEST.IM_WMS_SRG_ChangeEstOp)(this)).changeOpStateToStartedUpAsync(inValue);
+            inValue._receiveXML = _receiveXML;
+            return ((IM_WMS_SRG_ReporteAsFinishedOPGP.IMReportAsFinishedPROD)(this)).changeOpStateToNotifyAsFinishedAsync(inValue);
         }
         
         public virtual System.Threading.Tasks.Task OpenAsync()
@@ -631,7 +571,7 @@ namespace IM_WMS_SRG_ChangeOpEST
         
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
-            if ((endpointConfiguration == EndpointConfiguration.NetTcpBinding_IM_WMS_SRG_ChangeEstOp))
+            if ((endpointConfiguration == EndpointConfiguration.NetTcpBinding_IMReportAsFinishedPROD))
             {
                 System.ServiceModel.NetTcpBinding result = new System.ServiceModel.NetTcpBinding();
                 result.MaxBufferSize = int.MaxValue;
@@ -644,27 +584,27 @@ namespace IM_WMS_SRG_ChangeOpEST
         
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
-            if ((endpointConfiguration == EndpointConfiguration.NetTcpBinding_IM_WMS_SRG_ChangeEstOp))
+            if ((endpointConfiguration == EndpointConfiguration.NetTcpBinding_IMReportAsFinishedPROD))
             {
-                return new System.ServiceModel.EndpointAddress("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP");
+                return new System.ServiceModel.EndpointAddress("net.tcp://ax3-acc-aos2:8201/DynamicsAx/Services/IMReportAsFinishedOPGP");
             }
             throw new System.InvalidOperationException(string.Format("No se pudo encontrar un punto de conexión con el nombre \"{0}\".", endpointConfiguration));
         }
         
         private static System.ServiceModel.Channels.Binding GetDefaultBinding()
         {
-            return M_WMS_SRG_ChangeEstOpClient.GetBindingForEndpoint(EndpointConfiguration.NetTcpBinding_IM_WMS_SRG_ChangeEstOp);
+            return MReportAsFinishedPRODClient.GetBindingForEndpoint(EndpointConfiguration.NetTcpBinding_IMReportAsFinishedPROD);
         }
         
         private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
         {
-            return M_WMS_SRG_ChangeEstOpClient.GetEndpointAddress(EndpointConfiguration.NetTcpBinding_IM_WMS_SRG_ChangeEstOp);
+            return MReportAsFinishedPRODClient.GetEndpointAddress(EndpointConfiguration.NetTcpBinding_IMReportAsFinishedPROD);
         }
         
         public enum EndpointConfiguration
         {
             
-            NetTcpBinding_IM_WMS_SRG_ChangeEstOp,
+            NetTcpBinding_IMReportAsFinishedPROD,
         }
     }
 }

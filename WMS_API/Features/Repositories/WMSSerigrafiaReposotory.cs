@@ -109,7 +109,8 @@ namespace WMS_API.Features.Repositories
                         Talla = op.Talla,
                         CantidadSolicitada = Convert.ToInt32(op.CantidadSolicitada),
                         CantidadPreparada = Convert.ToInt32(op.CantidadPreparada),
-                        CantidadEmpacada = Convert.ToInt32(op.CantidadEmpacada),
+                        CantidadPrimeras = Convert.ToInt32(op.CantidadPrimeras),
+                        CantidadIrregulares = Convert.ToInt32(op.CantidadIrregulares),
                         EstadoOP = op.EstadoOp
 
                     });
@@ -843,6 +844,50 @@ namespace WMS_API.Features.Repositories
 
             var response = await executeProcedure
                 .ExecuteStoredProcedureList<IM_WMS_SRG_UsuarioAccion>("[IM_WMS_SRG_GetUsuariosPorAccion]", parameters
+                );
+
+            return response;
+        }
+
+        public async Task<List<IM_WMS_SRG_DatosParaNotificarRespuesta>> GetDatosParaNotifcarAX(string ProdMasterId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@ProdMasterId", ProdMasterId),
+                };
+
+            var response = await executeProcedure
+                .ExecuteStoredProcedureList<IM_WMS_SRG_DatosParaNotificarRespuesta>("[IM_WMS_SRG_GetOpsConTallasAxServicio]", parameters
+                );
+
+            return response;
+        }
+
+        public async Task<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores> GetEjecutarNotificadoConErrores()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+
+            var response = await executeProcedure
+                .ExecuteStoredProcedure<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores>("[IM_WMS_SRG_GetEjecutarNotificadoConErrores]", null
+                );
+
+            return response;
+        }
+
+        public async Task<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores> InsertOPConIrregulares(string OP)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parameter = new List<SqlParameter>
+            {
+                new SqlParameter("@WorkOrderId",OP)
+            };
+
+
+            var response = await executeProcedure
+                .ExecuteStoredProcedure<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores>("[IM_WMS_SRG_InsertWorkOrdersNotifiedIrregulars]", parameter
                 );
 
             return response;

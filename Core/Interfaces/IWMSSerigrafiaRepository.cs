@@ -46,5 +46,12 @@ namespace Core.Interfaces
 
         public Task<List<IM_WMS_SRG_UsuarioAccion>> GetUsuariosPorAccion(string accion);
 
+
+        public Task<List<IM_WMS_SRG_DatosParaNotificarRespuesta>> GetDatosParaNotifcarAX(string ProdMasterId);
+        public Task<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores> GetEjecutarNotificadoConErrores();
+        public Task<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores> InsertOPConIrregulares(string OP);
+
+
+
     }
 }

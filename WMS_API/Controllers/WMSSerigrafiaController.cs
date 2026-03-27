@@ -74,6 +74,13 @@ namespace WMS_API.Controllers
 
         }
 
+        [HttpGet("GetEjecutarNotificadoConErrores")]
+        public async Task<ActionResult<IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores>> GetEjecutarNotificadoConErrores()
+        {
+            var resp = await _repository.GetEjecutarNotificadoConErrores();
+            return Ok(resp);
+        }
+
         [HttpPost("CambiarEstadoOpIniciado/{ItemIdBase}")]
         public async Task<ActionResult> CambiarEstadoOpIniciado([FromBody] OpPorBaseDTO opPorBaseDTO, string ItemIdBase)
         {
@@ -98,24 +105,21 @@ namespace WMS_API.Controllers
 
         }
 
-        [HttpPost("CambiarEstadOpTerminado/{ItemIdBase}")]
+        [HttpPost("CambiarEstadOpNotificado/{ItemIdBase}")]
         public async Task<ActionResult> CambiarEstadOpTerminado([FromBody] OpPorBaseDTO opPorBaseDTO, string ItemIdBase)
         {
-            var resp = await _ax.CambioTerminadoEstadoOPSerigrafia(opPorBaseDTO);
 
-            var respuestaGeneraciOP = await _repository.GestionarOPBaseLocal(opPorBaseDTO, ItemIdBase, (int)EstadoOp.NotificadoT);
-            var esCorrecto = resp.Contains("OK");
+            var dataToSend = await _repository.GetDatosParaNotifcarAX(opPorBaseDTO.ProdMasterId);
 
-            if (!esCorrecto)
+            var resp = await _ax.CambioANotificadoEstadoOPSerigrafia(dataToSend);
+
+            await _repository.GestionarOPBaseLocal(opPorBaseDTO, ItemIdBase, (int)EstadoOp.NotificadoT);
+
+            var tallaConIrregulares = dataToSend.Where(x => x.CANTIDADIRREGULARES != 0);
+
+            foreach (var item in tallaConIrregulares)
             {
-                return Ok(resp);
-
-            }
-
-            var seIngresoCorrectamente = respuestaGeneraciOP.Contains("OK");
-            if (!seIngresoCorrectamente)
-            {
-                return Ok($"Se Inicio la OP en AX, pero no se pudo guardar registro local. {respuestaGeneraciOP}");
+                    await _repository.InsertOPConIrregulares(opPorBaseDTO.ProdMasterId);
             }
 
             return Ok(resp);
