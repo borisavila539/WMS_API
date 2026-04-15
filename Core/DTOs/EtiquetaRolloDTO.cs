@@ -7,8 +7,10 @@
         public string QTYTRANSFER { get; set; }
         public string ITEMID { get; set; }
         public string  COLOR { get; set; }
+        public string NOMBRECOLOR { get; set; }
         public string INVENTBATCHID { get; set; }
         public string CONFIGID { get; set; }
         public string PRINT { get; set; }
+        public string NombreProveedor { get; set; }
     }
 }

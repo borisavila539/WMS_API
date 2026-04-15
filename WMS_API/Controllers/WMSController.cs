@@ -1204,6 +1204,43 @@ namespace WMS_API.Controllers
             var resp = await _WMS.imprimirTodasEtiquetasPendientes(journalID);
             return resp;
         }
+
+        [HttpGet("GetDetalleRolloAImprimir")]
+        public async Task<List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>> GetDetalleRolloAImprimir([FromQuery] IM_WMS_FiltroDetalleEtiquetaRolloDTO  filtros)
+        {
+            var resp = await _WMS.Get_DetalleImpresionEtiquetasAImprimir(filtros);
+            return resp;
+        }
+        [HttpPost("ImprimirEtiquetaTejidoPunto")]
+        public async Task<string> ImprimirEtiquetaTejidoPunto([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas)
+        {
+            var resp = await _WMS.ImpresionEtiquetaRolloTejidoPuntoMasivo(etiquetasSelecionadas, "10.1.1.129");
+            return resp;
+        }
+
+        [HttpPost("ImprimirEtiquetaDenim")]
+        public async Task<string> ImprimirEtiquetaDennin([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas)
+        {
+            var datosRolloDennin = new List<EtiquetaRolloDTO>();
+            etiquetasSelecionadas.ForEach(ele =>
+            {
+                var etiqueta = new EtiquetaRolloDTO();
+                etiqueta.INVENTSERIALID = ele.NumeroRollo;
+                etiqueta.APVENDROLL = ele.NumeroRolloProveedor;
+                etiqueta.QTYTRANSFER = ele.Cantidad.ToString();
+                etiqueta.ITEMID = ele.Tela;
+                etiqueta.COLOR = ele.Color;
+                etiqueta.NOMBRECOLOR = ele.NombreColor;
+                etiqueta.INVENTBATCHID = ele.Lote;
+                etiqueta.CONFIGID = ele.Configuracion;
+                etiqueta.PRINT = "10.1.1.129";
+                etiqueta.NombreProveedor = ele.NombreProveedor;
+                datosRolloDennin.Add(etiqueta);
+            });
+            
+            var resp = await _WMS.postImprimirEtiquetaRollo(datosRolloDennin);
+            return resp;
+        }
     }
     
 }

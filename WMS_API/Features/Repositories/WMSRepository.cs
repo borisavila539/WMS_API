@@ -364,16 +364,8 @@ namespace WMS_API.Features.Repositories
         }
         public async Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
-            string etiqueta = "";
-
-            etiqueta += "^XA^CF0,22^BY3,2,100";
-            etiqueta += $"^FO200,50^BC^FD{data[0].INVENTSERIALID}^FS";
-            etiqueta += $"^FO50,220^FDProveedor: {data[0].APVENDROLL}^FS";
-            etiqueta += $"^FO500,220^FDCantidad: {data[0].QTYTRANSFER} {(data[0].ITEMID.Substring(0, 2) == "45" ? "lb" : "yd")}^FS";
-            etiqueta += $"^FO50,250^FDTela: {data[0].ITEMID}^FS";
-            etiqueta += $"^FO500,250^FDColor: {data[0].COLOR}^FS";
-            etiqueta += $"^FO50,280^FDLote: {data[0].INVENTBATCHID}^FS";
-            etiqueta += $"^FO500,280^FDConfiguracion: {data[0].CONFIGID}^FS^XZ";
+            
+          
 
             try
             {
@@ -381,8 +373,21 @@ namespace WMS_API.Features.Repositories
                 {
                     using (NetworkStream stream = client.GetStream())
                     {
+                        data.ForEach(e => {
+                        string etiqueta = "";
+
+                        etiqueta += "^XA^CF0,22^BY3,2,100";
+                        etiqueta += $"^FO200,50^BC^FD{e.INVENTSERIALID}^FS";
+                        etiqueta += $"^FO50,220^FDProveedor: {e.APVENDROLL}^FS";
+                        etiqueta += $"^FO50,250^FDRollo Proveedor: {e.APVENDROLL}^FS";
+                        etiqueta += $"^FO500,220^FDCantidad: {e.QTYTRANSFER} {(e.ITEMID.Substring(0, 2) == "45" ? "lb" : "yd")}^FS";
+                        etiqueta += $"^FO50,280^FDTela: {e.ITEMID}^FS";
+                        etiqueta += $"^FO500,250^FDColor: {e.COLOR}- {e.NOMBRECOLOR}^FS";
+                        etiqueta += $"^FO50,300^FDLote: {e.INVENTBATCHID}^FS";
+                        etiqueta += $"^FO500,280^FDConfiguracion: {e.CONFIGID}^FS^XZ";
                         byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
                         stream.Write(bytes, 0, bytes.Length);
+                      });
 
                     }
 
@@ -4860,7 +4865,97 @@ namespace WMS_API.Features.Repositories
             return "OK";
         }
 
-        
+        public async Task<List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>> Get_DetalleImpresionEtiquetasAImprimir(IM_WMS_FiltroDetalleEtiquetaRolloDTO filtro)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+        {
+            new SqlParameter("@INVENTBATCHID", filtro.InventBatchId),
+            new SqlParameter("@TIPO", filtro.TipoEtiqueta),
+            new SqlParameter("@INVENTCOLORID", filtro.InventColorId ?? string.Empty),
+            new SqlParameter("@CONFIGID", filtro.ConfigId ?? string.Empty),
+            new SqlParameter("@PROVEEDOR", filtro.Proveedor ?? string.Empty),
+            new SqlParameter("@ROLLPROVEEDOR", filtro.RolloProveedor ?? string.Empty),
+            new SqlParameter("@CANTIDAD", (object?)filtro.Cantidad ?? DBNull.Value)
+        };
+
+                return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>(
+                    "[dbo].[IM_WMS_GetDetalleEtiquetaRollosAImprimir]",
+                    parametros);
+        }
+
+
+        public async Task<string> ImpresionEtiquetaRolloTejidoPuntoMasivo(List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> data, string printerIp)
+        {
+            if (data == null || data.Count == 0)
+                return "No se recibió información para imprimir.";
+
+            try
+            {
+                using (TcpClient client = new TcpClient(printerIp, 9100))
+                using (NetworkStream stream = client.GetStream())
+                {
+                    foreach (var item in data)
+                    {
+                        string numeroRollo = item.NumeroRollo ?? "";
+                        string numeroRolloProveedor = item.NumeroRolloProveedor ?? "";
+                        string cantidad = item.Cantidad.ToString();
+                        string tela = item.Tela ?? "";
+                        string color = item.Color ?? "";
+                        string lote = item.Lote ?? "";
+                        string configuracion = item.Configuracion ?? "";
+                        string unidad = item.Unidad ?? "";
+
+                        string etiqueta = "";
+                        etiqueta += "^XA";
+                        etiqueta += "^PW800";
+                        etiqueta += "^LL300";
+                        etiqueta += "^LH0,40";
+                        etiqueta += "^CI28";
+
+                        etiqueta += "^CF0,22";
+
+                        etiqueta += $"^FO40,30^FD{numeroRollo}^FS";
+
+                        etiqueta += "^FO500,30^FDCantidad:^FS";
+                        etiqueta += $"^FO650,30^FD{cantidad} {unidad}^FS";
+
+                        etiqueta += "^FO180,70";
+                        etiqueta += "^BY3,3,90";
+                        etiqueta += "^BCN,90,N,N,N";
+                        etiqueta += $"^FD{numeroRollo}^FS";
+
+                        etiqueta += "^FO40,190^FDTela:^FS";
+                        etiqueta += $"^FO140,190^FD{tela}^FS";
+
+                        etiqueta += "^FO400,190^FDColor:^FS";
+                        etiqueta += $"^FO480,190^FD{color}^FS";
+
+                        etiqueta += "^FO580,190^FDConfig:^FS";
+                        etiqueta += $"^FO660,190^FD{configuracion}^FS";
+
+                        etiqueta += "^FO40,235^FDLote:^FS";
+                        etiqueta += $"^FO140,235^FD{lote}^FS";
+
+                        etiqueta += "^FO400,235^FDProveedor:^FS";
+                        etiqueta += $"^FO550,235^FD{numeroRolloProveedor}^FS";
+
+                        etiqueta += "^XZ";
+
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                        await stream.WriteAsync(bytes, 0, bytes.Length);
+                    }
+                }
+
+                return "OK";
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+        }
+
     }
    
 }
