@@ -364,33 +364,47 @@ namespace WMS_API.Features.Repositories
         }
         public async Task<string> postImprimirEtiquetaRollo(List<EtiquetaRolloDTO> data)
         {
-            
-          
-
             try
             {
                 using (TcpClient client = new TcpClient(data[0].PRINT, 9100))
                 {
                     using (NetworkStream stream = client.GetStream())
                     {
-                        data.ForEach(e => {
-                        string etiqueta = "";
+                        data.ForEach(e =>
+                        {
+                            string unidad = e.ITEMID.Substring(0, 2) == "45" ? "lb" : "yd";
+                            string tipoTela = e.NombreBusqueda.Split(" ")[0];
+                            string etiqueta = "";
 
-                        etiqueta += "^XA^CF0,22^BY3,2,100";
-                        etiqueta += $"^FO200,50^BC^FD{e.INVENTSERIALID}^FS";
-                        etiqueta += $"^FO50,220^FDProveedor: {e.APVENDROLL}^FS";
-                        etiqueta += $"^FO50,250^FDRollo Proveedor: {e.APVENDROLL}^FS";
-                        etiqueta += $"^FO500,220^FDCantidad: {e.QTYTRANSFER} {(e.ITEMID.Substring(0, 2) == "45" ? "lb" : "yd")}^FS";
-                        etiqueta += $"^FO50,280^FDTela: {e.ITEMID}^FS";
-                        etiqueta += $"^FO500,250^FDColor: {e.COLOR}- {e.NOMBRECOLOR}^FS";
-                        etiqueta += $"^FO50,300^FDLote: {e.INVENTBATCHID}^FS";
-                        etiqueta += $"^FO500,280^FDConfiguracion: {e.CONFIGID}^FS^XZ";
-                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
-                        stream.Write(bytes, 0, bytes.Length);
-                      });
+                            etiqueta += "^XA";
+                            etiqueta += "^CF0,22";
+                            etiqueta += "^BY3,2,100";
 
+                            // Código de barras
+                            etiqueta += $"^FO180,50^BCN,100,Y,N,N^FD{e.INVENTSERIALID}^FS";
+
+                            // Columna izquierda
+                            etiqueta += $"^FO50,190^FDProveedor: {e.NombreProveedor}^FS";
+                            etiqueta += $"^FO50,215^FDRollo Proveedor: {e.APVENDROLL}^FS";
+                            etiqueta += $"^FO50,240^FDTela: {e.ITEMID}^FS";
+                            etiqueta += $"^FO50,265^FDLote: {e.INVENTBATCHID}^FS";
+                            etiqueta += $"^FO50,290^FDAuditor: {e.Auditor ?? ""}^FS";
+                            etiqueta += $"^FO50,315^FDPPM2: {e.PPM2 ?? ""}^FS";
+                            etiqueta += $"^FO50,340^FDComentario: {e.Comentario ?? ""}^FS";
+
+                            // Columna derecha
+                            etiqueta += $"^FO500,215^FDCantidad: {e.QTYTRANSFER} {unidad}^FS";
+                            etiqueta += $"^FO500,240^FDColor: {e.COLOR}- {e.NOMBRECOLOR}^FS";
+                            etiqueta += $"^FO500,265^FDConfiguracion: {e.CONFIGID}^FS";
+                            etiqueta += $"^FO500,290^FDTela: {tipoTela}^FS";
+                            etiqueta += $"^FO500,315^FDFecha: {e.FechaCreacion.ToString("dd/MM/yyyy") ?? ""}^FS";
+
+                            etiqueta += "^XZ";
+
+                            byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+                            stream.Write(bytes, 0, bytes.Length);
+                        });
                     }
-
                 }
                 return "OK";
             }
@@ -4868,21 +4882,28 @@ namespace WMS_API.Features.Repositories
         public async Task<List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>> Get_DetalleImpresionEtiquetasAImprimir(IM_WMS_FiltroDetalleEtiquetaRolloDTO filtro)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            try
+            {
 
-            var parametros = new List<SqlParameter>
-        {
-            new SqlParameter("@INVENTBATCHID", filtro.InventBatchId),
-            new SqlParameter("@TIPO", filtro.TipoEtiqueta),
-            new SqlParameter("@INVENTCOLORID", filtro.InventColorId ?? string.Empty),
-            new SqlParameter("@CONFIGID", filtro.ConfigId ?? string.Empty),
-            new SqlParameter("@PROVEEDOR", filtro.Proveedor ?? string.Empty),
-            new SqlParameter("@ROLLPROVEEDOR", filtro.RolloProveedor ?? string.Empty),
-            new SqlParameter("@CANTIDAD", (object?)filtro.Cantidad ?? DBNull.Value)
-        };
+                var parametros = new List<SqlParameter>
+                {
+                    new SqlParameter("@INVENTBATCHID", filtro.InventBatchId ?? string.Empty),
+                    new SqlParameter("@TIPO", filtro.TipoEtiqueta),
+                    new SqlParameter("@INVENTCOLORID", filtro.InventColorId ?? string.Empty),
+                    new SqlParameter("@CONFIGID", filtro.ConfigId ?? string.Empty),
+                    new SqlParameter("@PROVEEDOR", filtro.Proveedor ?? string.Empty),
+                    new SqlParameter("@ROLLPROVEEDOR", filtro.RolloProveedor ?? string.Empty),
+                    new SqlParameter("@CANTIDAD", (object?)filtro.Cantidad ?? DBNull.Value)
+                };
 
                 return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>(
-                    "[dbo].[IM_WMS_GetDetalleEtiquetaRollosAImprimir]",
-                    parametros);
+                    "[IM_WMS_GetDetalleEtiquetaRollosAImprimir]",parametros);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
 

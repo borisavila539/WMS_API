@@ -1,4 +1,6 @@
-﻿namespace Core.DTOs
+﻿using System;
+
+namespace Core.DTOs
 {
     public class EtiquetaRolloDTO
     {
@@ -12,5 +14,10 @@
         public string CONFIGID { get; set; }
         public string PRINT { get; set; }
         public string NombreProveedor { get; set; }
+        public string Auditor { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string Comentario { get; set; }
+        public string PPM2 { get; set; }
+        public string NombreBusqueda { get; set; }
     }
 }

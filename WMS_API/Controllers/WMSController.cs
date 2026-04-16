@@ -1235,6 +1235,11 @@ namespace WMS_API.Controllers
                 etiqueta.CONFIGID = ele.Configuracion;
                 etiqueta.PRINT = "10.1.1.129";
                 etiqueta.NombreProveedor = ele.NombreProveedor;
+                etiqueta.Auditor = ele.Auditor;
+                etiqueta.FechaCreacion = ele.FechaCreacion;
+                etiqueta.Comentario = ele.Comentario;
+                etiqueta.PPM2 = ele.PPM2;
+                etiqueta.NombreBusqueda = ele.NombreBusqueda;
                 datosRolloDennin.Add(etiqueta);
             });
             

@@ -22,5 +22,9 @@ namespace Core.DTOs
         public string Ubicacion { get; set; }
         public decimal Cantidad { get; set; }
         public string Unidad { get; set; }
+        public string Auditor { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string Comentario { get; set; }
+        public string PPM2 { get; set; }
     }
 }
