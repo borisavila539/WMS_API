@@ -172,6 +172,7 @@ namespace Core.Interfaces
 
         public Task<List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO>> Get_DetalleImpresionEtiquetasAImprimir(IM_WMS_FiltroDetalleEtiquetaRolloDTO filtro);
         public Task<string> ImpresionEtiquetaRolloTejidoPuntoMasivo(List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> data, string printerIp);
+        public Task<string> ImprimirEtiquetaRolloDenim(List<EtiquetaRolloDTO> data);
 
 
 
