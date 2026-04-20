@@ -24,6 +24,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using WMS_API.Features.Repositories;
 using WMS_API.Features.Utilities;
 
 namespace WMS_API.Controllers
@@ -1243,7 +1244,7 @@ namespace WMS_API.Controllers
                 datosRolloDennin.Add(etiqueta);
             });
             
-            var resp = await _WMS.postImprimirEtiquetaRollo(datosRolloDennin);
+            var resp = await _WMS.ImprimirEtiquetaRolloDenim(datosRolloDennin);
             return resp;
         }
     }
