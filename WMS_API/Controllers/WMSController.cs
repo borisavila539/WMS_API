@@ -1243,7 +1243,7 @@ namespace WMS_API.Controllers
                 datosRolloDennin.Add(etiqueta);
             });
             
-            var resp = await _WMS.postImprimirEtiquetaRollo(datosRolloDennin);
+            var resp = await _WMS.ImprimirEtiquetaRolloDenim(datosRolloDennin);
             return resp;
         }
     }
