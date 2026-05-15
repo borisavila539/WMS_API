@@ -11,6 +11,8 @@ using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.Serigrafia;
+using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -407,6 +409,31 @@ namespace WMS_API.Controllers
 
         //Liquidacion de la orden
         //Despachos Recibidos
+
+        [HttpPost("ConfirmacionRecepcionDePedidoDeCompra")]
+        public async Task<ActionResult> ConfirmacionDePedidoDeCompra([FromBody] ConfirmacionRecepcionDTO PC)
+        {
+            var response = await _AX.ConfirmacionRecepcionDePedidoDeCompra(PC);
+
+            return Ok(response);
+        }
+
+        [HttpPost("NotificacionSubcontratacionTejidoPunto/{OP}")]
+        public async Task<ActionResult> NotificacionSubcontratacionTejidoPunto( string OP)
+        {
+            var data = await _WMS.GetDetalleNotificado(OP);
+            var response = await _AX.NotificacionSubcontratacionTejidoPunto(data);
+
+            return Ok(response);
+        }
+
+        [HttpGet("BuscarVendPackingSlipJour/{secuencia}/{proveedor}")]
+        public async Task<ActionResult<IEnumerable<BuscarVendPackingSlipJourDto>>> BuscarVendPackingSlipJour(string secuencia, string proveedor)
+        {
+            var resp = await _WMS.BuscarVendPackingSlipJour(secuencia, proveedor);
+            return Ok(resp);
+        }
+
         [HttpGet("DespachoRecibidoLiquidacion/{DespachoID}")]
         public async Task<ActionResult<IEnumerable<IM_WMS_DespachosRecibidosLiquidacionDTO>>> getDespachosRecibidosLiquidacion(int DespachoID)
         {

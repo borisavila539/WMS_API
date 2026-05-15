@@ -13,6 +13,7 @@ using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Reduccion_Cajas;
+using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +46,7 @@ namespace WMS_API.Features.Repositories
 
         public WMSRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzas");
+            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
             _ImpresoraDevolucion = "192.168.10.128";
             //_ImpresoraDevolucion = "10.1.1.208";
@@ -2319,6 +2320,27 @@ namespace WMS_API.Features.Repositories
         }
 
         //
+        public async Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@ProdID", OP)
+            };
+            List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>("[IM_WMS_NotificarSubcontratacionTejidoPunto]", parametros);
+            return response;
+        }
+        public async Task<List<BuscarVendPackingSlipJourDto>> BuscarVendPackingSlipJour(string secuencia, string proveedor)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Secuencia", secuencia),
+                new SqlParameter("@OrderAccount", proveedor)
+            };
+            List<BuscarVendPackingSlipJourDto> response = await executeProcedure.ExecuteStoredProcedureList<BuscarVendPackingSlipJourDto>("[IM_WMS_BuscarVendPackingSlipJour]", parametros);
+            return response;
+        }
 
         public async Task<List<IM_WMS_Detalle_Diario_Transferir_CorreoDTO>> getDetalle_Diario_Transferir_Correo(string JournalID)
         {

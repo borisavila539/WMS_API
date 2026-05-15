@@ -15,6 +15,8 @@ namespace Core.DTOs.Despacho_PT.Liquidacion
         public string Size { get; set; }
         public int Enviado { get; set; }
         public int Recibido { get; set; }
-
+        public int ProdStatus { get; set; }
+        public int Cortado { get; set; }
+        public int CumpleBOM { get; set; }
     }
 }

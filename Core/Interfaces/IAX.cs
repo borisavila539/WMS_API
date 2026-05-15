@@ -1,6 +1,8 @@
 ﻿using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Serigrafia;
+using Core.DTOs.Serigrafia.ClaseRespuesta;
+using Core.DTOs.TejidoPunto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -21,5 +23,7 @@ namespace Core.Interfaces
         public Task<string> AjustarCantidadPorOP(OpPorBaseDTO orden);
         public Task<string> CrearTrasladosPorArticulo(TrasladoDTO trasladoDTO);
         public string CrearDiario(DiarioHeaderDTO headerDTO, DiarioLineasDTO lineasDTO, string accíon);
+        public Task<List<Respuesta<string>>> NotificacionSubcontratacionTejidoPunto(List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO> datos);
+        public Task<string> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion);
     }
 }
