@@ -11,7 +11,8 @@ namespace Core.DTOs.Serigrafia
         public string Talla {  get; set; }
         public int CantidadSolicitada { get; set; }
         public int CantidadPreparada { get; set; }
-        public int CantidadEmpacada { get; set; }
+        public int CantidadPrimeras { get; set; }
+        public int CantidadIrregulares { get; set; }
         public int EstadoOP { get; set; }
 
     }

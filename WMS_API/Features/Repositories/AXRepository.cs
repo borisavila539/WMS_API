@@ -3,6 +3,7 @@ using Core.DTOs.Cajasrecicladas;
 using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Serigrafia;
+using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.Interfaces;
 using IM_PreparacionDeOpGP;
 using IM_WMS_CajaRecladasGP;
@@ -10,6 +11,7 @@ using IM_WMS_MoviminetoWS;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_SRG_ChangeOpEST;
 using IM_WMS_SRG_ProductDispatchGP;
+using IM_WMS_SRG_ReporteAsFinishedOPGP;
 using IM_WMS_Traslado_Enviar_Recibir;
 using OfficeOpenXml.Utils;
 using ServiceReference1;
@@ -489,7 +491,6 @@ namespace WMS_API.Features.Repositories
                 // Llamada al servicio
                 var resp = await serviceClient.changeOpStateToStartedUpAsync(context, xmlInput);
 
-                // XmlToHtmlUsingLinq(resp.response.ToString());
                 return resp.response.ToString();
             }
             catch (Exception ex)
@@ -498,16 +499,18 @@ namespace WMS_API.Features.Repositories
             }
         }
 
-        public async Task<string> CambioTerminadoEstadoOPSerigrafia(OpPorBaseDTO orden)
+        public async Task<List<Respuesta<string>>> CambioANotificadoEstadoOPSerigrafia(List<IM_WMS_SRG_DatosParaNotificarRespuesta> datos)
         {
-            IM_WMS_SRG_ChangeOpEST.CallContext context = new IM_WMS_SRG_ChangeOpEST.CallContext
+             List<Respuesta<string>> respuestas = new List<Respuesta<string>>();
+             IM_WMS_SRG_ReporteAsFinishedOPGP.CallContext context = new IM_WMS_SRG_ReporteAsFinishedOPGP.CallContext
             {
                 Company = "IMHN"
-            };
+            }
+            ;
 
-            var serviceClient = new M_WMS_SRG_ChangeEstOpClient(
+            var serviceClient = new MReportAsFinishedPRODClient(
                 GetBindingGeneric("NetTcpBinding_IMChangeEstadoOP"),
-                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_SRG_ChangEstOP")
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IMReportAsFinishedOPGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -515,34 +518,63 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-                // Construcción del XML basado en la estructura solicitada
-                var xml = new StringBuilder();
-                xml.Append("<INTEGRATION>");
-                xml.Append("<COMPANIES>");
-
-                foreach (var talla in orden.Tallas)
+                foreach (var dato in datos)
                 {
+                    var xml = new StringBuilder();
+                    xml.Append("<INTEGRATION>");
                     xml.Append("<COMPANY>");
-                    xml.AppendFormat("<CODE>{0}</CODE>", "IMHN");
-                    xml.AppendFormat("<PRODUCTIONORDER>{0}</PRODUCTIONORDER>", orden.ProdMasterId);
-                    xml.AppendFormat("<ITEMID>{0}</ITEMID>", orden.ItemIdEstilo);
-                    xml.AppendFormat("<SIZEID>{0}</SIZEID>", talla.Talla);
+                    xml.AppendFormat("<PRODID>{0}</PRODID>", dato.PRODID);
+                    xml.AppendFormat("<CANTIDADPRIMERAS>{0}</CANTIDADPRIMERAS>", dato.CANTIDADPRIMERAS);
+                    xml.AppendFormat("<CANTIDADIRREGULARES>{0}</CANTIDADIRREGULARES>", dato.CANTIDADIRREGULARES);
+                    xml.AppendFormat("<DESCRIPCIONDIARIO>{0}</DESCRIPCIONDIARIO>", dato.DESCRIPCIONDIARIO);
+                    xml.AppendFormat("<BOXNUM>{0}</BOXNUM>", dato.BOXNUM);
+                    xml.AppendFormat("<ACEPTARERROR>{0}</ACEPTARERROR>", dato.ACEPTARERROR);
                     xml.Append("</COMPANY>");
+                    xml.Append("</INTEGRATION>");
+
+                    string xmlInput = xml.ToString();
+
+                    // Llamada al servicio
+                    var resp = await serviceClient.changeOpStateToNotifyAsFinishedAsync(context, xmlInput);
+                    string xmlResponse = resp.response?.ToString();
+                    if (!string.IsNullOrEmpty(xmlResponse))
+                    {
+                        XDocument xmlDoc = XDocument.Parse(xmlResponse);
+                        var respuesta = xmlDoc.Descendants("Respuesta").FirstOrDefault()?.Value;
+                        var codigo = respuesta.Split('|')[0].Replace("Código:", "").Trim();
+                        var estado = respuesta.Split('|')[1].Replace("Estado:", "").Trim();
+                        var mensaje = respuesta.Split('|')[3].Replace("Mensaje:", "").Trim();
+                        if (estado == "Éxito")
+                        {
+                            respuestas.Add(new Respuesta<string>
+                            {
+                                Exito = true,
+                                Mensaje = mensaje,
+                                Datos = codigo.ToString()
+                            });
+                        }
+                        else
+                        {
+                            respuestas.Add(new Respuesta<string>
+                            {
+                                Exito = false,
+                                Mensaje = mensaje,
+                                Datos = codigo.ToString()
+                            });
+                        }
+
+                    }
                 }
-
-                xml.Append("</COMPANIES>");
-                xml.Append("</INTEGRATION>");
-
-                string xmlInput = xml.ToString();
-
-                // Llamada al servicio
-                var resp = await serviceClient.changeOpStateToNotifyAsFinishedAsync(context, xmlInput);
-
-                return resp.response.ToString();
+                return respuestas;
             }
             catch (Exception ex)
             {
-                return ex.ToString();
+                respuestas.Add(new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = ex.ToString(),
+                });
+                return respuestas;  
             }
         }
         public async Task<string> AjustarCantidadPorOP(OpPorBaseDTO orden)
