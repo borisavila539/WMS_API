@@ -47,7 +47,7 @@ namespace WMS_API.Features.Repositories
 
         public WMSRepository(IConfiguration configuracion)
         {
-            _connectionString = configuracion.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuracion.GetConnectionString("IMFinanzas");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
             _ImpresoraDevolucion = "192.168.10.128";
             //_ImpresoraDevolucion = "10.1.1.208";

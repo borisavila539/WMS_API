@@ -8,6 +8,6 @@ namespace Core.DTOs.TejidoPunto
 {
     public class RespuestaInsertarRecepcionSubcontratacion
     {
-        public string ID { get; set; }
+        public string IDInsertado { get; set; }
     }
 }

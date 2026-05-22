@@ -680,7 +680,7 @@ namespace WMS_API.Features.Repositories
         {
             Respuesta<string> respuestas = new Respuesta<string>();
             ConfirmacionRecepcionXML confirmacionXml = new ConfirmacionRecepcionXML();
-
+            bool esconfirmacion = confirmacionRecepcion.Action == "CONFIRM_PC";
             confirmacionXml .Action = confirmacionRecepcion.Action;
             confirmacionXml.PurchId = confirmacionRecepcion.PurchId;
             confirmacionXml.PackingSlipId = confirmacionRecepcion.PackingSlipId;
@@ -716,7 +716,7 @@ namespace WMS_API.Features.Repositories
                         respuestas = new Respuesta<string>
                         {
                             Exito = true,
-                            Mensaje = confirmacionRecepcion.Action.Contains("CONFIRM_PC") ? "Confirmada exitosamente." : "Recepción realizada exitosamente."
+                            Mensaje = esconfirmacion ? "Confirmada exitosamente." : "Recepción realizada exitosamente."
                         };
                     }
                     else
