@@ -14,5 +14,6 @@ namespace Core.DTOs.TejidoPunto
         public string DESCRIPCIONDIARIO { get; set; }
         public string ACEPTARERROR { get; set; }
         public string UBICACION { get; set; }
+
     }
 }

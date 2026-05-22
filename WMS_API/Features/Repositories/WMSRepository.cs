@@ -13,6 +13,7 @@ using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Reduccion_Cajas;
+using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
@@ -2395,6 +2396,50 @@ namespace WMS_API.Features.Repositories
             return response;
         }
 
+        public async Task<Respuesta<string>> InsertarRecepcionSubcontratacion(string prodmasterid, string packingListId, decimal qtyReceive)
+        {
+            try
+            {
+                Respuesta<string> respuesta = new Respuesta<string>();
+                
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parametros = new List<SqlParameter>
+                {
+                    new SqlParameter("@PRODMASTERID", prodmasterid),
+                    new SqlParameter("@PackingListId", packingListId),
+                    new SqlParameter("@TOTALPACKING", qtyReceive)
+                };
+                var response = await executeProcedure.ExecuteStoredProcedure<RespuestaInsertarRecepcionSubcontratacion>("[IM_WMS_InsertarRecepcionSubcontratacion]", parametros);
+                if(response == null)
+                {
+                    respuesta = new Respuesta<string>
+                    {
+                        Exito = false,
+                        Mensaje = "No se insertó la recepción en la base de datos local"
+                    };
+                    return respuesta;
+                }
+                else
+                {
+                    respuesta = new Respuesta<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Recepción insertada correctamente"
+                    };
+                    return respuesta;
+                }
+            }
+            catch (Exception ex)
+            {
+              return new Respuesta<string>
+              {
+                  Exito = false,
+                  Mensaje = ex.Message
+              };
+            }
+       
+        }
+
         public async Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -2422,6 +2467,25 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
+        public async Task<IM_WMS_UsuarioPorPantallaDTO> GetPermisoUsuarioPorPantalla(string numeroColaborador, string pantalla)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@NumeroColaborador", numeroColaborador),
+                new SqlParameter("@Pantalla", pantalla)
+            };
+
+            IM_WMS_UsuarioPorPantallaDTO response =
+                await executeProcedure.ExecuteStoredProcedure<IM_WMS_UsuarioPorPantallaDTO>(
+                    "[IM_WMS_ConsultarPermisoUsuarioPantalla]",
+                    parametros
+                );
+
+            return response;
+        }
+
 
         //Inventario cicliclo de telas
         public async Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos()

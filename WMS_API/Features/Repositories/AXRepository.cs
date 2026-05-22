@@ -642,7 +642,7 @@ namespace WMS_API.Features.Repositories
                         var respuesta = xmlDoc.Descendants("Respuesta").FirstOrDefault()?.Value;
                         var codigo = respuesta.Split('|')[0].Replace("Código:", "").Trim();
                         var estado = respuesta.Split('|')[1].Replace("Estado:", "").Trim();
-                        var mensaje = respuesta.Split('|')[3].Replace("Mensaje:", "").Trim();
+                        var mensaje = respuesta.Split('|')[2].Replace("Mensaje:", "").Trim();
                         if (estado == "Éxito")
                         {
                             respuestas.Add(new Respuesta<string>
@@ -676,9 +676,9 @@ namespace WMS_API.Features.Repositories
                 return respuestas;
             }
         }
-        public async Task<string> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion)
+        public async Task<Respuesta<string>> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion)
         {
-
+            Respuesta<string> respuestas = new Respuesta<string>();
             ConfirmacionRecepcionXML confirmacionXml = new ConfirmacionRecepcionXML();
 
             confirmacionXml .Action = confirmacionRecepcion.Action;
@@ -704,11 +704,40 @@ namespace WMS_API.Features.Repositories
             try
             {
                 var resp = await serviceClient.initConfirmacionRecepcionXMLAsync(context, XML);
-                return resp.response.ToString();
+                string xmlResponse = resp.response?.ToString();
+                if (!string.IsNullOrEmpty(xmlResponse))
+                {
+                    XDocument xmlDoc = XDocument.Parse(xmlResponse);
+                    var respuestaxml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
+                    var estado = respuestaxml.Split('|')[0].Replace("Estado:", "").Trim();
+                    var mensaje = respuestaxml.Split('|')[1].Replace("Mensaje:", "").Trim();
+                    if (estado == "Éxito")
+                    {
+                        respuestas = new Respuesta<string>
+                        {
+                            Exito = true,
+                            Mensaje = confirmacionRecepcion.Action.Contains("CONFIRM_PC") ? "Confirmada exitosamente." : "Recepción realizada exitosamente."
+                        };
+                    }
+                    else
+                    {
+                        respuestas = new Respuesta<string>
+                        {
+                            Exito = false,
+                            Mensaje = mensaje,
+                        };
+                    }
+                }
+                return respuestas;
             }
             catch (Exception ex)
             {
-                return ex.ToString();
+                respuestas = new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = ex.ToString()
+                };
+                return respuestas;
             }
 
         }

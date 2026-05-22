@@ -11,6 +11,7 @@ using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using System.Collections.Generic;
@@ -20,6 +21,9 @@ namespace Core.Interfaces
 {
     public interface IWMSRepository
     {
+        //usuario por pantalla
+        public Task<IM_WMS_UsuarioPorPantallaDTO> GetPermisoUsuarioPorPantalla(string numeroColaborador, string pantalla);
+        //
         public Task<LoginDTO> PostLogin(LoginDTO datos);
         public Task<List<DiariosAbiertosDTO>> GetDiariosAbiertos(string user, string filtro);
         public Task<List<LineasDTO>> GetLineasDiario(string diario);
@@ -96,6 +100,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>> GetDetalleOrdenRecibidaLiquidacion(int despachoID, string ProdCutSheetID);
         public Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP);
         public Task<List<BuscarVendPackingSlipJourDto>> BuscarVendPackingSlipJour(string secuencia, string proveedor);
+        public Task<Respuesta<string>> InsertarRecepcionSubcontratacion(string prodmasterid,string packingListId, decimal qtyReceive);
 
         //inventario cliclico de telas
         public Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos();

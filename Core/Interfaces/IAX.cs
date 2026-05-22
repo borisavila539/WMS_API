@@ -24,6 +24,6 @@ namespace Core.Interfaces
         public Task<string> CrearTrasladosPorArticulo(TrasladoDTO trasladoDTO);
         public string CrearDiario(DiarioHeaderDTO headerDTO, DiarioLineasDTO lineasDTO, string accíon);
         public Task<List<Respuesta<string>>> NotificacionSubcontratacionTejidoPunto(List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO> datos);
-        public Task<string> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion);
+        public Task<Respuesta<string>> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion);
     }
 }
