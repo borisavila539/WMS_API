@@ -8,6 +8,7 @@ using Core.Interfaces;
 using IM_PreparacionDeOpGP;
 using IM_WMS_CajaRecladasGP;
 using IM_WMS_MoviminetoWS;
+using IM_WMS_RecepcionSubcontratacionGP;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_SRG_ChangeOpEST;
 using IM_WMS_SRG_ProductDispatchGP;
@@ -624,6 +625,122 @@ namespace WMS_API.Features.Repositories
             {
                 return ex.ToString();
             }
+        }
+
+        public async Task<List<Respuesta<string>>> NotificacionSubcontratacionTejidoPunto(List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO> datos)
+        {
+            List<Respuesta<string>> respuestas = new List<Respuesta<string>>();
+            IM_WMS_RecepcionSubcontratacionGP.CallContext context = new IM_WMS_RecepcionSubcontratacionGP.CallContext
+            {
+                Company = "IMHN"
+            }
+           ;
+
+            var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
+                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
+                 GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+             );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+
+            try
+            {
+                foreach (var dato in datos)
+                {
+                    var xml = new StringBuilder();
+                    xml.Append("<INTEGRATION>");
+                    xml.Append("<COMPANY>");
+                    xml.AppendFormat("<PRODID>{0}</PRODID>", dato.PRODID);
+                    xml.AppendFormat("<CANTIDADPRIMERAS>{0}</CANTIDADPRIMERAS>", dato.CANTIDADPRIMERAS);
+                    xml.AppendFormat("<CANTIDADIRREGULARES>{0}</CANTIDADIRREGULARES>", dato.CANTIDADIRREGULARES);
+                    xml.AppendFormat("<DESCRIPCIONDIARIO>{0}</DESCRIPCIONDIARIO>", dato.DESCRIPCIONDIARIO);
+                    xml.AppendFormat("<ACEPTARERROR>{0}</ACEPTARERROR>", dato.ACEPTARERROR);
+                    xml.AppendFormat("<UBICACION>{0}</UBICACION>", dato.UBICACION);
+                    xml.Append("</COMPANY>");
+                    xml.Append("</INTEGRATION>");
+
+                    string xmlInput = xml.ToString();
+
+                    // Llamada al servicio
+                    var resp = await serviceClient.initReportAsFinishedXmlAsync(context, xmlInput);
+                    string xmlResponse = resp.response?.ToString();
+                    if (!string.IsNullOrEmpty(xmlResponse))
+                    {
+                        XDocument xmlDoc = XDocument.Parse(xmlResponse);
+                        var respuesta = xmlDoc.Descendants("Respuesta").FirstOrDefault()?.Value;
+                        var codigo = respuesta.Split('|')[0].Replace("Código:", "").Trim();
+                        var estado = respuesta.Split('|')[1].Replace("Estado:", "").Trim();
+                        var mensaje = respuesta.Split('|')[3].Replace("Mensaje:", "").Trim();
+                        if (estado == "Éxito")
+                        {
+                            respuestas.Add(new Respuesta<string>
+                            {
+                                Exito = true,
+                                Mensaje = mensaje,
+                                Datos = codigo.ToString()
+                            });
+                        }
+                        else
+                        {
+                            respuestas.Add(new Respuesta<string>
+                            {
+                                Exito = false,
+                                Mensaje = mensaje,
+                                Datos = codigo.ToString()
+                            });
+                        }
+
+                    }
+                }
+                return respuestas;
+            }
+            catch (Exception ex)
+            {
+                respuestas.Add(new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = ex.ToString(),
+                });
+                return respuestas;
+            }
+        }
+        public async Task<string> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion)
+        {
+
+            ConfirmacionRecepcionXML confirmacionXml = new ConfirmacionRecepcionXML();
+
+            confirmacionXml .Action = confirmacionRecepcion.Action;
+            confirmacionXml.PurchId = confirmacionRecepcion.PurchId;
+            confirmacionXml.PackingSlipId = confirmacionRecepcion.PackingSlipId;
+            confirmacionXml.QtyReceive = confirmacionRecepcion.QtyReceive;
+
+            string XML = SerializationService.Serialize(confirmacionXml);
+
+            IM_WMS_RecepcionSubcontratacionGP.CallContext context = new IM_WMS_RecepcionSubcontratacionGP.CallContext
+            {
+                Company = "IMHN"
+            };
+
+            var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
+                GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
+                GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var resp = await serviceClient.initConfirmacionRecepcionXMLAsync(context, XML);
+                return resp.response.ToString();
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
+
         }
 
         private NetTcpBinding GetBinding()
