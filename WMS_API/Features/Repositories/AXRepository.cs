@@ -638,7 +638,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
                  GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
-                 GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+                 GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
              );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -672,7 +672,7 @@ namespace WMS_API.Features.Repositories
                         var respuesta = xmlDoc.Descendants("Respuesta").FirstOrDefault()?.Value;
                         var codigo = respuesta.Split('|')[0].Replace("Código:", "").Trim();
                         var estado = respuesta.Split('|')[1].Replace("Estado:", "").Trim();
-                        var mensaje = respuesta.Split('|')[3].Replace("Mensaje:", "").Trim();
+                        var mensaje = respuesta.Split('|')[2].Replace("Mensaje:", "").Trim();
                         if (estado == "Éxito")
                         {
                             respuestas.Add(new Respuesta<string>
@@ -706,11 +706,11 @@ namespace WMS_API.Features.Repositories
                 return respuestas;
             }
         }
-        public async Task<string> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion)
+        public async Task<Respuesta<string>> ConfirmacionRecepcionDePedidoDeCompra(ConfirmacionRecepcionDTO confirmacionRecepcion)
         {
-
+            Respuesta<string> respuestas = new Respuesta<string>();
             ConfirmacionRecepcionXML confirmacionXml = new ConfirmacionRecepcionXML();
-
+            bool esconfirmacion = confirmacionRecepcion.Action == "CONFIRM_PC";
             confirmacionXml .Action = confirmacionRecepcion.Action;
             confirmacionXml.PurchId = confirmacionRecepcion.PurchId;
             confirmacionXml.PackingSlipId = confirmacionRecepcion.PackingSlipId;
@@ -725,7 +725,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
-                GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -734,11 +734,40 @@ namespace WMS_API.Features.Repositories
             try
             {
                 var resp = await serviceClient.initConfirmacionRecepcionXMLAsync(context, XML);
-                return resp.response.ToString();
+                string xmlResponse = resp.response?.ToString();
+                if (!string.IsNullOrEmpty(xmlResponse))
+                {
+                    XDocument xmlDoc = XDocument.Parse(xmlResponse);
+                    var respuestaxml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
+                    var estado = respuestaxml.Split('|')[0].Replace("Estado:", "").Trim();
+                    var mensaje = respuestaxml.Split('|')[1].Replace("Mensaje:", "").Trim();
+                    if (estado == "Éxito")
+                    {
+                        respuestas = new Respuesta<string>
+                        {
+                            Exito = true,
+                            Mensaje = esconfirmacion ? "Confirmada exitosamente." : "Recepción realizada exitosamente."
+                        };
+                    }
+                    else
+                    {
+                        respuestas = new Respuesta<string>
+                        {
+                            Exito = false,
+                            Mensaje = mensaje,
+                        };
+                    }
+                }
+                return respuestas;
             }
             catch (Exception ex)
             {
-                return ex.ToString();
+                respuestas = new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = ex.ToString()
+                };
+                return respuestas;
             }
 
         }

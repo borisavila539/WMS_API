@@ -12,6 +12,7 @@ using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Serigrafia;
+using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
@@ -26,6 +27,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using WMS_API.Features.Repositories;
 using WMS_API.Features.Utilities;
 
 namespace WMS_API.Controllers
@@ -409,13 +411,44 @@ namespace WMS_API.Controllers
 
         //Liquidacion de la orden
         //Despachos Recibidos
+        [HttpGet("GetPermisoUsuarioPorPantalla/{numeroColaborador}/{pantalla}")]
+        public async Task<IActionResult> GetPermisoUsuarioPorPantalla(string numeroColaborador,string pantalla )
+        {
+            try
+            {
+                var response = await _WMS.GetPermisoUsuarioPorPantalla(
+                    numeroColaborador,
+                    pantalla
+                );
 
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al consultar permisos del usuario por pantalla.",
+                    error = ex.Message
+                });
+            }
+        }
         [HttpPost("ConfirmacionRecepcionDePedidoDeCompra")]
         public async Task<ActionResult> ConfirmacionDePedidoDeCompra([FromBody] ConfirmacionRecepcionDTO PC)
         {
-            var response = await _AX.ConfirmacionRecepcionDePedidoDeCompra(PC);
+            List<Respuesta<string>> respuestas = new List<Respuesta<string>>();
+            var responseAX = await _AX.ConfirmacionRecepcionDePedidoDeCompra(PC);
+            respuestas.Add(responseAX);
 
-            return Ok(response);
+            if (PC.Action.Contains("RECEIVE") && responseAX.Exito)
+            {
+                var respustaBaseLocal = await _WMS.InsertarRecepcionSubcontratacion(PC.ProdmasterId, PC.PackingSlipId, PC.QtyReceive);
+                if (!respustaBaseLocal.Exito)
+                {
+                    respuestas.Add(respustaBaseLocal);
+                }
+            }
+
+            return Ok(respuestas);
         }
 
         [HttpPost("NotificacionSubcontratacionTejidoPunto/{OP}")]
