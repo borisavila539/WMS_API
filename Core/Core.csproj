@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DTOs\Serigrafia\ConfirmacionRecepcionDTO.cs" />
+    <Compile Remove="DTOs\Serigrafia\IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DevExpress.Xpo" Version="20.2.6-pre-21036" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
   </ItemGroup>
 

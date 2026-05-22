@@ -2,6 +2,7 @@
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
+using Core.DTOs.TejidoPunto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

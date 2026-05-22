@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Core.DTOs.TejidoPunto
 {
-    public  class IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO
+    public class IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO
     {
         public string PRODID { get; set; }
         public int CANTIDADPRIMERAS { get; set; }

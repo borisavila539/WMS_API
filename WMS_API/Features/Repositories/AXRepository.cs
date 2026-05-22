@@ -4,6 +4,7 @@ using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
+using Core.DTOs.TejidoPunto;
 using Core.Interfaces;
 using IM_PreparacionDeOpGP;
 using IM_WMS_CajaRecladasGP;
