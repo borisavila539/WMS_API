@@ -608,7 +608,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
                  GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
-                 GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+                 GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
              );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -695,7 +695,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
-                GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionSubcontratacionGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
