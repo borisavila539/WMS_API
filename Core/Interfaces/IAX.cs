@@ -2,7 +2,6 @@
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
-using Core.DTOs.TejidoPunto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -19,7 +18,7 @@ namespace Core.Interfaces
         public string InsertCajasRecicladas(string qty, string CentroCosto,string diario);
         public Task<IM_PrepEnvOp_TrasladoResultDTO> MarcarTrasladoComoRecibido(string inventTransferId, string tipo);
         public Task<string> CambioIniciadoEstadoOpSerigrafia(OpPorBaseDTO orde);
-        public Task<string> CambioTerminadoEstadoOPSerigrafia(OpPorBaseDTO orden);
+        public Task<List<Respuesta<string>>> CambioANotificadoEstadoOPSerigrafia(List<IM_WMS_SRG_DatosParaNotificarRespuesta> datos);
         public Task<string> AjustarCantidadPorOP(OpPorBaseDTO orden);
         public Task<string> CrearTrasladosPorArticulo(TrasladoDTO trasladoDTO);
         public string CrearDiario(DiarioHeaderDTO headerDTO, DiarioLineasDTO lineasDTO, string accíon);

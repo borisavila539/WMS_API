@@ -16,5 +16,6 @@ namespace Core.DTOs.Serigrafia
         public int CantidadEnviar {  get; set; }
         public string SizeId { get; set; }
         public string ProductType { get; set; }
+        public int TieneConErrores { get; set; }
     }
 }
