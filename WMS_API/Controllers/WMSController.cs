@@ -451,10 +451,10 @@ namespace WMS_API.Controllers
             return Ok(respuestas);
         }
 
-        [HttpPost("NotificacionSubcontratacionTejidoPunto/{OP}")]
-        public async Task<ActionResult> NotificacionSubcontratacionTejidoPunto( string OP)
+        [HttpPost("NotificacionSubcontratacionTejidoPunto/{OP}/{despachoID}")]
+        public async Task<ActionResult> NotificacionSubcontratacionTejidoPunto( string OP, int despachoID)
         {
-            var data = await _WMS.GetDetalleNotificado(OP);
+            var data = await _WMS.GetDetalleNotificado(OP, despachoID);
             var response = await _AX.NotificacionSubcontratacionTejidoPunto(data);
 
             return Ok(response);
