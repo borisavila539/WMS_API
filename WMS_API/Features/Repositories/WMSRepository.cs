@@ -2321,12 +2321,13 @@ namespace WMS_API.Features.Repositories
         }
 
         //
-        public async Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP)
+        public async Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP, int despachoID)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
             var parametros = new List<SqlParameter>
             {
-                new SqlParameter("@ProdID", OP)
+                new SqlParameter("@ProdID", OP),
+                new SqlParameter("@DespachoId", despachoID)
             };
             List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>("[IM_WMS_NotificarSubcontratacionTejidoPunto]", parametros);
             return response;

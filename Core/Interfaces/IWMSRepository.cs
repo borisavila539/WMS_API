@@ -98,7 +98,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_DespachosRecibidosLiquidacionDTO>> GetDespachosRecibidosLiquidacion(int despachoID);
         public Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID);
         public Task<List<IM_WMS_DespachoPT_DetalleOrdenRecibidaLiquidacionDTO>> GetDetalleOrdenRecibidaLiquidacion(int despachoID, string ProdCutSheetID);
-        public Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP);
+        public Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP, int despachoID);
         public Task<List<BuscarVendPackingSlipJourDto>> BuscarVendPackingSlipJour(string secuencia, string proveedor);
         public Task<Respuesta<string>> InsertarRecepcionSubcontratacion(string prodmasterid,string packingListId, decimal qtyReceive);
 
