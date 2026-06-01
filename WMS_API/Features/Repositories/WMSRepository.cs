@@ -3743,7 +3743,7 @@ namespace WMS_API.Features.Repositories
             List<string> ClientesListaCompletada = new List<string>();
 
 
-            string ListaNoCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque pendiente</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Iniciado</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            string ListaNoCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque pendiente</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Iniciado</th><th>Piezas</th><th>Dias sin Albaran</th><th>Lote</th></thead><tbody>";
             int ListaNoCompletadaQTY = 0, ListaNoCompletadaUnidades = 0;
             List<string> ClientesListaNoCompletada = new List<string>();
 
@@ -3945,7 +3945,7 @@ namespace WMS_API.Features.Repositories
                     fila++;
 
                     diferencia = hoy - element.FechaAlbaran;
-                    AlbaranTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.Albaran + "</td><td>" + element.FechaAlbaran + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                    AlbaranTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.Albaran + "</td><td>" + element.FechaAlbaran + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays)+ "</td><td>" + element.BFPSEASONID + "</td></tr>";
                     AlbaranQTY++;
                     AlbaranUnidades += element.QTY;
 
