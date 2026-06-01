@@ -3892,7 +3892,7 @@ namespace WMS_API.Features.Repositories
                     else
                     {
                         diferencia = hoy - element.FechaListaEmpaqueCompletada;
-                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td><td>" + element.BFPSEASONID + "</td></tr>";
+                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td><td>" + element.BFPSEASONID + "</td><                                            /tr>";
                         ListaCompletadaQTY++;
                         ListaCompletadaUnidades += element.QTY;
 
