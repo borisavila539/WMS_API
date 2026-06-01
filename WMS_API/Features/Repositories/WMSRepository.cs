@@ -3734,11 +3734,11 @@ namespace WMS_API.Features.Repositories
             List<IM_WMS_GenerarDetalleFacturas> Pedidos = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_GenerarDetalleFacturas>("[IM_WMS_GenerarDetalleFacturas]", parametros);
 
             //variblea para resumen
-            string AlbaranTableHTML = "<table border='2'><caption><h2>Albaranado y No Facturado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Albaran</th><th>Fecha Albaran</th><th>Piezas</th><th>Dias sin Factura</th></thead><tbody>";
+            string AlbaranTableHTML = "<table border='2'><caption><h2>Albaranado y No Facturado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Albaran</th><th>Fecha Albaran</th><th>Piezas</th><th>Dias sin Factura</th><th>Lote</th></thead><tbody>";
             int AlbaranQTY = 0, AlbaranUnidades = 0;
             List<string> ClientesAlbaran = new List<string>();
 
-            string ListaCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque Completada y no Albaranado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Completada</th><th>Piezas</th><th>Dias sin Albaran</th></thead><tbody>";
+            string ListaCompletadaTableHTML = "<table border='2'><caption><h2>Lista Empaque Completada y no Albaranado</h2></caption><thead><th>Pedido Venta</th><th>Cliente</th><th>Responsable</th><th>Lista Empaque</th><th>Fecha Completada</th><th>Piezas</th><th>Dias sin Albaran</th><th>Lote</th></thead><tbody>";
             int ListaCompletadaQTY = 0, ListaCompletadaUnidades = 0;
             List<string> ClientesListaCompletada = new List<string>();
 
@@ -3823,6 +3823,7 @@ namespace WMS_API.Features.Repositories
             worksheet.Cells[fila, 3].Value = "Fecha Ingreso Pedido";
             worksheet.Cells[fila, 4].Value = "Pedido Venta";
             worksheet.Cells[fila, 5].Value = "Estado Pedido";
+            worksheet.Cells[fila, 6].Value = "Lote";
 
             fila++;
 
@@ -3834,12 +3835,13 @@ namespace WMS_API.Features.Repositories
                     worksheet.Cells[fila, 3].Value = element.FechaIngresoPedido == FechaVacia ? "": element.FechaIngresoPedido;
                     worksheet.Cells[fila, 4].Value = element.PedidoVenta;
                     worksheet.Cells[fila, 5].Value = element.EstadoPedido;
+                    worksheet.Cells[fila, 6].Value = element.BFPSEASONID;
                     fila++;
                 });
 
             worksheet.Cells[1, 3, fila - 1, 3].Style.Numberformat.Format = "dd/MM/yyyy";
 
-            var rangeTable = worksheet.Cells[1, 1, fila-1, 5];
+            var rangeTable = worksheet.Cells[1, 1, fila-1, 6];
             var table = worksheet.Tables.Add(rangeTable, "Pendiente");
             table.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet.Cells.AutoFitColumns();
@@ -3856,6 +3858,7 @@ namespace WMS_API.Features.Repositories
             worksheet2.Cells[fila, 6].Value = "Lista Empaque";
             worksheet2.Cells[fila, 7].Value = "Fecha Generacion Lista Empaque";
             worksheet2.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
+            worksheet2.Cells[fila, 9].Value = "Lote";
 
             fila++;
 
@@ -3869,6 +3872,7 @@ namespace WMS_API.Features.Repositories
                     worksheet2.Cells[fila, 6].Value = element.ListaEmpaque;
                     worksheet2.Cells[fila, 7].Value = element.FechaGeneracionListaEmpaque == FechaVacia ? "" : element.FechaGeneracionListaEmpaque;
                     worksheet2.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
+                    worksheet2.Cells[fila, 9].Value = element.BFPSEASONID;
                     fila++;
 
                     if(element.FechaListaEmpaqueCompletada == FechaVacia)
@@ -3876,7 +3880,7 @@ namespace WMS_API.Features.Repositories
                         diferencia = hoy - element.FechaGeneracionListaEmpaque ;
                         if(diferencia.TotalHours > 72)
                         {
-                            ListaNoCompletadaTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaGeneracionListaEmpaque + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                            ListaNoCompletadaTableHTML += "<tr><td>" + element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaGeneracionListaEmpaque + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td><td>" + element.BFPSEASONID + "</td></tr>" ;
                             ListaNoCompletadaQTY++;
                             ListaNoCompletadaUnidades += element.QTY;
                             if (!ClientesListaNoCompletada.Contains(element.CuentaCliente))
@@ -3888,7 +3892,7 @@ namespace WMS_API.Features.Repositories
                     else
                     {
                         diferencia = hoy - element.FechaListaEmpaqueCompletada;
-                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td></tr>";
+                        ListaCompletadaTableHTML += "<tr><td>"+ element.PedidoVenta + "</td><td>" + element.CuentaCliente + " " + element.NombreCliente + "</td><td>" + element.Responsable + "</td><td>" + element.ListaEmpaque + "</td><td>" + element.FechaListaEmpaqueCompletada + "</td><td>" + element.QTY + "</td><td>" + Convert.ToInt32(diferencia.TotalDays) + "</td><td>" + element.BFPSEASONID + "</td><                                            /tr>";
                         ListaCompletadaQTY++;
                         ListaCompletadaUnidades += element.QTY;
 
@@ -3903,7 +3907,7 @@ namespace WMS_API.Features.Repositories
             worksheet2.Cells[1, 7, fila - 1, 8].Style.Numberformat.Format = "dd/MM/yyyy";
 
 
-            var rangeTable2 = worksheet2.Cells[1, 1, fila - 1, 8];
+            var rangeTable2 = worksheet2.Cells[1, 1, fila - 1, 9];
             var table2 = worksheet2.Tables.Add(rangeTable2, "ListaEmpaque");
             table2.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet2.Cells.AutoFitColumns();
@@ -3922,7 +3926,7 @@ namespace WMS_API.Features.Repositories
             worksheet3.Cells[fila, 8].Value = "Fecha Lista Empaque Completa";
             worksheet3.Cells[fila, 9].Value = "Albaran";
             worksheet3.Cells[fila, 10].Value = "Fecha Albaran";
-
+            worksheet3.Cells[fila, 11].Value = "Lote";
             fila++;
 
             Pedidos.FindAll(x => x.Albaran != "" && x.Factura == "" && x.Ubicacion == "")
@@ -3937,6 +3941,7 @@ namespace WMS_API.Features.Repositories
                     worksheet3.Cells[fila, 8].Value = element.FechaListaEmpaqueCompletada == FechaVacia ? "" : element.FechaListaEmpaqueCompletada;
                     worksheet3.Cells[fila, 9].Value = element.Albaran;
                     worksheet3.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
+                    worksheet3.Cells[fila, 11].Value = element.BFPSEASONID;
                     fila++;
 
                     diferencia = hoy - element.FechaAlbaran;
@@ -3956,7 +3961,7 @@ namespace WMS_API.Features.Repositories
 
 
 
-            var rangeTable3 = worksheet3.Cells[1, 1, fila - 1, 10];
+            var rangeTable3 = worksheet3.Cells[1, 1, fila - 1, 11];
             var table3 = worksheet3.Tables.Add(rangeTable3, "Albaran");
             table3.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet3.Cells.AutoFitColumns();
@@ -3977,6 +3982,7 @@ namespace WMS_API.Features.Repositories
             worksheet4.Cells[fila, 10].Value = "Fecha Albaran";
             worksheet4.Cells[fila, 11].Value = "Factura";
             worksheet4.Cells[fila, 12].Value = "Fecha Factura";
+            worksheet4.Cells[fila, 13].Value = "Lote";
 
             fila++;
 
@@ -3994,6 +4000,7 @@ namespace WMS_API.Features.Repositories
                     worksheet4.Cells[fila, 10].Value = element.FechaAlbaran == FechaVacia ? "" : element.FechaAlbaran;
                     worksheet4.Cells[fila, 11].Value = element.Factura;
                     worksheet4.Cells[fila, 12].Value = element.FechaFactura == FechaVacia ? "" : element.FechaFactura;
+                    worksheet4.Cells[fila, 13].Value = element.BFPSEASONID;
                     fila++;
                 });
 
@@ -4002,7 +4009,7 @@ namespace WMS_API.Features.Repositories
             worksheet4.Cells[1, 10, fila - 1, 10].Style.Numberformat.Format = "dd/MM/yyyy";
             worksheet4.Cells[1, 12, fila - 1, 12].Style.Numberformat.Format = "dd/MM/yyyy";
 
-            var rangeTable4 = worksheet4.Cells[1, 1, fila - 1, 12];
+            var rangeTable4 = worksheet4.Cells[1, 1, fila - 1, 13];
             var table4 = worksheet4.Tables.Add(rangeTable4, "Factura");
             table4.TableStyle = OfficeOpenXml.Table.TableStyles.Light11;
             worksheet4.Cells.AutoFitColumns();
