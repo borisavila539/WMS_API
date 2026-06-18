@@ -2,6 +2,7 @@
 using Core.DTOs.Cajasrecicladas;
 using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
@@ -10,6 +11,7 @@ using IM_PreparacionDeOpGP;
 using IM_WMS_CajaRecladasGP;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_RecepcionSubcontratacionGP;
+using IM_WMS_RecepcionTrasladoPepeMBGPService;
 using IM_WMS_ReduccionCajas;
 using IM_WMS_SRG_ChangeOpEST;
 using IM_WMS_SRG_ProductDispatchGP;
@@ -66,7 +68,80 @@ namespace WMS_API.Features.Repositories
                 return ex.ToString();
             }
         }
+        public async Task<Respuesta<string>> RecibirTrasladoYCambioUbiacion(string trasladoId,InformacionEmpresa informacion)
+        {
+            Respuesta<string> respuesta = new Respuesta<string>();
+            IM_WMS_RecepcionTrasladoPepeMBGPService.CallContext context = new IM_WMS_RecepcionTrasladoPepeMBGPService.CallContext
+            {
+                Company = "IMHN"
+            };
 
+            var serviceClient = new M_WMS_RecepcionTrasladoPepeMBClient(
+                GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionTrasladoPepeMB"),
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionTrasladoPepeMBGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var xml = new StringBuilder();
+
+                xml.Append("<INTEGRATION>");
+                xml.AppendFormat("<TRANSFERID>{0}</TRANSFERID>", trasladoId);
+                xml.AppendFormat("<UBICACION>{0}</UBICACION>", informacion.Ubicacion);
+                xml.AppendFormat("<UBICACIONIRREGULAR>{0}</UBICACIONIRREGULAR>", informacion.UbicacionIrregular);
+                xml.AppendFormat("<UBICACIONTERCERA>{0}</UBICACIONTERCERA>", informacion.UbicacionTercera);
+                xml.AppendFormat("<LOTEIRREGULAR>{0}</LOTEIRREGULAR>", informacion.LOTEIRREGULAR);
+                xml.AppendFormat("<LOTETERCERA>{0}</LOTETERCERA>", informacion.LOTETERCERA);
+                xml.AppendFormat("<ALMACEN>{0}</ALMACEN>", informacion.ALMACEN);
+
+                xml.Append("</INTEGRATION>");
+
+                string xmlInput = xml.ToString();
+
+                var resp = await serviceClient.initRecepcionAsync(context, xmlInput);
+                string xmlResponse = resp.response?.ToString();
+                if (!string.IsNullOrEmpty(xmlResponse))
+                {
+                    XDocument xmlDoc = XDocument.Parse(xmlResponse);
+                    var respuestaXml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
+                    var estado = respuestaXml.Split('|')[0].Replace("Estado:", "").Trim();
+                    var mensaje = respuestaXml.Split('|')[1].Replace("Mensaje:", "").Trim();
+                    if (estado == "Éxito")
+                    {
+                        respuesta = new Respuesta<string>
+                        {
+                            Exito = true,
+                            Mensaje = mensaje,
+                            Datos = null,
+                        };
+                    }
+                    else
+                    {
+                        respuesta = new Respuesta<string>
+                        {
+                            Exito = false,
+                            Mensaje = mensaje,
+                            Datos = null,
+                        };
+                    }
+                    return respuesta;
+                }
+            }
+            catch (Exception ex)
+            {
+                respuesta = new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = ex.ToString(),
+                    Datos = null,
+                };
+            }
+            // Asegura que siempre se devuelve un valor en todas las rutas de código
+            return respuesta;
+        }
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE)
         {
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
