@@ -1,5 +1,6 @@
 ﻿using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
+using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
@@ -12,6 +13,7 @@ namespace Core.Interfaces
     {
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE);
         public string EnviarRecibirTraslados(string TRANSFERID, string ESTADO);
+        public Task<Respuesta<string>> RecibirTrasladoYCambioUbiacion(string trasladoId, InformacionEmpresa informacion);
         public string INsertDeleteReduccionCajas(string ITEMBARCODE, string PROCESO, string IMBOXCODE);
         public string InsertDeleteEntradaMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO);
         public string InsertDeleteTransferirMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO);
