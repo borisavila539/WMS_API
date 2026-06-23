@@ -1,3 +1,4 @@
+using Core.DTOs.ImpresionEtiquetas;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +42,7 @@ namespace WMS_API
             services.AddTransient<IIM_PrepEnvOpRepository, IM_PrepEnvOpRepository>();
             services.AddTransient<IWMSSerigrafiaRepository, WMSSerigrafiaReposotory>();
             services.AddTransient<IWMSRecepcionYUbicacionAX, WMSRecepcionYUbicacionAXRepository>();
+            services.AddTransient<IimpresionEtiquetaRepository, ImpresionEtiquetaRepository>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WMS_API", Version = "v1" });
