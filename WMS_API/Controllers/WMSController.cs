@@ -9,8 +9,10 @@ using Core.DTOs.Despacho_PT.Liquidacion;
 using Core.DTOs.Devoluciones;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
+using Core.DTOs.ImpresionEtiquetas;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
+using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
@@ -37,12 +39,14 @@ namespace WMS_API.Controllers
     public class WMSController : ControllerBase
     {
         private readonly IWMSRepository _WMS;
+        private readonly IimpresionEtiquetaRepository _repoImpresion;
         private readonly IAX _AX;
 
-        public WMSController(IWMSRepository WMS, IAX AX)
+        public WMSController(IWMSRepository WMS, IAX AX, IimpresionEtiquetaRepository iimpresionEtiquetaRepository)
         {
             _WMS = WMS;
             _AX = AX;
+            _repoImpresion = iimpresionEtiquetaRepository;
         }
 
         [HttpGet("DiariosAbiertos/{user}/{filtro}")]
@@ -79,6 +83,27 @@ namespace WMS_API.Controllers
             return resp;
         }
 
+
+        [HttpGet("GetEtiquetasPendientes/{empresa}/{Pedido}/{ListaEmpaque}")]
+        public async Task<ActionResult<IEnumerable<DatosEtiqueta>>> GetEtiquetasPendientes(string empresa, string Pedido, string ListaEmpaque)
+        {
+            var resp = await _repoImpresion.GetItemsAsyncById2Async(empresa,Pedido, ListaEmpaque);
+            if (resp == null || resp.Count == 0)
+            {
+                return BadRequest("No se encontraron registros");
+            }
+            return Ok(resp);
+        }
+        [HttpGet("ImprimirEtiquetasPendientes/{empresa}/{Pedido}/{ListaEmpaque}/{impresora}")]
+        public async Task<ActionResult<IEnumerable<DatosEtiqueta>>> ImprimirEtiquetasPendientes(string empresa, string Pedido, string ListaEmpaque, string impresora)
+        {
+            var resp = await _repoImpresion.ExecuteLoadEtiquetasItemsCommand2Refactored(empresa, ListaEmpaque, Pedido, impresora);
+            if (resp == null || resp.Count == 0)
+            {
+                return BadRequest("No se encontraron registros");
+            }
+            return Ok(resp);
+        }
         [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
         public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
         {
