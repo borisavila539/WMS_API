@@ -1,5 +1,7 @@
 ﻿using Core.DTOs.ImpresionEtiquetas;
 using Core.DTOs.RecepcionYUbicacionAX;
+using Core.Interfaces;
+using DevExpress.Xpo.Exceptions;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using WMS_API.Features.Utilities;
+using static DevExpress.Xpo.Helpers.AssociatedCollectionCriteriaHelper;
 
 namespace WMS_API.Features.Repositories
 {
@@ -23,6 +26,32 @@ namespace WMS_API.Features.Repositories
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
            
         }
+
+        public async Task<RespuestaGetRutaPickingDTO> GetRutaDeEmpaque(string numeroCaja)
+        {
+            RespuestaGetRutaPickingDTO result = null;
+            try
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@NumeroCaja", numeroCaja)
+                };
+
+                 result = await executeProcedure.ExecuteStoredProcedure<RespuestaGetRutaPickingDTO>(
+                   "IM_WMS_GetRutaDeNumeroDeCaja",
+                   parameters
+               );
+              
+               return result;
+            }
+            catch (Exception ex)
+            {
+                return result;
+            }
+        }
+
         public async Task<List<DatosEtiqueta>> GetItemsAsyncById2Async(
             string cmpCode,
             string saleOrderId,

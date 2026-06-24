@@ -104,6 +104,18 @@ namespace WMS_API.Controllers
             }
             return Ok(resp);
         }
+
+        [HttpGet("GetRutaPacking/{numeroCaja}")]
+        public async Task<ActionResult<RespuestaGetRutaPickingDTO>>GetRutaPacking(string numeroCaja)
+        {
+            var resp = await _repoImpresion.GetRutaDeEmpaque(numeroCaja);
+            if (resp == null)
+            {
+                return BadRequest("No se encontraron registros");
+            }
+            return Ok(resp);
+        }
+
         [HttpGet("ImprimirEtiquetaMovimiento/{JOURNALID}/{IMBOXCODE}/{PRINT}")]
         public Task<string> GetImprimirEtiquetaMovimiento(string JOURNALID, string IMBOXCODE, string PRINT)
         {
