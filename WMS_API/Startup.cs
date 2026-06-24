@@ -1,4 +1,3 @@
-using Core.DTOs.ImpresionEtiquetas;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
