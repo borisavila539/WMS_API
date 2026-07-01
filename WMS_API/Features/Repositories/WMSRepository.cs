@@ -24,6 +24,7 @@ using OfficeOpenXml.Style;
 using OfficeOpenXml.Table.PivotTable;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
@@ -1264,6 +1265,178 @@ namespace WMS_API.Features.Repositories
 
             return result;
         }
+        public async Task<string> EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(int despachoId)
+        {
+            try
+            {
+                ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+                var parametros = new List<SqlParameter>
+                {
+                    new SqlParameter("@DespachoID", despachoId)
+                };
+
+                List<DetalleOrdenRecibidaLiquidacion> detalle =
+                    await executeProcedure.ExecuteStoredProcedureList<DetalleOrdenRecibidaLiquidacion>(
+                        "[IM_WMS_DetalleOrdenRecibidaLiquidacion]",
+                        parametros);
+   
+
+                if (detalle == null || detalle.Count == 0)
+                    return "No existen telas pendientes de liberar.";
+
+                byte[] fileContents;
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using (ExcelPackage package = new ExcelPackage())
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TelaPendienteLiberar");
+
+                    // Título
+                    worksheet.Cells["A2:G2"].Merge = true;
+                    worksheet.Cells["A2"].Value = "OPS CON TELAS PENDIENTES DE LIBERACIÓN";
+                    worksheet.Cells["A2"].Style.Font.Size = 20;
+                    worksheet.Cells["A2"].Style.Font.Bold = true;
+
+                    worksheet.Cells["A4"].Value = "Despacho:";
+                    worksheet.Cells["B4"].Value = despachoId;
+
+                    int fila = 6;
+
+                    // Encabezados
+                    worksheet.Cells[fila, 1].Value = "No.";
+                    worksheet.Cells[fila, 2].Value = "OP Padre";
+                    worksheet.Cells[fila, 3].Value = "OP Hija";
+                    worksheet.Cells[fila, 4].Value = "Talla";
+                    worksheet.Cells[fila, 5].Value = "Cantidad Estimada";
+                    worksheet.Cells[fila, 6].Value = "Cantidad Liberada";
+                    worksheet.Cells[fila, 7].Value = "Estado";
+
+                    using (var rango = worksheet.Cells[fila, 1, fila, 7])
+                    {
+                        rango.Style.Font.Bold = true;
+                    }
+
+                    fila++;
+
+                    foreach (var item in detalle)
+                    {
+                        worksheet.Cells[fila, 1].Value = item.Numero;
+                        worksheet.Cells[fila, 2].Value = item.OpPadre;
+                        worksheet.Cells[fila, 3].Value = item.OpHija;
+                        worksheet.Cells[fila, 4].Value = item.Size;
+                        worksheet.Cells[fila, 5].Value = item.CantidadEstimada;
+                        worksheet.Cells[fila, 6].Value = item.CantidadLiberada;
+                        worksheet.Cells[fila, 7].Value = "Pendiente Liberar";
+
+                        fila++;
+                    }
+
+                    worksheet.Cells.AutoFitColumns();
+
+                    fileContents = package.GetAsByteArray();
+                }
+
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                mail.To.Add("jvasquez@intermoda.com.hn");
+                mail.To.Add("jsarmiento@intermoda.com.hn");
+    
+                mail.CC.Add("lerazo@intermoda.com.hn");
+                mail.CC.Add("fjgarcia@intermoda.com.hn");
+                mail.CC.Add("jmperaza@intermoda.com.hn");
+                mail.CC.Add("rsantos@intermoda.com.hn");
+                mail.CC.Add("balvarez@intermoda.com.hn");
+
+                mail.Subject = $"Ops con tela pendiente de liberar - Despacho {despachoId}";
+                mail.IsBodyHtml = true;
+
+                mail.Body = $@"
+                            <html>
+                            <body style='font-family: Arial, Helvetica, sans-serif;'>
+                                <p>Buen día,</p>
+
+                                <p>
+                                    Se detectaron órdenes de producción con diferencia entre la
+                                    cantidad estimada de tela requerida y la cantidad actualmente
+                                    liberada en AX para el despacho <b>{despachoId}</b>.
+                                </p>
+
+                                <p>
+                                    Favor validar las OP adjuntas y realizar la liberación
+                                    correspondiente para evitar inconvenientes en el proceso
+                                    de recibo.
+                                </p>
+
+                                <table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse;'>
+                                    <tr>
+                                        <th>Despacho</th>
+                                        <th>Registros</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{despachoId}</td>
+                                        <td>{detalle.Count}</td>
+                                    </tr>
+                                </table>
+
+                                <br/>
+
+                                <p>
+                                    En el archivo adjunto se detallan las OP Padre, OP Hija,
+                                    talla, cantidad estimada y cantidad liberada.
+                                </p>
+
+                                <p>
+                                    Este correo fue generado automáticamente por WMS.
+                                </p>
+
+                                <br/>
+
+                                <p>Saludos.</p>
+                            </body>
+                            </html>";
+
+                using (MemoryStream ms = new MemoryStream(fileContents))
+                {
+                    DateTime fechaActual = DateTime.Now;
+                    string fecha =
+                        $"{fechaActual.Day}_{fechaActual.Month}_{fechaActual.Year}";
+
+                    Attachment attachment = new Attachment(
+                        ms,
+                        $"TelaPendienteLiberar_Despacho_{despachoId}_{fecha}.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                    mail.Attachments.Add(attachment);
+
+                    SmtpClient oSmtpClient = new SmtpClient();
+
+                    oSmtpClient.Host = "smtp.office365.com";
+                    oSmtpClient.Port = 587;
+                    oSmtpClient.EnableSsl = true;
+                    oSmtpClient.UseDefaultCredentials = false;
+
+                    NetworkCredential userCredential =
+                        new NetworkCredential(
+                            VariablesGlobales.Correo,
+                            VariablesGlobales.Correo_Password);
+
+                    oSmtpClient.Credentials = userCredential;
+
+                    oSmtpClient.Send(mail);
+
+                    oSmtpClient.Dispose();
+                }
+
+                return "Correo enviado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error al enviar correo: {ex.Message}";
+            }
+        }
         public async Task<IM_WMS_EnviarDespacho> Get_EnviarDespachos(int DespachoID, string user, int cajasSegundas, int cajasTerceras)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -1279,7 +1452,7 @@ namespace WMS_API.Features.Repositories
 
             if (response.Descripcion == "Enviado")
             {
-
+                await EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(DespachoID);
                 var Despacho = await getDetalle_Despacho_Excel(DespachoID);
 
 
