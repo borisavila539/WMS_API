@@ -23,6 +23,7 @@ namespace Core.Interfaces
     {
         //usuario por pantalla
         public Task<IM_WMS_UsuarioPorPantallaDTO> GetPermisoUsuarioPorPantalla(string numeroColaborador, string pantalla);
+        public Task<string> EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(int despachoId);
         //
         public Task<LoginDTO> PostLogin(LoginDTO datos);
         public Task<List<DiariosAbiertosDTO>> GetDiariosAbiertos(string user, string filtro);

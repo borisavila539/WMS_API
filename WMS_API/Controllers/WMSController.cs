@@ -527,7 +527,13 @@ namespace WMS_API.Controllers
             return resp;
 
         }
+        [HttpGet("EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar/{DespachoID}")]
+        public async Task<string> EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(int DespachoID)
+        {
+            var resp = await _WMS.EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(DespachoID);
+            return resp;
 
+        }
         //inventario ciclico de telas
         [HttpGet("InventarioCiclicoTelasDiariosAbiertos")]
         public async Task<IEnumerable<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos()
