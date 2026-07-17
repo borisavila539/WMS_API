@@ -6,9 +6,11 @@ using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
+using Core.DTOs.UbiacacionRollos;
 using Core.Interfaces;
 using IM_PreparacionDeOpGP;
 using IM_WMS_CajaRecladasGP;
+using IM_WMS_CrearNuevaUbicacion;
 using IM_WMS_MoviminetoWS;
 using IM_WMS_RecepcionSubcontratacionGP;
 using IM_WMS_RecepcionTrasladoPepeMBGPService;
@@ -17,6 +19,7 @@ using IM_WMS_SRG_ChangeOpEST;
 using IM_WMS_SRG_ProductDispatchGP;
 using IM_WMS_SRG_ReporteAsFinishedOPGP;
 using IM_WMS_Traslado_Enviar_Recibir;
+using IMGetTransferJournalAsgGPService;
 using OfficeOpenXml.Utils;
 using ServiceReference1;
 using ServiceReferenceIM_WMS_InventarioCiclicoTela;
@@ -36,6 +39,228 @@ namespace WMS_API.Features.Repositories
 {
     public class AXRepository : IAX
     {
+        public async Task<string> RegistrarMovimientoRollosEnDiario(List<MovimientoRolloDto> rollosAMover)
+        {
+            if (rollosAMover == null || rollosAMover.Count == 0)
+            {
+                return "E Error: No se proporcionaron rollos para registrar el movimiento.";
+            }
+
+            // Instancia del servicio con tu referencia específica
+            var context = new IMGetTransferJournalAsgGPService.CallContext { Company = "IMHN" };
+            var serviceClient = new MGetTransferJournalAsgClient(
+                GetBindingGeneric("NetTcpBinding_IMGetTransferJournalAsg"),
+                GetEndpointGeneric("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            string diarioIdCreado = string.Empty;
+
+            try
+            {
+                // ====================================================================
+                // FASE 1: CREAR EL ENCABEZADO DEL DIARIO DE MOVIMIENTO AUTOMÁTICO
+                // ====================================================================
+                var datosHeader = new DIARIO_MOVIMIENTO_ROLLO_HEADER
+                {
+                    COMPANY = new MovimientoRolloHeaderData
+                    {
+                        JOURNALDESCRIPTION = $"Diario automático movimiento a ubicación {rollosAMover[0].UbicacionDestino}"
+                    }
+                };
+
+                // Serialización con tu SerializationService
+                string xmlHeader = SerializationService.Serialize(datosHeader);
+                var respHeader = await serviceClient.getTransferJournalHeaderAsync(context, xmlHeader);
+                string resultadoHeader = respHeader.response.ToString().Trim();
+                XDocument xmlDoc = XDocument.Parse(resultadoHeader);
+                var respuestaNode = xmlDoc.Descendants("Respuesta").FirstOrDefault();
+                string stringContenido = respuestaNode?.Value?.Trim() ?? string.Empty;
+
+                if (stringContenido.StartsWith("S "))
+                {
+                    // Extrae de forma segura el ID del diario generado por AX (ej. de "S DJ-001" obtiene "DJ-001")
+                    diarioIdCreado = stringContenido.Substring(2).Trim();
+                }
+                else
+                {
+                    return $"E Error al inicializar el diario en AX. Detalle: {stringContenido}";
+                }
+
+                // ====================================================================
+                // FASE 2: REGISTRAR LAS LÍNEAS DE MOVIMIENTO POR CADA ROLLO ESCANEADO
+                // ====================================================================
+                int registrosExitosos = 0;
+                System.Text.StringBuilder historialErrores = new System.Text.StringBuilder();
+
+                foreach (var rollo in rollosAMover)
+                {
+                    var datosMovimiento = new DIARIO_MOVIMIENTO_ROLLO_LINE
+                    {
+                        COMPANY = new MovimientoRolloLineData
+                        {
+                            JOURNALID = diarioIdCreado,
+                            BARCODE = rollo.CodigoBarraRollo,
+                            QTY = rollo.Cantidad,
+
+                            // El sitio y almacén suelen mantenerse fijos en movimientos de ubicación directa
+                            FROMINVENTSITEID = rollo.SitioOrigen,
+                            FROMINVENTLOCATIONID = rollo.AlmacenOrigen,
+                            FROMWMSLOCATIONID = rollo.UbicacionOrigen,
+
+                            TOINVENTSITEID = rollo.SitioDestino,
+                            TOINVENTLOCATIONID = rollo.AlmacenDestino,
+                            TOWMSLOCATIONID = rollo.UbicacionDestino
+                        }
+                    };
+
+                    string xmlLinea = SerializationService.Serialize(datosMovimiento);
+                    var respLinea = await serviceClient.getTransferJournalLine2Async(context, xmlLinea);
+                    string resultadoLinea = respLinea.response.ToString().Trim();
+                    XDocument xmlDocline = XDocument.Parse(resultadoLinea);
+                    var respuestaNodeline = xmlDocline.Descendants("Respuesta").FirstOrDefault();
+                    string stringContenidoline = respuestaNodeline?.Value?.Trim() ?? string.Empty;
+
+                    // AX retorna "OK" si pasó todas tus validaciones internas (Availability, Counting, etc.)
+                    if (stringContenidoline.Trim().ToUpper() == "OK")
+                    {
+                        registrosExitosos++;
+                    }
+                    else
+                    {
+                        historialErrores.AppendLine($"Rollo {rollo.CodigoBarraRollo}: {stringContenidoline}");
+                    }
+                }
+
+                // --- CONSOLIDACIÓN DE RESPUESTA Y POSTEO EN AX ---
+
+                // Si hubo errores al insertar líneas, es mejor NO registrar (postear) el diario para evitar inconsistencias
+                if (historialErrores.Length > 0)
+                {
+                    return $"W Proceso terminado con observaciones en Diario {diarioIdCreado} ({registrosExitosos} exitosos). No se procedió con el registro por errores en líneas:\n{historialErrores.ToString()}";
+                }
+
+                // ====================================================================
+                // FASE 3: REGISTRAR / POSTEAR EL DIARIO (Llamada al nuevo método de AX)
+                // ====================================================================
+                try
+                {
+                    var datosPost = new DIARIO_MOVIMIENTO_POST
+                    {
+                        COMPANY = new PostJournalData
+                        {
+                            CODE = context.Company,          // "IMHN"
+                            USER = "servicio_ax",            // Usuario del sistema que ejecuta la acción
+                            JOURNALID = diarioIdCreado       // El ID que rescatamos en la Fase 1
+                        }
+                    };
+
+                    string xmlPost = SerializationService.Serialize(datosPost);
+                    var respPost = await serviceClient.getPostTransferJournalAsync(context, xmlPost);
+                    string resultadoPost = respPost.response.ToString().Trim();
+
+                    XDocument xmlDocPost = XDocument.Parse(resultadoPost);
+                    var respuestaNodePost = xmlDocPost.Descendants("Respuesta").FirstOrDefault();
+                    string stringContenidoPost = respuestaNodePost?.Value?.Trim() ?? string.Empty;
+
+                    // AX usualmente devuelve "OK" si el posteo fue exitoso según su lógica interna
+                    if (stringContenidoPost.Trim().ToUpper() == "OK")
+                    {
+                        return $"S Movimiento finalizado y POSTEADO con éxito. Diario AX: {diarioIdCreado}. Se registraron {registrosExitosos} rollos.";
+                    }
+                    else
+                    {
+                        return $"E El diario {diarioIdCreado} fue creado con {registrosExitosos} líneas, pero falló al registrarse (postear) en AX. Detalle: {stringContenidoPost}";
+                    }
+                }
+                catch (Exception exPost)
+                {
+                    return $"E El diario {diarioIdCreado} fue creado con {registrosExitosos} líneas, pero ocurrió un error crítico al intentar postearlo: {exPost.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                return "E Excepción crítica en el servicio de movimientos: " + ex.Message;
+            }
+        }
+        public async Task<Respuesta<string>> AgregarNuevaUbicacion(string empresa, string ubicacion, string almacen, string pasillo)
+        {
+            Respuesta<string> respuesta = new Respuesta<string>();
+
+            IM_WMS_CrearNuevaUbicacion.CallContext context = new IM_WMS_CrearNuevaUbicacion.CallContext{Company = "IMHN"};
+            var serviceClient = new M_WMS_AgregarNuevaUbiacionClient(
+                GetBindingGeneric("NetTcpBinding_IM_WMS_AgregarNuevaUbiacion"),
+                GetEndpointGeneric("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_WMS_AgregarNuevaUbicacionGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var xml = new StringBuilder();
+                xml.Append("<DATA>");
+                xml.Append("<COMPANY>");
+                xml.AppendFormat("<CODE>{0}</CODE>", empresa);
+                xml.AppendFormat("<WMSLOCATIONID>{0}</WMSLOCATIONID>", ubicacion);
+                xml.AppendFormat("<INVENTLOCATIONID>{0}</INVENTLOCATIONID>", almacen);
+                xml.AppendFormat("<AISLEID>{0}</AISLEID>", pasillo);
+                xml.Append("</COMPANY>");
+                xml.Append("</DATA>");
+                string xmlInput = xml.ToString();
+                var resp = await serviceClient.createNewLocationXMLAsync(context, xmlInput);
+                string rawResponse = resp.response?.ToString()?.Trim();
+
+                if (string.IsNullOrEmpty(rawResponse))
+                {
+                    return new Respuesta<string> { Exito = false, Mensaje = "El servicio de AX devolvió una respuesta vacía." };
+                }
+                if (!rawResponse.StartsWith("<"))
+                {
+                    return new Respuesta<string>
+                    {
+                        Exito = false,
+                        Mensaje = rawResponse.StartsWith("E ") ? rawResponse.Substring(2) : rawResponse
+                    };
+                }
+                XDocument xmlDoc = XDocument.Parse(rawResponse);
+                var respuestaNode = xmlDoc.Descendants("Respuesta").FirstOrDefault();
+                string stringContenido = respuestaNode?.Value?.Trim() ?? string.Empty;
+
+                if (stringContenido == "OK")
+                {
+                    respuesta = new Respuesta<string>
+                    {
+                        Exito = true,
+                        Mensaje = "Se creó correctamente la ubicación.",
+                        Datos = stringContenido
+                    };
+                }
+                else 
+                {
+                    string mensajeError = stringContenido.StartsWith("E ") ? stringContenido.Substring(2) : stringContenido;
+
+                    respuesta = new Respuesta<string>
+                    {
+                        Exito = false,
+                        Mensaje = string.IsNullOrEmpty(mensajeError) ? "Error desconocido en AX." : mensajeError
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                respuesta = new Respuesta<string>
+                {
+                    Exito = false,
+                    Mensaje = $"Error de comunicación o parseo: {ex.Message}",
+                    Datos = null
+                };
+            }
+
+            return respuesta;
+        }
         public string EnviarRecibirTraslados(string TRANSFERID, string ESTADO)
         {
             TRASLADOHEADER HEADER = new TRASLADOHEADER();
@@ -78,7 +303,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionTrasladoPepeMBClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionTrasladoPepeMB"),
-                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionTrasladoPepeMBGP")
+                GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionTrasladoPepeMBGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -139,9 +364,10 @@ namespace WMS_API.Features.Repositories
                     Datos = null,
                 };
             }
-            // Asegura que siempre se devuelve un valor en todas las rutas de código
+           
             return respuesta;
         }
+
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE)
         {
             MOVIMIENTOHEADER HEADER = new MOVIMIENTOHEADER();
@@ -816,8 +1042,9 @@ namespace WMS_API.Features.Repositories
                     XDocument xmlDoc = XDocument.Parse(xmlResponse);
                     var respuestaxml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
                     var estado = respuestaxml.Split('|')[0].Replace("Estado:", "").Trim();
-                    var mensaje = respuestaxml.Split('|')[1].Replace("Mensaje:", "").Trim();
-                    if (estado == "Éxito")
+                    var mensaje = respuestaxml.Split('|')[1].Replace("Detalle:", "").Trim();
+                    var validacionMensaje = mensaje.Contains("Se ha cancelado la actualización");
+                    if (estado == "Éxito" && !validacionMensaje)
                     {
                         respuestas = new Respuesta<string>
                         {
