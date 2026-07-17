@@ -30,7 +30,6 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-
                 result = await executeProcedure.ExecuteStoredProcedure<RespuestaExistenciaUbicacion>("[IM_WMS_GetExistenciaUbiacion]", parametros);
             }
             catch (Exception)
