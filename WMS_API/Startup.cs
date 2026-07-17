@@ -42,6 +42,7 @@ namespace WMS_API
             services.AddTransient<IWMSSerigrafiaRepository, WMSSerigrafiaReposotory>();
             services.AddTransient<IWMSRecepcionYUbicacionAX, WMSRecepcionYUbicacionAXRepository>();
             services.AddTransient<IimpresionEtiquetaRepository, ImpresionEtiquetaRepository>();
+            services.AddTransient<IWMS_UbiacionRollosRepository, WMS_UbicacionRollosRepository>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WMS_API", Version = "v1" });

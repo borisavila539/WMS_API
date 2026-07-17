@@ -4,6 +4,7 @@ using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
 using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
+using Core.DTOs.UbiacacionRollos;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,6 +12,9 @@ namespace Core.Interfaces
 {
     public interface IAX
     {
+        public Task<string> RegistrarMovimientoRollosEnDiario(List<MovimientoRolloDto> rollosAMover);
+        public Task<Respuesta<string>> AgregarNuevaUbicacion(string empresa, string ubicacion, string almacen, string pasillo);
+
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE);
         public string EnviarRecibirTraslados(string TRANSFERID, string ESTADO);
         public Task<Respuesta<string>> RecibirTrasladoYCambioUbiacion(string trasladoId, InformacionEmpresa informacion);
