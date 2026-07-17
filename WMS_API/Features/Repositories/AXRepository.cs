@@ -50,7 +50,7 @@ namespace WMS_API.Features.Repositories
             var context = new IMGetTransferJournalAsgGPService.CallContext { Company = "IMHN" };
             var serviceClient = new MGetTransferJournalAsgClient(
                 GetBindingGeneric("NetTcpBinding_IMGetTransferJournalAsg"),
-                GetEndpointGeneric("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
+                GetEndpointGeneric("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -192,7 +192,7 @@ namespace WMS_API.Features.Repositories
             IM_WMS_CrearNuevaUbicacion.CallContext context = new IM_WMS_CrearNuevaUbicacion.CallContext{Company = "IMHN"};
             var serviceClient = new M_WMS_AgregarNuevaUbiacionClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_AgregarNuevaUbiacion"),
-                GetEndpointGeneric("net.tcp://gim-dev-aos:8201/DynamicsAx/Services/IM_WMS_AgregarNuevaUbicacionGP")
+                GetEndpointGeneric("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IM_WMS_AgregarNuevaUbicacionGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
@@ -303,7 +303,7 @@ namespace WMS_API.Features.Repositories
 
             var serviceClient = new M_WMS_RecepcionTrasladoPepeMBClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionTrasladoPepeMB"),
-                GetEndpointGeneric("net.tcp://gim-dev-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionTrasladoPepeMBGP")
+                GetEndpointGeneric("net.tcp://gim-pro3-AOS:8201/DynamicsAx/Services/IM_WMS_RecepcionTrasladoPepeMBGP")
             );
 
             serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
