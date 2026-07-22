@@ -1,5 +1,5 @@
 ﻿using Core.DTOs;
-using Core.DTOs.Serigrafia.ClaseRespuesta;
+using Core.DTOs.ClaseRespuesta;
 using Core.DTOs.UbiacacionRollos;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
