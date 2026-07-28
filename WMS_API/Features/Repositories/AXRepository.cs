@@ -1012,18 +1012,21 @@ namespace WMS_API.Features.Repositories
         {
             Respuesta<string> respuestas = new Respuesta<string>();
             ConfirmacionRecepcionXML confirmacionXml = new ConfirmacionRecepcionXML();
+
             bool esconfirmacion = confirmacionRecepcion.Action == "CONFIRM_PC";
-            confirmacionXml .Action = confirmacionRecepcion.Action;
+
+            confirmacionXml.Action = confirmacionRecepcion.Action;
             confirmacionXml.PurchId = confirmacionRecepcion.PurchId;
             confirmacionXml.PackingSlipId = confirmacionRecepcion.PackingSlipId;
             confirmacionXml.QtyReceive = confirmacionRecepcion.QtyReceive;
 
             string XML = SerializationService.Serialize(confirmacionXml);
 
-            IM_WMS_RecepcionSubcontratacionGP.CallContext context = new IM_WMS_RecepcionSubcontratacionGP.CallContext
-            {
-                Company = "IMHN"
-            };
+            IM_WMS_RecepcionSubcontratacionGP.CallContext context =
+                new IM_WMS_RecepcionSubcontratacionGP.CallContext
+                {
+                    Company = "IMHN"
+                };
 
             var serviceClient = new M_WMS_RecepcionSubcontratacionClient(
                 GetBindingGeneric("NetTcpBinding_IM_WMS_RecepcionSubcontratacion"),
@@ -1037,20 +1040,56 @@ namespace WMS_API.Features.Repositories
             {
                 var resp = await serviceClient.initConfirmacionRecepcionXMLAsync(context, XML);
                 string xmlResponse = resp.response?.ToString();
+
                 if (!string.IsNullOrEmpty(xmlResponse))
                 {
                     XDocument xmlDoc = XDocument.Parse(xmlResponse);
-                    var respuestaxml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
-                    var estado = respuestaxml.Split('|')[0].Replace("Estado:", "").Trim();
-                    int numeroExtraccion = esconfirmacion ? 1 : 2;
-                    var mensaje = respuestaxml.Split('|')[numeroExtraccion].Replace("Detalle:", "").Trim();
-                    var validacionMensaje = mensaje.Contains("Se ha cancelado la actualización");
-                    if (estado == "Éxito" && !validacionMensaje)
+
+                    string respuestaxml = xmlDoc
+                        .Descendants("RESPUESTA")
+                        .FirstOrDefault()?.Value ?? string.Empty;
+
+                    string estado = string.Empty;
+                    string mensaje = respuestaxml;
+
+                    var partes = respuestaxml.Split('|');
+
+                    if (partes.Length > 0)
+                    {
+                        estado = partes[0]
+                            .Replace("Estado:", "")
+                            .Trim();
+                    }
+
+                    int indiceDetalle = respuestaxml.IndexOf(
+                        "Detalle:",
+                        StringComparison.OrdinalIgnoreCase);
+
+                    if (indiceDetalle >= 0)
+                    {
+                        mensaje = respuestaxml.Substring(
+                            indiceDetalle + "Detalle:".Length)
+                            .Trim();
+                    }
+
+                    // Quitar prefijo técnico de AX
+                    if (mensaje.StartsWith("ERROR|", StringComparison.OrdinalIgnoreCase))
+                    {
+                        mensaje = mensaje.Substring("ERROR|".Length).Trim();
+                    }
+
+                    bool validacionMensaje =
+                        mensaje.Contains("Se ha cancelado la actualización");
+
+                    if (estado.Equals("Éxito", StringComparison.OrdinalIgnoreCase)
+                        && !validacionMensaje)
                     {
                         respuestas = new Respuesta<string>
                         {
                             Exito = true,
-                            Mensaje = esconfirmacion ? "Confirmada exitosamente." : "Recepción realizada exitosamente."
+                            Mensaje = esconfirmacion
+                                ? "Confirmada exitosamente."
+                                : "Recepción realizada exitosamente."
                         };
                     }
                     else
@@ -1058,22 +1097,21 @@ namespace WMS_API.Features.Repositories
                         respuestas = new Respuesta<string>
                         {
                             Exito = false,
-                            Mensaje = mensaje,
+                            Mensaje = mensaje
                         };
                     }
                 }
+
                 return respuestas;
             }
             catch (Exception ex)
             {
-                respuestas = new Respuesta<string>
+                return new Respuesta<string>
                 {
                     Exito = false,
                     Mensaje = ex.ToString()
                 };
-                return respuestas;
             }
-
         }
 
         private NetTcpBinding GetBinding()
