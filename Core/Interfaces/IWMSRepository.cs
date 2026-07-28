@@ -102,6 +102,7 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_NOTIFICARSUBCONTRATACIONTEJIDOPUNTO>> GetDetalleNotificado(string OP, int despachoID);
         public Task<List<BuscarVendPackingSlipJourDto>> BuscarVendPackingSlipJour(string secuencia, string proveedor);
         public Task<Respuesta<string>> InsertarRecepcionSubcontratacion(string prodmasterid,string packingListId, decimal qtyReceive);
+        public Task<bool> CambiarEstadoDespachoLiquidado(int despachoID);
 
         //inventario cliclico de telas
         public Task<List<IM_WMS_InventarioCiclicoTelasDiariosAbiertos>> GetInventarioCiclicoTelasDiariosAbiertos();

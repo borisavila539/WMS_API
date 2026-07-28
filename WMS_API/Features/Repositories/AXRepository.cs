@@ -1042,7 +1042,7 @@ namespace WMS_API.Features.Repositories
                     XDocument xmlDoc = XDocument.Parse(xmlResponse);
                     var respuestaxml = xmlDoc.Descendants("RESPUESTA").FirstOrDefault()?.Value;
                     var estado = respuestaxml.Split('|')[0].Replace("Estado:", "").Trim();
-                    var mensaje = respuestaxml.Split('|')[1].Replace("Detalle:", "").Trim();
+                    var mensaje = respuestaxml.Split('|')[2].Replace("Detalle:", "").Trim();
                     var validacionMensaje = mensaje.Contains("Se ha cancelado la actualización");
                     if (estado == "Éxito" && !validacionMensaje)
                     {

@@ -2613,6 +2613,22 @@ namespace WMS_API.Features.Repositories
             }
        
         }
+        public async Task<bool> CambiarEstadoDespachoLiquidado(int despachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID)
+            };
+
+            RespuestaActualizacionEstadoLiquidado response = await executeProcedure.ExecuteStoredProcedure<RespuestaActualizacionEstadoLiquidado>("[IM_WMS_CambiarEstadoDespachoLiquidado]", parametros);
+
+            if (response.EstadoID == 6)
+            {
+                return true;
+            }
+            return false;
+        }
 
         public async Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID)
         {
