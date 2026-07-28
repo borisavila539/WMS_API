@@ -479,7 +479,9 @@ namespace WMS_API.Controllers
             if (PC.Action.Contains("RECEIVE") && responseAX.Exito)
             {
                 var respustaBaseLocal = await _WMS.InsertarRecepcionSubcontratacion(PC.ProdmasterId, PC.PackingSlipId, PC.QtyReceive);
-                if (!respustaBaseLocal.Exito)
+                await _WMS.CambiarEstadoDespachoLiquidado(PC.DespachoId);
+
+                if (!respustaBaseLocal.Exito )
                 {
                     respuestas.Add(respustaBaseLocal);
                 }

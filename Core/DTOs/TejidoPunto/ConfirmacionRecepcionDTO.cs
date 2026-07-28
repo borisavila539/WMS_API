@@ -8,6 +8,7 @@ namespace Core.DTOs.TejidoPunto
 {
     public class ConfirmacionRecepcionDTO
     {
+        public int DespachoId { get; set; }
         public string Action { get; set; }
         public string ProdmasterId { get; set; }
 
