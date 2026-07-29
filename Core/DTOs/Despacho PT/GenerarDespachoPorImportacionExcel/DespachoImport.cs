@@ -22,7 +22,7 @@ namespace Core.DTOs.Despacho_PT.GenerarDespachoPorImportacionExcel
         public string Driver { get; set; }
         public string Truck { get; set; }
         public int EstadoID { get; set; }
-        public int UserCreated { get; set; }
+        public string UserCreated { get; set; }
         public string CreatedDateTime { get; set; }
         public string Almacen { get; set; }
         public int CajaSegundas { get; set; }
