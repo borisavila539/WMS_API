@@ -14,7 +14,9 @@ namespace Core.Interfaces
         public Task<RespuestaConsultarRollo> GetRolloParaCambioDeUbiacion(string codigoBarra);
         public Task<List<InventarioRolloPorUbiacionAlmacenDto>> GetConsultarRollosPorUbicacion(string almacen, string ubicacion);
         public Task<List<InventarioRolloPorAlmacenDto>> ConsultarInventarioRollosPorAlmacen(string almacen);
-
+        public Task<List<ValidarRolloRepetidoDto>> ValidarRolloRepetidoEnInventario(ValidarRolloRepetidoRequestDto request);
+        public Task<List<DiarioMovimientoPendienteDto>> ObtenerDiariosMovimientoPendientes();
+        public Task<List<DetalleDiarioMovimientoDto>> ObtenerDetalleDiarioMovimiento(string journalId);
 
     }
 }
