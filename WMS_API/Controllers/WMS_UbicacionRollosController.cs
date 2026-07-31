@@ -3,7 +3,9 @@ using Core.DTOs.ClaseRespuesta;
 using Core.DTOs.UbiacacionRollos;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WMS_API.Controllers
@@ -47,6 +49,41 @@ namespace WMS_API.Controllers
             var resp = await _ubiacionRollosRepository.GetRolloParaCambioDeUbiacion(rolloId);
             return Ok(resp);
         }
+
+        [HttpPost("validar-rollo-repetido")]
+        public async Task<IActionResult> ValidarRolloRepetido([FromBody] ValidarRolloRepetidoRequestDto request)
+        {
+            try
+            {
+                List<ValidarRolloRepetidoDto> diariosDuplicados =
+                    await _ubiacionRollosRepository.ValidarRolloRepetidoEnInventario(request);
+
+                if (diariosDuplicados.Any())
+                {
+                    return Ok(new
+                    {
+                        esDuplicado = true,
+                        mensaje = "El rollo ya está registrado en uno o más diarios abiertos de transferencia.",
+                        diarios = diariosDuplicados
+                    });
+                }
+
+                return Ok(new
+                {
+                    esDuplicado = false,
+                    mensaje = "El rollo está disponible para ser procesado.",
+                    diarios = new List<ValidarRolloRepetidoDto>()
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Ocurrió un error interno al validar el rollo en el inventario.", detalle = ex.Message });
+            }
+        }
         [HttpPost("RegistrarCambioUbicacionRollos")]
         public async Task<ActionResult<Respuesta<string>>> RegistrarCambioUbicacionRollos([FromBody] List<MovimientoRolloDto> rollosAMover)
         {
@@ -60,7 +97,7 @@ namespace WMS_API.Controllers
             var resp = await _ubiacionRollosRepository.GetConsultarRollosPorUbicacion(almacen, ubicacion);
             return Ok(resp);
         }
-        
+
         [HttpGet("ConsultarInventarioRollosPorAlmacen/{almacen}")]
         public async Task<ActionResult<List<InventarioRolloPorAlmacenDto>>> ConsultarInventarioRollosPorAlmacen(string almacen)
         {
@@ -68,5 +105,18 @@ namespace WMS_API.Controllers
             return Ok(resp);
         }
 
+        [HttpGet("GetDiariosMovimientoPendientes")]
+        public async Task<ActionResult<List<DiarioMovimientoPendienteDto>>> GetDiariosMovimientoPendientes()
+        {
+            var resp = await _ubiacionRollosRepository.ObtenerDiariosMovimientoPendientes();
+            return Ok(resp);
+        }
+
+        [HttpGet("GetDetalleDiarioMovimiento/{journalId}")]
+        public async Task<ActionResult<List<DetalleDiarioMovimientoDto>>> GetDetalleDiarioMovimiento(string journalId)
+        {
+            var resp = await _ubiacionRollosRepository.ObtenerDetalleDiarioMovimiento(journalId);
+            return Ok(resp);
+        }
     }
 }
