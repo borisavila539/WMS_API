@@ -233,6 +233,7 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@fechaDeEntrega",response.FechaDeEntrega),
                 new SqlParameter("@firmaBase64",response.FirmaBase64),
                 new SqlParameter("@creadoPor",response.CreadoPor),
+                new SqlParameter("@codigoEmpleado",response.CodigoEmpleado),
             };
 
 

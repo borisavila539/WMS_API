@@ -22,6 +22,7 @@ namespace Core.DTOs.IM_PrepEnvOp
         public DateTime FechaDeEntrega { get; set; }
         public byte[] FirmaBase64 { get; set; }
         public string CreadoPor { get; set; }
+        public string CodigoEmpleado { get; set; }
         public List<IM_PrepEnvOp_ListaOpPorEnviarDTO>  ListaOpPorEnviar { get; set; }
     }
 
