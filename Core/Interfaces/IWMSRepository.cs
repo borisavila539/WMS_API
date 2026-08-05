@@ -22,6 +22,8 @@ namespace Core.Interfaces
     public interface IWMSRepository
     {
         //usuario por pantalla
+        public Task<List<IM_WMS_UsuarioPorPantallaDTO>> GetPermisoUsuario(string numeroColaborador);
+
         public Task<IM_WMS_UsuarioPorPantallaDTO> GetPermisoUsuarioPorPantalla(string numeroColaborador, string pantalla);
         public Task<string> EnviarCorreoAPlaneacionPorTelaFaltantePorLiberar(int despachoId);
         //
