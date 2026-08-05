@@ -9,6 +9,7 @@ namespace Core.DTOs
         public string chofer { get; set; }
         public string camion { get; set; }
         public Boolean Estado { get; set; }
+        public string Descripcion { get; set; }
 
     }
 }

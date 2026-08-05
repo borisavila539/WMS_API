@@ -162,10 +162,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("CrearDespacho/{RecIDTraslados}/{Chofer}/{camion}")]
-        public async Task<IEnumerable<CrearDespachoDTO>> GetCrearDespachos(string RecIDTraslados, string Chofer, string camion)
+        [HttpGet("CrearDespacho/{RecIDTraslados}/{Descripcion}")]
+        public async Task<IEnumerable<CrearDespachoDTO>> GetCrearDespachos(string RecIDTraslados, string Descripcion)
         {
-            var resp = await _WMS.GetCrearDespacho(RecIDTraslados, Chofer, camion);
+            var resp = await _WMS.GetCrearDespacho(RecIDTraslados, Descripcion);
             return resp;
         }
 
@@ -182,11 +182,11 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{EMPLEADO}/{CAMION}")]
-        public async Task<string> getNotaDespacho(int DESPACHOID, string RECID, string EMPLEADO, string CAMION)
+        [HttpGet("NotaDespacho/{DESPACHOID}/{RECID}/{USUARIO}/{DESCRIPCION}")]
+        public async Task<IActionResult> getNotaDespacho(int DESPACHOID, string RECID, string USUARIO, string DESCRIPCION)
         {
-            var resp = await _WMS.getNotaDespacho(DESPACHOID, RECID, EMPLEADO, CAMION);
-            return resp;
+            var resp = await _WMS.NotaDeDespachoTela2(DESPACHOID, RECID, USUARIO, DESCRIPCION);
+            return Ok(resp);
         }
         [HttpGet("RollosDespacho/{DespachoID}")]
         public async Task<IEnumerable<RolloDespachoDTO>> GetRollosDespacho(int DespachoID)
