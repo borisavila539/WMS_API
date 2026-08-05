@@ -957,7 +957,7 @@ namespace WMS_API.Features.Repositories
                     mail.Attachments.Add(adjunto);
                     foreach (IM_WMS_Correos_Despacho correo in correos)
                     {
-                        mail.To.Add("ebueso@intermoda.com.hn");
+                        mail.To.Add(correo.Correo);
                     }
 
                     using (SmtpClient oSmtpClient = new SmtpClient())
