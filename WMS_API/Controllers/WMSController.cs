@@ -449,7 +449,7 @@ namespace WMS_API.Controllers
         //Liquidacion de la orden
         //Despachos Recibidos
         [HttpGet("GetPermisoUsuarioPorPantalla/{numeroColaborador}/{pantalla}")]
-        public async Task<IActionResult> GetPermisoUsuarioPorPantalla(string numeroColaborador,string pantalla )
+        public async Task<IActionResult> GetPermisoUsuarioPorPantalla(string numeroColaborador, string pantalla)
         {
             try
             {
@@ -457,6 +457,24 @@ namespace WMS_API.Controllers
                     numeroColaborador,
                     pantalla
                 );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error al consultar permisos del usuario por pantalla.",
+                    error = ex.Message
+                });
+            }
+        }
+        [HttpGet("GetPermisoUsuario/{numeroColaborador}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_UsuarioPorPantallaDTO>>> GetPermisoUsuario(string numeroColaborador )
+        {
+            try
+            {
+                var response = await _WMS.GetPermisoUsuario(numeroColaborador);
 
                 return Ok(response);
             }

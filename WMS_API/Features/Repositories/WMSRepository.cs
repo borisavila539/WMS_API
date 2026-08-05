@@ -62,6 +62,24 @@ namespace WMS_API.Features.Repositories
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
+        public async Task<List<IM_WMS_UsuarioPorPantallaDTO>> GetPermisoUsuario(string numeroColaborador)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@NumeroColaborador", numeroColaborador),
+            };
+
+            List<IM_WMS_UsuarioPorPantallaDTO> response =
+                await executeProcedure.ExecuteStoredProcedureList<IM_WMS_UsuarioPorPantallaDTO>(
+                    "[IM_WMS_ConsultarPermisoUsuario]",
+                    parametros
+                );
+
+            return response;
+        }
+
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
