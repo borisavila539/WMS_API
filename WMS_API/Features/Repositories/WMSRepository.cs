@@ -927,6 +927,7 @@ namespace WMS_API.Features.Repositories
                 mail.From = new MailAddress(VariablesGlobales.Correo);
 
                 var correos = await getCorreosDespacho();
+                
 
                 mail.To.Add("ebueso@intermoda.com.hn");
 
@@ -955,7 +956,11 @@ namespace WMS_API.Features.Repositories
                 using (MemoryStream ms = new MemoryStream(pdfBytes))
                 {
                     string nombreArchivoPdf = $"NotaDespacho_{DespachoID.ToString().PadLeft(8, '0')}.pdf";
-                    mail.Attachments.Add(new Attachment(ms, nombreArchivoPdf, "application/pdf"));
+
+                    foreach (IM_WMS_Correos_Despacho correo in correos)
+                    {
+                        mail.To.Add(correo.Correo);
+                    }
 
                     using (SmtpClient oSmtpClient = new SmtpClient())
                     {
