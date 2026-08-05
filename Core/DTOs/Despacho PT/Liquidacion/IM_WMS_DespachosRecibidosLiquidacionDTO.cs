@@ -13,5 +13,6 @@ namespace Core.DTOs.Despacho_PT.Liquidacion
         public string Truck { get; set; }
         public DateTime CreatedDateTime { get; set; }
         public int Almacen { get; set; }
+        public string Name { get; set; }   
     }
 }

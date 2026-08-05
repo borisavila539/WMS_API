@@ -8,5 +8,6 @@ namespace Core.DTOs.Despacho_PT
         public string  Driver { get; set; }
         public string truck { get; set; }
         public DateTime CreatedDateTime { get; set; }
+        public string Name { get; set; }
     }
 }

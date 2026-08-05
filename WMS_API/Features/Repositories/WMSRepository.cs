@@ -3,25 +3,31 @@ using Core.DTOs;
 using Core.DTOs.AuditoriaCajasDenim;
 using Core.DTOs.BusquedaRolloAX;
 using Core.DTOs.Cajasrecicladas;
+using Core.DTOs.ClaseRespuesta;
 using Core.DTOs.ControCajasEtiquetado;
 using Core.DTOs.DeclaracionEnvio;
 using Core.DTOs.Despacho_PT;
 using Core.DTOs.Despacho_PT.Liquidacion;
+using Core.DTOs.DespachoTela;
 using Core.DTOs.Devoluciones;
 using Core.DTOs.DiarioTransferir;
 using Core.DTOs.GeneracionPrecios;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Reduccion_Cajas;
-using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
 using Core.DTOs.TrackingPedidos;
 using Core.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using SystemDrawingColor = System.Drawing.Color;  // Alias para System.Drawing
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using OfficeOpenXml.Table.PivotTable;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -36,6 +42,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WMS_API.Features.Utilities;
+using System.Text.RegularExpressions;
 
 namespace WMS_API.Features.Repositories
 {
@@ -45,14 +52,14 @@ namespace WMS_API.Features.Repositories
         private readonly string _connectionString;
         private readonly string _connectionStringPiso;
         private readonly string _ImpresoraDevolucion;
-
+  
         public WMSRepository(IConfiguration configuracion)
         {
             _connectionString = configuracion.GetConnectionString("IMFinanzas");
             _connectionStringPiso = configuracion.GetConnectionString("IMAplicativos");
             _ImpresoraDevolucion = "192.168.10.128";
             //_ImpresoraDevolucion = "10.1.1.208";
-
+            QuestPDF.Settings.License = LicenseType.Community;
         }
 
         public async Task<LoginDTO> PostLogin(LoginDTO datos)
@@ -557,18 +564,26 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
-        public async Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Chofer, string camion)
+        public async Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Descripcion)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
             var parametros = new List<SqlParameter>
             {
                 new SqlParameter("@RecIDtraslado", RecIDTraslados),
-                new SqlParameter("@chofer", Chofer),
-                new SqlParameter("@camion", camion)
+                new SqlParameter("@descripcion", Descripcion)
             };
+            List<CrearDespachoDTO> result = new List<CrearDespachoDTO>();
+            try
+            {
 
-            List<CrearDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_CrearDespacho]", parametros);
+             result = await executeProcedure.ExecuteStoredProcedureList<CrearDespachoDTO>("[IM_WMS_CrearDespacho]", parametros);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
 
             return result;
         }
@@ -597,6 +612,393 @@ namespace WMS_API.Features.Repositories
             List<CerrarDespachoDTO> result = await executeProcedure.ExecuteStoredProcedureList<CerrarDespachoDTO>("[IM_CerrarDespacho]", parametros);
 
             return result;
+        }
+
+        private async Task<List<DetalleDespachoTelaDto>> GetDetalleDespachoTela(string trasladoDesde, string trasladoHasta, string almacen)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            List<DetalleDespachoTelaDto> result = new List<DetalleDespachoTelaDto>();
+     
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@TransferInicial", trasladoDesde),
+                new SqlParameter("@TransferFinal", trasladoHasta),
+                new SqlParameter("@AlmacenHasta", almacen)
+            };
+
+            try
+            {
+
+                  result = await executeProcedure.ExecuteStoredProcedureList<DetalleDespachoTelaDto>("[IM_WMS_ObtenerDetalleDespachoTela]", parametros);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+            return result;
+        }
+
+        public async Task<byte[]> NotaDeDespachoTela2(int DespachoID, string recid, string usuarioSolicitante, string descripcion = "")
+        {
+            try
+            {
+                // 1. Obtención de Datos
+                List<EncabezadoNotaDespachoDTO> encabezado = await getEncabezadoDespacho(recid);
+                if (encabezado == null || !encabezado.Any()) return new byte[0];
+
+                List<DetalleDespachoTelaDto> detalleReponse = await GetDetalleDespachoTela(
+                    encabezado[0].TRANSFERIDFROM,
+                    encabezado[0].TRANSFERIDTO,
+                    encabezado[0].Destino
+                );
+
+                var rollos = await getRolloDespacho(DespachoID);
+
+                List<DetalleDespachoTelaDto> detalle = new List<DetalleDespachoTelaDto>();
+
+                foreach (var item in detalleReponse)
+                {
+                    var rollo = rollos.FirstOrDefault(r => r.INVENTSERIALID == item.NumeroDeSerie);
+                    if (rollo != null)
+                    {
+                        detalle.Add(item);
+                    }
+                }
+
+                bool mostrarAncho = detalle.Any(x => !string.IsNullOrWhiteSpace(x.Ancho) && x.Ancho != "0");
+
+                string coordinador = "";
+                string despachador = "";
+                string motorista = "";
+                string recibidoPor = "";
+                string fechaHoraStr = DateTime.Now.ToString("dd/MM/yyyy hh:mm tt");
+                Double totalCantidad = (Double)detalle.Sum(d => d.Cantidad);
+                int totalRollos = detalle.Count;
+
+                // Colores Intermoda
+                string colorNavy = "#0D1B2A";
+                string colorOrange = "#E06D12";
+                string colorBgLight = "#F8FAFC";
+
+                // 2. Generar el documento PDF en un arreglo de Bytes (en Memoria)
+                byte[] pdfBytes = Document.Create(container =>
+                {
+                    string[] tiposDocumento = { "ORIGINAL", "COPIA" };
+
+                    foreach (string tipo in tiposDocumento)
+                    {
+                        container.Page(page =>
+                        {
+                            // Orientación Horizontal
+                            page.Size(PageSizes.A4.Landscape());
+                            page.Margin(12, Unit.Millimetre);
+                            page.PageColor(Colors.White);
+                            page.DefaultTextStyle(x => x.FontSize(8.5f).FontFamily("Arial"));
+
+                            // MARCA DE AGUA EN DIAGONAL (Solo para COPIA)
+                            if (tipo == "COPIA")
+                            {
+                                page.Background()
+                                    .AlignCenter()
+                                    .AlignMiddle()
+                                    .Rotate(-30)
+                                    .Text("COPIA")
+                                    .FontSize(110)
+                                    .Bold()
+                                    .FontColor(Colors.Grey.Lighten2);
+                            }
+
+                            // --- ENCABEZADO ---
+                            page.Header().Element(header =>
+                            {
+                                header.BorderBottom(2.5f).BorderColor(colorNavy).PaddingBottom(6).Row(row =>
+                                {
+                                    row.RelativeItem().Column(col =>
+                                    {
+                                        col.Item().Row(r =>
+                                        {
+                                            r.AutoItem().Text("INTERM").FontSize(22).ExtraBold().FontColor(colorNavy);
+                                            r.AutoItem().Text("O").FontSize(22).ExtraBold().FontColor(colorOrange);
+                                            r.AutoItem().Text("D").FontSize(22).ExtraBold().FontColor(colorNavy);
+                                            r.AutoItem().Text("Ʌ").FontSize(22).ExtraBold().FontColor(colorNavy);
+                                        });
+                                        col.Item().Text("INTERMODA S.A. DE C.V.").FontSize(7.5f).Bold().FontColor(Colors.Grey.Medium);
+                                    });
+
+                                    row.ConstantItem(260).AlignRight().Column(col =>
+                                    {
+                                        col.Item().Text($"NOTA DE DESPACHO - {tipo}")
+                                           .FontSize(13).Bold().FontColor(colorNavy);
+                                        col.Item().Text($"# DESP-{DespachoID.ToString().PadLeft(8, '0')}")
+                                           .FontSize(11).Bold().FontColor(colorOrange);
+                                    });
+                                });
+                            });
+
+                            // --- CONTENIDO ---
+                            page.Content().PaddingVertical(8).Column(column =>
+                            {
+                                column.Item().PaddingBottom(8).Row(row =>
+                                {
+                                    row.RelativeItem().Background(colorBgLight).BorderLeft(4).BorderColor(colorNavy).Padding(6).Column(c =>
+                                    {
+                                        c.Item().Text("INFORMACIÓN DE TRASLADO").Bold().FontSize(8).FontColor(colorNavy);
+                                        c.Item().Text($"Transfer Origen: {encabezado[0].TRANSFERIDFROM}");
+                                        c.Item().Text($"Transfer Destino: {encabezado[0].TRANSFERIDTO}");
+                                        c.Item().Text($"Almacén Destino: {encabezado[0].Destino}");
+                                    });
+
+                                    row.ConstantItem(8);
+
+                                    row.RelativeItem().Background(colorBgLight).BorderLeft(4).BorderColor(colorOrange).Padding(6).Column(c =>
+                                    {
+                                        c.Item().Text("DATOS DE CONTROL Y TRANSPORTE").Bold().FontSize(8).FontColor(colorNavy);
+                                        c.Item().Text($"Empleado Solicitante: {usuarioSolicitante} ");
+                                        c.Item().Text($"Descripción: {descripcion}");
+                                    });
+                                });
+
+                                // Tabla de Detalle
+                                column.Item().Table(table =>
+                                {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(18);     // 1. #
+                                    columns.RelativeColumn(1.0f);   // 2. Transfer
+                                    columns.RelativeColumn(1.0f);   // 3. Código Artículo
+                                    if (mostrarAncho)
+                                    {
+                                        columns.RelativeColumn(0.5f);   // 4. Ancho
+                                    }
+                                    columns.RelativeColumn(1.0f);   // 5. Lote
+                                    columns.RelativeColumn(0.7f);   // 6. Cód. Color
+                                    columns.RelativeColumn(1.5f);   // 7. Nombre Color
+                                    columns.RelativeColumn(0.6f);   // 8. Ubicación
+                                    columns.RelativeColumn(0.7f);   // 9. N° Serie
+                                    columns.ConstantColumn(38);     // 10. Cant.
+                                    columns.ConstantColumn(28);     // 11. Rev.
+                                });
+
+                                // Encabezados
+                                table.Header(header =>
+                                {
+                                    var headersList = new List<string> { "#", "Transfer", "Código" };
+
+                                    if (mostrarAncho)
+                                    {
+                                        headersList.Add("Ancho");
+                                    }
+                                    headersList.AddRange(new[] { "Lote", "Cód. Color", "Color", "Ubicación", "N° Serie", "Cant.", "Rev." });
+                                    foreach (var h in headersList)
+                                    {
+                                        header.Cell().Background(colorNavy).Padding(3)
+                                               .Text(h).FontColor(Colors.White).Bold().FontSize(7f);
+                                    }
+                                });
+
+                                int index = 1;
+                                foreach (var item in detalle)
+                                {
+                                    var bg = (index % 2 == 0) ? colorBgLight : "#FFFFFF";
+
+                                    table.Cell().Background(bg).Padding(2.5f).AlignCenter().Text(index.ToString()).FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.Transferencia ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.CodigoArticulo ?? "").FontSize(7.5f);
+                                    if (mostrarAncho)
+                                    {
+                                        table.Cell().Background(bg).Padding(2.5f).Text(item.Ancho ?? "").FontSize(7.5f);
+                                    }
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.Lote ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.Color ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.NombreColor ?? item.Color ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.Ubicacion ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).Text(item.NumeroDeSerie ?? "").FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).AlignRight().Text(item.Cantidad.ToString("N2")).FontSize(7.5f);
+                                    table.Cell().Background(bg).Padding(2.5f).AlignCenter().Text(item.Revisado ?? "[ X ]").FontSize(7.5f);
+
+                                    index++;
+                                    }
+                                });
+
+                                column.Item().PaddingTop(4).PaddingBottom(15).AlignRight().Text(text =>
+                                {
+                                    text.Span("Total Rollos: ").Bold().FontSize(9.5f).FontColor(colorNavy);
+                                    text.Span($"{totalRollos:N0}   |   ").FontSize(9.5f).FontColor(colorNavy);
+                                    text.Span("Cantidad Total: ").Bold().FontSize(9.5f).FontColor(colorOrange);
+                                    text.Span($"{totalCantidad:N2} yardas").Bold().FontSize(9.5f).FontColor(colorOrange);
+                                });
+
+                                // BLOQUE FINAL: TRANSPORTE Y FIRMAS
+                                column.Item().EnsureSpace().Column(bottomSection =>
+                                {
+                                    bottomSection.Item().Background(colorBgLight).BorderTop(2).BorderColor(colorOrange).Padding(6).Column(c =>
+                                    {
+                                        c.Spacing(8);
+                                        c.Item().Row(r =>
+                                        {
+                                            r.RelativeItem().Text($"Fecha/Hora Despacho: {fechaHoraStr}");
+                                            r.RelativeItem().Text($"Placa Camión: ");
+                                        });
+                                        c.Item().Row(r =>
+                                        {
+                                            r.RelativeItem().Text($"Coordinador Almacén: ");
+                                            r.RelativeItem().Text($"Motorista Asignado: ");
+                                        });
+                                        c.Item().Row(r =>
+                                        {
+                                            r.RelativeItem().Text($"Despachador Responsable: ");
+                                            r.RelativeItem().Text("Empresa: Intermoda Honduras S.A. de C.V.");
+                                        });
+                                        c.Item().Row(r =>
+                                        {
+                                            r.RelativeItem().Text($"Nombre Guardia: ");
+                                            r.RelativeItem().Text($"Recibido Por: "); 
+                                        });
+                                    });
+
+                                    bottomSection.Item().Height(25);
+
+                                    // Firmas (5 columnas)
+                                    bottomSection.Item().Table(signatures =>
+                                    {
+                                        signatures.ColumnsDefinition(cols =>
+                                        {
+                                            cols.RelativeColumn();
+                                            cols.RelativeColumn();
+                                            cols.RelativeColumn();
+                                            cols.RelativeColumn();
+                                            cols.RelativeColumn();
+                                        });
+
+                                        signatures.Cell().PaddingHorizontal(5).Column(c =>
+                                        {
+                                            c.Item().PaddingTop(40).BorderBottom(1.5f).BorderColor(colorNavy);
+                                            c.Item().AlignCenter().Text("Coordinador Almacén").Bold().FontSize(8);
+                                            c.Item().AlignCenter().Text(coordinador).FontSize(7.5f).FontColor(Colors.Grey.Medium);
+                                        });
+
+                                        signatures.Cell().PaddingHorizontal(5).Column(c =>
+                                        {
+                                            c.Item().PaddingTop(40).BorderBottom(1.5f).BorderColor(colorNavy);
+                                            c.Item().AlignCenter().Text("Despachador").Bold().FontSize(8);
+                                            c.Item().AlignCenter().Text(despachador).FontSize(7.5f).FontColor(Colors.Grey.Medium);
+                                        });
+
+                                        signatures.Cell().PaddingHorizontal(5).Column(c =>
+                                        {
+                                            c.Item().PaddingTop(40).BorderBottom(1.5f).BorderColor(colorNavy);
+                                            c.Item().AlignCenter().Text("Guardia Seguridad").Bold().FontSize(8);
+                                            c.Item().AlignCenter().Text("Sello de Salida").FontSize(7.5f).FontColor(Colors.Grey.Medium);
+                                        });
+
+                                        signatures.Cell().PaddingHorizontal(5).Column(c =>
+                                        {
+                                            c.Item().PaddingTop(40).BorderBottom(1.5f).BorderColor(colorNavy);
+                                            c.Item().AlignCenter().Text("Motorista").Bold().FontSize(8);
+                                            c.Item().AlignCenter().Text(motorista).FontSize(7.5f).FontColor(Colors.Grey.Medium);
+                                        });
+
+                                        signatures.Cell().PaddingHorizontal(5).Column(c =>
+                                        {
+                                            c.Item().PaddingTop(40).BorderBottom(1.5f).BorderColor(colorNavy);
+                                            c.Item().AlignCenter().Text("Recibido Por").Bold().FontSize(8);
+                                            c.Item().AlignCenter().Text(recibidoPor).FontSize(7.5f).FontColor(Colors.Grey.Medium);
+                                        });
+                                    });
+                                });
+                            });
+
+                            // Pie de página
+                            page.Footer().AlignCenter().Text(x =>
+                            {
+                                x.Span("Página ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.CurrentPageNumber().FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.Span(" de ").FontSize(8).FontColor(Colors.Grey.Medium);
+                                x.TotalPages().FontSize(8).FontColor(Colors.Grey.Medium);
+                            });
+                        });
+                    }
+                }).GeneratePdf();
+
+                // 3. Envío del Correo Electrónico con el PDF Adjunto
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress(VariablesGlobales.Correo);
+
+                var correos = await getCorreosDespacho();
+                
+
+                mail.To.Add("ebueso@intermoda.com.hn");
+
+                mail.Subject = "Despacho No." + DespachoID.ToString().PadLeft(8, '0');
+                mail.IsBodyHtml = true;
+
+                // Cuerpo HTML del correo
+                string htmlCorreo = $@"
+                <div style='font-family: Arial, sans-serif; color: #0D1B2A;'>
+                    <h2>Nota de Despacho N° {DespachoID.ToString().PadLeft(8, '0')}</h2>
+                    <p>Estimados,</p>
+                    <p>Se ha generado exitosamente el despacho de tela con los siguientes datos:</p>
+                    <ul>
+                        <li><b>Placa del Camión:</b> </li>
+                        <li><b>Empleado Solicitante:</b> </li>
+                        <li><b>Motorista:</b> {motorista}</li>
+                        <li><b>Cantidad Total:</b> {totalCantidad:N0} yardas/rollos</li>
+                    </ul>
+                    <p>Adjunto a este correo encontrará la <b>Nota de Despacho en formato PDF</b> con el detalle de los artículos y firmas requeridas.</p>
+                    <br>
+                    <p>Atentamente,<br><b>Sistema de Control de Inventarios WMS</b><br>Intermoda Honduras S.A. de C.V.</p>
+                </div>";
+
+                mail.Body = htmlCorreo;
+
+                using (MemoryStream ms = new MemoryStream(pdfBytes))
+                {
+                    string nombreArchivoPdf = $"NotaDespacho_{DespachoID.ToString().PadLeft(8, '0')}.pdf";
+
+                    foreach (IM_WMS_Correos_Despacho correo in correos)
+                    {
+                        mail.To.Add(correo.Correo);
+                    }
+
+                    using (SmtpClient oSmtpClient = new SmtpClient())
+                    {
+                        oSmtpClient.Host = "smtp.office365.com";
+                        oSmtpClient.Port = 587;
+                        oSmtpClient.EnableSsl = true;
+                        oSmtpClient.UseDefaultCredentials = false;
+
+                        NetworkCredential userCredential = new NetworkCredential(VariablesGlobales.Correo, VariablesGlobales.Correo_Password);
+                        oSmtpClient.Credentials = userCredential;
+
+                        await oSmtpClient.SendMailAsync(mail);
+                    }
+                }
+
+                try
+                {
+                    using (TcpClient client = new TcpClient("10.1.1.7", 9100))
+                    {
+                        using (NetworkStream stream = client.GetStream())
+                        {
+                            byte[] bytes = pdfBytes;
+                            stream.Write(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+                catch (Exception err)
+                {
+
+                }
+
+                return pdfBytes;
+            }
+            catch (Exception err)
+            {
+                string error = err.ToString();
+                return new byte[0];
+            }
         }
         public async Task<string> getNotaDespacho(int DespachoID, string recid, string empleado, string camion)
         {
@@ -633,7 +1035,7 @@ namespace WMS_API.Features.Repositories
             despacho += DespachoID.ToString().PadLeft(8, '0') + "</h4>";
 
             //colocar detalle del encabezado
-            var encabezado = await getEncabezadoDespacho(empleado, recid);
+            var encabezado = await getEncabezadoDespacho(recid);
             despacho += @"
                      <p>
                         <strong>Fecha: </strong>" + encabezado[0].fecha.ToString("dd/MM/yyyy HH:mm:ss") + @" <br>
@@ -854,13 +1256,12 @@ namespace WMS_API.Features.Repositories
 
             return despacho;
         }
-        public async Task<List<EncabezadoNotaDespachoDTO>> getEncabezadoDespacho(string empleado, string recid)
+        public async Task<List<EncabezadoNotaDespachoDTO>> getEncabezadoDespacho( string recid)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
             var parametros = new List<SqlParameter>
             {
-                new SqlParameter("@empleado", empleado),
                 new SqlParameter("@recid", recid)
             };
 
@@ -1579,10 +1980,10 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila - 1, 13].Value = "Irregulares";
                                 range = worksheet.Cells[fila - 1, 13, fila - 1, 14];
                                 range.Merge = true;
-                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, SystemDrawingColor.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+                                range.Style.Fill.BackgroundColor.SetColor(SystemDrawingColor.LightBlue);
 
                                 worksheet.Cells[fila, 13].Value = "Costura1";
                                 worksheet.Column(13).Width = 10.56;
@@ -1593,10 +1994,10 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila - 1, 15].Value = "Terceras";
                                 range = worksheet.Cells[fila - 1, 15, fila - 1, 16];
                                 range.Merge = true;
-                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, SystemDrawingColor.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+                                range.Style.Fill.BackgroundColor.SetColor(SystemDrawingColor.LightBlue);
 
 
                                 worksheet.Cells[fila, 15].Value = "Costura2";
@@ -1617,11 +2018,11 @@ namespace WMS_API.Features.Repositories
                                 worksheet.Cells[fila - 1, 20].Value = "% de Irregular y Tercera";
                                 range = worksheet.Cells[fila - 1, 20, fila - 1, 21];
                                 range.Merge = true;
-                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, Color.Black);
+                                range.Style.Border.BorderAround(ExcelBorderStyle.Thin, SystemDrawingColor.Black);
                                 range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                 range = worksheet.Cells[fila - 1, 20, fila - 1, 25];
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+                                range.Style.Fill.BackgroundColor.SetColor(SystemDrawingColor.LightBlue);
 
                                 worksheet.Cells[fila, 20].Value = "Por Costura";
                                 worksheet.Column(20).Width = 14.78;
@@ -1724,7 +2125,7 @@ namespace WMS_API.Features.Repositories
 
                                 range = worksheet.Cells[fila + 1, 11, fila + 1, col - 1];
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                                range.Style.Fill.BackgroundColor.SetColor(SystemDrawingColor.LightGray);
 
                                 //pie de pagina 
                                 string fontSizeCode = "&20";
@@ -1759,16 +2160,16 @@ namespace WMS_API.Features.Repositories
                                 range = worksheet.Cells[fila - 3, 27, fila, 29];
                                 range.Style.Font.Size = 20;
                                 range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                                range.Style.Border.Top.Color.SetColor(Color.Black);
+                                range.Style.Border.Top.Color.SetColor(SystemDrawingColor.Black);
 
                                 range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                                range.Style.Border.Bottom.Color.SetColor(Color.Black);
+                                range.Style.Border.Bottom.Color.SetColor(SystemDrawingColor.Black);
 
                                 range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                                range.Style.Border.Right.Color.SetColor(Color.Black);
+                                range.Style.Border.Right.Color.SetColor(SystemDrawingColor.Black);
 
                                 range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                                range.Style.Border.Left.Color.SetColor(Color.Black);
+                                range.Style.Border.Left.Color.SetColor(SystemDrawingColor.Black);
 
                                 fileContents = package.GetAsByteArray();
                                 try
@@ -2612,6 +3013,22 @@ namespace WMS_API.Features.Repositories
               };
             }
        
+        }
+        public async Task<bool> CambiarEstadoDespachoLiquidado(int despachoID)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoID)
+            };
+
+            RespuestaActualizacionEstadoLiquidado response = await executeProcedure.ExecuteStoredProcedure<RespuestaActualizacionEstadoLiquidado>("[IM_WMS_CambiarEstadoDespachoLiquidado]", parametros);
+
+            if (response.EstadoID == 6)
+            {
+                return true;
+            }
+            return false;
         }
 
         public async Task<List<IM_WMS_DespachoPT_OrdenesRecibidasDepachoDTO>> GetOrdenesRecibidasDepacho(int despachoID)

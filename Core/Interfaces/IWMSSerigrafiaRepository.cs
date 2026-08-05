@@ -1,6 +1,6 @@
 ﻿using Core.DTOs;
+using Core.DTOs.ClaseRespuesta;
 using Core.DTOs.Serigrafia;
-using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.Serigrafia.Enums;
 using System;
 using System.Collections.Generic;

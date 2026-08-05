@@ -4,6 +4,7 @@ using Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using WMS_API.Features.Utilities;
@@ -102,6 +103,66 @@ namespace WMS_API.Features.Repositories
                 throw;
             }
 
+            return result;
+        }
+
+        public async Task<List<ValidarRolloRepetidoDto>> ValidarRolloRepetidoEnInventario(ValidarRolloRepetidoRequestDto request)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            List<ValidarRolloRepetidoDto> result = new List<ValidarRolloRepetidoDto>();
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@NumeroSerie", request.NumeroSerie),
+            };
+
+            try
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<ValidarRolloRepetidoDto>(
+                    "[IM_WMS_ValidarRolloRepetidoEnInventario]",
+                    parametros
+                );
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return result;
+        }
+        public async Task<List<DiarioMovimientoPendienteDto>> ObtenerDiariosMovimientoPendientes()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            List<DiarioMovimientoPendienteDto> result = new List<DiarioMovimientoPendienteDto>();
+            var parametros = new List<SqlParameter>();
+            try
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<DiarioMovimientoPendienteDto>("[dbo].[IM_WMS_GetDiariosMovimientoPendientes]", parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return result;
+        }
+        public async Task<List<DetalleDiarioMovimientoDto>> ObtenerDetalleDiarioMovimiento(string journalId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            List<DetalleDiarioMovimientoDto> result = new List<DetalleDiarioMovimientoDto>();
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@JournalId", journalId),
+            };
+
+            try
+            {
+                result = await executeProcedure.ExecuteStoredProcedureList<DetalleDiarioMovimientoDto>("[dbo].[IM_WMS_GetDetalleDiarioMovimiento]", parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
             return result;
         }
     }

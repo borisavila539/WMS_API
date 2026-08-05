@@ -1,8 +1,8 @@
-﻿using Core.DTOs.IM_PrepEnvOp;
+﻿using Core.DTOs.ClaseRespuesta;
+using Core.DTOs.IM_PrepEnvOp;
 using Core.DTOs.InventarioCiclicoTela;
 using Core.DTOs.RecepcionYUbicacionAX;
 using Core.DTOs.Serigrafia;
-using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.TejidoPunto;
 using Core.DTOs.UbiacacionRollos;
 using System.Collections.Generic;

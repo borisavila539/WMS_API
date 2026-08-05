@@ -1,9 +1,9 @@
 ﻿
 using Azure.Core;
 using Core.DTOs;
+using Core.DTOs.ClaseRespuesta;
 using Core.DTOs.RecepcionUbicacionCajas;
 using Core.DTOs.Serigrafia;
-using Core.DTOs.Serigrafia.ClaseRespuesta;
 using Core.DTOs.Serigrafia.Enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
