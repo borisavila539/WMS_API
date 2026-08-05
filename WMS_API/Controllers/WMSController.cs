@@ -137,10 +137,10 @@ namespace WMS_API.Controllers
             return resp;
         }
 
-        [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{CAMION}/{CHOFER}/{InventTransID}/{USER}/{ID}")]
-        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID, string USER, int ID)
+        [HttpGet("DespachoTelaPickingPacking/{INVENTSERIALID}/{TIPO}/{InventTransID}/{USER}/{ID}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_Despacho_Tela_Detalle_Rollo>>> GetDespachoTelaPickingPacking(string INVENTSERIALID, string TIPO, string InventTransID, string USER, int ID)
         {
-            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO, CAMION, CHOFER, InventTransID, USER, ID);
+            var resp = await _WMS.GetDespacho_Tela_Picking_Packing(INVENTSERIALID, TIPO, InventTransID, USER, ID);
             return resp;
         }
         [HttpGet("TrasladosAbiertos/{INVENTLOCATIONID}")]

@@ -352,7 +352,7 @@ namespace WMS_API.Features.Repositories
 
             return response;
         }
-        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO, string CAMION, string CHOFER, string InventTransID, string USER, int IDremision)
+        public async Task<List<IM_WMS_Despacho_Tela_Detalle_Rollo>> GetDespacho_Tela_Picking_Packing(string INVENTSERIALID, string TIPO, string InventTransID, string USER, int IDremision)
         {
 
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
@@ -361,8 +361,6 @@ namespace WMS_API.Features.Repositories
             {
                 new SqlParameter("@INVENTSERIALID", INVENTSERIALID),
                 new SqlParameter("@Tipo", TIPO),
-                new SqlParameter("@Camion", CAMION),
-                new SqlParameter("@Chofer", CHOFER),
                 new SqlParameter("@InventTransID", InventTransID),
                 new SqlParameter("@User", USER),
                 new SqlParameter("@ID", IDremision)
@@ -839,22 +837,22 @@ namespace WMS_API.Features.Repositories
                                         c.Item().Row(r =>
                                         {
                                             r.RelativeItem().Text($"Fecha/Hora Despacho: {fechaHoraStr}");
-                                            r.RelativeItem().Text($"Placa Camión: ");
+                                            r.RelativeItem().Text($"Placa Camión:_______________");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Coordinador Almacén: ");
-                                            r.RelativeItem().Text($"Motorista Asignado: ");
+                                            r.RelativeItem().Text($"Coordinador Almacén:_______________");
+                                            r.RelativeItem().Text($"Motorista Asignado:_______________");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Despachador Responsable: ");
+                                            r.RelativeItem().Text($"Despachador Responsable:_______________");
                                             r.RelativeItem().Text("Empresa: Intermoda Honduras S.A. de C.V.");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Nombre Guardia: ");
-                                            r.RelativeItem().Text($"Recibido Por: "); 
+                                            r.RelativeItem().Text($"Nombre Guardia:_______________");
+                                            r.RelativeItem().Text($"Recibido Por:_______________"); 
                                         });
                                     });
 
@@ -941,9 +939,8 @@ namespace WMS_API.Features.Repositories
                     <p>Estimados,</p>
                     <p>Se ha generado exitosamente el despacho de tela con los siguientes datos:</p>
                     <ul>
-                        <li><b>Placa del Camión:</b> </li>
-                        <li><b>Empleado Solicitante:</b> </li>
-                        <li><b>Motorista:</b> {motorista}</li>
+                        <li><b>Empleado Solicitante:{usuarioSolicitante}</b> </li>
+                        <li><b>Total de Rollos:</b> {totalRollos}</li>
                         <li><b>Cantidad Total:</b> {totalCantidad:N0} yardas/rollos</li>
                     </ul>
                     <p>Adjunto a este correo encontrará la <b>Nota de Despacho en formato PDF</b> con el detalle de los artículos y firmas requeridas.</p>
