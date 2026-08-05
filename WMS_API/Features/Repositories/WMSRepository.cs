@@ -953,10 +953,11 @@ namespace WMS_API.Features.Repositories
                 using (MemoryStream ms = new MemoryStream(pdfBytes))
                 {
                     string nombreArchivoPdf = $"NotaDespacho_{DespachoID.ToString().PadLeft(8, '0')}.pdf";
-
+                    Attachment adjunto = new Attachment(ms, nombreArchivoPdf, "application/pdf");
+                    mail.Attachments.Add(adjunto);
                     foreach (IM_WMS_Correos_Despacho correo in correos)
                     {
-                        mail.To.Add(correo.Correo);
+                        mail.To.Add("ebueso@intermoda.com.hn");
                     }
 
                     using (SmtpClient oSmtpClient = new SmtpClient())
