@@ -743,8 +743,8 @@ namespace WMS_API.Features.Repositories
                                     row.RelativeItem().Background(colorBgLight).BorderLeft(4).BorderColor(colorNavy).Padding(6).Column(c =>
                                     {
                                         c.Item().Text("INFORMACIÓN DE TRASLADO").Bold().FontSize(8).FontColor(colorNavy);
-                                        c.Item().Text($"Transfer Origen: {encabezado[0].TRANSFERIDFROM}");
-                                        c.Item().Text($"Transfer Destino: {encabezado[0].TRANSFERIDTO}");
+                                        c.Item().Text($"Traslado Inicial: {encabezado[0].TRANSFERIDFROM}");
+                                        c.Item().Text($"Traslado Final: {encabezado[0].TRANSFERIDTO}");
                                         c.Item().Text($"Almacén Destino: {encabezado[0].Destino}");
                                     });
 
@@ -837,22 +837,22 @@ namespace WMS_API.Features.Repositories
                                         c.Item().Row(r =>
                                         {
                                             r.RelativeItem().Text($"Fecha/Hora Despacho: {fechaHoraStr}");
-                                            r.RelativeItem().Text($"Placa Camión:_______________");
+                                            r.RelativeItem().Text($"Placa Camión:_____________________________________________");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Coordinador Almacén:_______________");
-                                            r.RelativeItem().Text($"Motorista Asignado:_______________");
+                                            r.RelativeItem().Text($"Coordinador Almacén:_____________________________________________");
+                                            r.RelativeItem().Text($"Motorista Asignado:_____________________________________________");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Despachador Responsable:_______________");
+                                            r.RelativeItem().Text($"Despachador Responsable:_____________________________________________");
                                             r.RelativeItem().Text("Empresa: Intermoda Honduras S.A. de C.V.");
                                         });
                                         c.Item().Row(r =>
                                         {
-                                            r.RelativeItem().Text($"Nombre Guardia:_______________");
-                                            r.RelativeItem().Text($"Recibido Por:_______________"); 
+                                            r.RelativeItem().Text($"Nombre Guardia:_____________________________________________");
+                                            r.RelativeItem().Text($"Recibido Por:_____________________________________________"); 
                                         });
                                     });
 
