@@ -42,10 +42,11 @@ namespace Core.Interfaces
         public Task<List<IM_WMS_TrasladosAbiertos>> getTrasladosAbiertos(string INVENTLOXATIONIDTO);
         public Task<List<IM_WMS_EstadoTrasladosDTO>> getEstadotraslados(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO);
         public Task<List<EstadoTrasladoTipoDTO>> gteEstadoTrasladoTipo(string TRANSFERIDFROM, string TRANSFERIDTO, string INVENTLOCATIONIDTO);
-        public Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Chofer, string camion);
+        public Task<List<CrearDespachoDTO>> GetCrearDespacho(string RecIDTraslados, string Descripcion);
         public Task<List<CrearDespachoDTO>> GetObtenerDespachos(string RecIDTraslados);
         public Task<List<CerrarDespachoDTO>> getCerrarDespacho(int id);
         public Task<string> getNotaDespacho(int DespachoID, string recid,string empleado, string camio);
+        public Task<byte[]> NotaDeDespachoTela2(int DespachoID, string recid,string usuarioSolicitante, string descripcion);
         public Task<List<RolloDespachoDTO>> getRollosDespacho(int despachoID);
         public Task<string> getImprimirEtiquetaReduccion(string IMBOXCODE, string ubicacion, string empacador,string PRINT);
 
