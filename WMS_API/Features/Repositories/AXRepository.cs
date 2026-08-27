@@ -60,9 +60,7 @@ namespace WMS_API.Features.Repositories
 
             try
             {
-                // ====================================================================
-                // FASE 1: CREAR EL ENCABEZADO DEL DIARIO DE MOVIMIENTO AUTOMÁTICO
-                // ====================================================================
+
                 var datosHeader = new DIARIO_MOVIMIENTO_ROLLO_HEADER
                 {
                     COMPANY = new MovimientoRolloHeaderData
@@ -70,8 +68,7 @@ namespace WMS_API.Features.Repositories
                         JOURNALDESCRIPTION = $"Diario automático movimiento a ubicación {rollosAMover[0].UbicacionDestino}"
                     }
                 };
-
-                // Serialización con tu SerializationService
+                //  REGISTRAR ENCABEZADO
                 string xmlHeader = SerializationService.Serialize(datosHeader);
                 var respHeader = await serviceClient.getTransferJournalHeaderAsync(context, xmlHeader);
                 string resultadoHeader = respHeader.response.ToString().Trim();
@@ -81,7 +78,6 @@ namespace WMS_API.Features.Repositories
 
                 if (stringContenido.StartsWith("S "))
                 {
-                    // Extrae de forma segura el ID del diario generado por AX (ej. de "S DJ-001" obtiene "DJ-001")
                     diarioIdCreado = stringContenido.Substring(2).Trim();
                 }
                 else
@@ -89,9 +85,7 @@ namespace WMS_API.Features.Repositories
                     return $"E Error al inicializar el diario en AX. Detalle: {stringContenido}";
                 }
 
-                // ====================================================================
-                // FASE 2: REGISTRAR LAS LÍNEAS DE MOVIMIENTO POR CADA ROLLO ESCANEADO
-                // ====================================================================
+                //  REGISTRAR LAS LÍNEAS DE MOVIMIENTO POR CADA ROLLO ESCANEADO
                 int registrosExitosos = 0;
                 System.Text.StringBuilder historialErrores = new System.Text.StringBuilder();
 
@@ -105,7 +99,6 @@ namespace WMS_API.Features.Repositories
                             BARCODE = rollo.CodigoBarraRollo,
                             QTY = rollo.Cantidad,
 
-                            // El sitio y almacén suelen mantenerse fijos en movimientos de ubicación directa
                             FROMINVENTSITEID = rollo.SitioOrigen,
                             FROMINVENTLOCATIONID = rollo.AlmacenOrigen,
                             FROMWMSLOCATIONID = rollo.UbicacionOrigen,
@@ -123,7 +116,6 @@ namespace WMS_API.Features.Repositories
                     var respuestaNodeline = xmlDocline.Descendants("Respuesta").FirstOrDefault();
                     string stringContenidoline = respuestaNodeline?.Value?.Trim() ?? string.Empty;
 
-                    // AX retorna "OK" si pasó todas tus validaciones internas (Availability, Counting, etc.)
                     if (stringContenidoline.Trim().ToUpper() == "OK")
                     {
                         registrosExitosos++;
@@ -134,26 +126,21 @@ namespace WMS_API.Features.Repositories
                     }
                 }
 
-                // --- CONSOLIDACIÓN DE RESPUESTA Y POSTEO EN AX ---
 
-                // Si hubo errores al insertar líneas, es mejor NO registrar (postear) el diario para evitar inconsistencias
                 if (historialErrores.Length > 0)
                 {
                     return $"W Proceso terminado con observaciones en Diario {diarioIdCreado} ({registrosExitosos} exitosos). No se procedió con el registro por errores en líneas:\n{historialErrores.ToString()}";
                 }
 
-                // ====================================================================
-                // FASE 3: REGISTRAR / POSTEAR EL DIARIO (Llamada al nuevo método de AX)
-                // ====================================================================
                 try
                 {
                     var datosPost = new DIARIO_MOVIMIENTO_POST
                     {
                         COMPANY = new PostJournalData
                         {
-                            CODE = context.Company,          // "IMHN"
-                            USER = "servicio_ax",            // Usuario del sistema que ejecuta la acción
-                            JOURNALID = diarioIdCreado       // El ID que rescatamos en la Fase 1
+                            CODE = context.Company,          
+                            USER = "servicio_ax",            
+                            JOURNALID = diarioIdCreado       
                         }
                     };
 
@@ -165,7 +152,6 @@ namespace WMS_API.Features.Repositories
                     var respuestaNodePost = xmlDocPost.Descendants("Respuesta").FirstOrDefault();
                     string stringContenidoPost = respuestaNodePost?.Value?.Trim() ?? string.Empty;
 
-                    // AX usualmente devuelve "OK" si el posteo fue exitoso según su lógica interna
                     if (stringContenidoPost.Trim().ToUpper() == "OK")
                     {
                         return $"S Movimiento finalizado y POSTEADO con éxito. Diario AX: {diarioIdCreado}. Se registraron {registrosExitosos} rollos.";

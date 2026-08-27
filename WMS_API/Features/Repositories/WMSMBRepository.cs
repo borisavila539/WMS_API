@@ -489,7 +489,7 @@ namespace WMS_API.Features.Repositories
             var respone = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_ReimpresionEtiqueta>("IM_WMS_MB_ReimpresionEtiqueta", parametro);
             return respone;
         }
-        public async Task<string> ImprimirEtiquetaDespachoNormal(IM_WMS_MB_ReimpresionEtiqueta data, string impresora)
+        public async Task<string> ImprimirEtiquetaDespachoNormalV1(IM_WMS_MB_ReimpresionEtiqueta data, string impresora)
         {
             var resultadoUpdateCantidad = await UpdateCantidad(data.WorkOrderId, Convert.ToInt32(data.Qty), data.BoxNum);
             var seActulizoCantidad = resultadoUpdateCantidad != null && resultadoUpdateCantidad.Cantidad == Convert.ToInt32(data.Qty);
@@ -630,6 +630,236 @@ namespace WMS_API.Features.Repositories
             return "OK";
         }
 
+        public async Task<string> ImprimirEtiquetaDespachoNormal(IM_WMS_MB_ReimpresionEtiqueta data, string impresora)
+        {
+            var resultadoUpdateCantidad = await UpdateCantidad(data.WorkOrderId,Convert.ToInt32(data.Qty),data.BoxNum);
+            var seActulizoCantidad =
+                resultadoUpdateCantidad != null &&
+                resultadoUpdateCantidad.Cantidad == Convert.ToInt32(data.Qty);
+
+            if (!seActulizoCantidad)
+            {
+                return "No se pudo actualizar la cantidad";
+            }
+
+            string etiqueta = "^XA";
+            etiqueta += "^PW800";
+            etiqueta += "^LL1200";
+            etiqueta += "^MD8";
+            etiqueta += "^PRC";
+
+            etiqueta += @"
+            ^FO10,10^GB780,1150,2^FS
+
+            ^FO10,100^GB780,2,2^FS
+            ^FO10,360^GB780,2,2^FS
+
+            ^FO440,360^GB2,150,2^FS
+            ^FO10,510^GB780,2,2^FS
+            ^FO10,700^GB780,2,2^FS
+            ^FO400,700^GB2,360,2^FS
+            ^FO10,1060^GB780,2,2^FS";
+
+            // HEADER
+            etiqueta += "^CF0,34";
+            etiqueta += "^FO10,45^FB780,1,0,C,0^FD" +
+                        QuitarCaracteresEspeciales(data.Header) +
+                        "^FS";
+
+            // SKU
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO30,128^FDSKU:^FS";
+
+            etiqueta += "^CF0,32";
+            etiqueta += "^FO120,124^FD" +
+                        QuitarCaracteresEspeciales(data.Style) +
+                        "^FS";
+
+            // PRODUCT
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO30,182^FDPRODUCT:^FS";
+
+            etiqueta += "^FO175,182^FD" +
+                        QuitarCaracteresEspeciales(data.ProductId) +
+                        "^FS";
+
+            // DESCRIPTION
+            etiqueta += "^FO30,240^FDDESC:^FS";
+
+            etiqueta += "^FO130,240^FB640,3,6,L,0^FD" +
+                        QuitarCaracteresEspeciales(data.ProductNameMB) +
+                        "^FS";
+
+            // PO
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO30,392^FDPO#:^FS";
+
+            etiqueta += "^CF0,38";
+            etiqueta += "^FO110,380^FD" +
+                        data.WorkOrderId +
+                        "^FS";
+
+            // CASE
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO460,392^FDCASE#:^FS";
+
+            etiqueta += "^CF0,44";
+            etiqueta += "^FO600,380^FD" +
+                        data.BoxNum +
+                        "^FS";
+
+            // BATCH
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO30,462^FDBATCH:^FS";
+
+            etiqueta += "^CF1,38";
+            etiqueta += "^FO160,455^FD" +
+                        QuitarCaracteresEspeciales(data.BatchId) +
+                        "^FS";
+
+            // QTY
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO460,462^FDQTY PER CARTON:^FS";
+
+            etiqueta += "^CF1,32";
+            etiqueta += "^FO720,458^FD" +
+                        data.Qty +
+                        "^FS";
+
+            // SUPPLIER
+            etiqueta += "^CF0,28";
+            etiqueta += "^FO30,540^FDSUPPLIER:^FS";
+
+            etiqueta += "^CF1,28";
+            etiqueta += "^FO230,540^FD" +
+                        QuitarCaracteresEspeciales(data.DescripcionCompleta) +
+                        "^FS";
+
+            // COO
+            etiqueta += "^CF0,28";
+            etiqueta += "^FO30,595^FDCOO:^FS";
+
+            etiqueta += "^CF1,28";
+            etiqueta += "^FO230,595^FD" +
+                        QuitarCaracteresEspeciales(data.UbicacionCompleta) +
+                        "^FS";
+
+            // DIMENSIONS
+            etiqueta += "^CF0,28";
+            etiqueta += "^FO30,650^FDDIM:^FS";
+
+            etiqueta += "^CF1,28";
+            etiqueta += "^FO110,650^FD" +
+                        NormalizarComillas(data.DimensionBox) +
+                        "^FS";
+
+            etiqueta += "^FO500,650^FDGW:^FS";
+            etiqueta += "^FO580,650^FD" +
+                        data.WeightBox +
+                        "^FS";
+
+            // BARCODE
+            etiqueta += "^BY2,3,1";
+            etiqueta += "^FO35,790^BCN,110,N,N,N";
+            etiqueta += "^FD" + data.Barcode + "^FS";
+
+            etiqueta += "^CF0,26";
+            etiqueta += "^FO100,915^FD" +
+                        data.Barcode +
+                        "^FS";
+
+            // REPRINT
+            etiqueta += "^CF0,20";
+            etiqueta += "^FO45,1010^FDReimpresion # " +
+                        resultadoUpdateCantidad.ReimpresionNum +
+                        "^FS";
+
+            // QR
+            etiqueta += "^FO450,745^BQN,2,5";
+            etiqueta += "^FDQA," +
+                        data.WorkOrderId +
+                        "," +
+                        data.BoxNum +
+                        "^FS";
+
+            // USER
+            etiqueta += "^CF0,22";
+            etiqueta += "^FO445,910^FD" +
+                        QuitarCaracteresEspeciales(data.UserName) +
+                        "^FS";
+
+            // DATE
+            etiqueta += "^FO445,945^FD" +
+                        DateTime.Now.ToString(
+                            "dd/MM/yyyy hh:mm:ss tt",
+                            System.Globalization.CultureInfo.InvariantCulture) +
+                        "^FS";
+
+            // SIZE
+            etiqueta += "^CF0,24";
+            etiqueta += "^FO690,740^FDTalla^FS";
+
+            etiqueta += "^CF0,58";
+            etiqueta += "^FO690,772^FD" +
+                        data.Size +
+                        "^FS";
+
+            // CATEGORY
+            etiqueta += "^CF0,22";
+            etiqueta += "^FO650,850^FD" +
+                        QuitarCaracteresEspeciales(data.BoxCategoryDescription) +
+                        "^FS";
+
+            etiqueta += "^CF0,22";
+            etiqueta += "^FO680,870^FD" +
+                        QuitarCaracteresEspeciales(data.BoxSubCategory) +
+                        "^FS";
+
+            // FOOTER
+            etiqueta += "^CF0,30";
+            etiqueta += "^FO10,1090^FB780,1,0,C,0^FD" +
+                        QuitarCaracteresEspeciales(data.Footer) +
+                        "^FS";
+
+            int copias = data.PrintQuantity > 0
+                ? data.PrintQuantity
+                : 1;
+
+            etiqueta += "^PQ" + copias + ",0,0,N";
+            etiqueta += "^XZ";
+
+            try
+            {
+                using (TcpClient client = new TcpClient(impresora, 9100))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        byte[] bytes = Encoding.ASCII.GetBytes(etiqueta);
+
+                        stream.Write(bytes, 0, bytes.Length);
+
+                        Thread.Sleep(1200 * copias);
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                return err.ToString();
+            }
+
+            return "OK";
+        }
+
+        private string NormalizarComillas(string valor)
+        {
+            if (string.IsNullOrWhiteSpace(valor)) return string.Empty;
+
+            return valor
+                .Replace("\u201C", "\"").Replace("\u201D", "\"")
+                .Replace("\u2033", "\"")
+                .Replace("\u2018", "'").Replace("\u2019", "'")
+                .Replace("\u2032", "'");
+        }
 
         static string QuitarCaracteresEspeciales(string texto)
         {
