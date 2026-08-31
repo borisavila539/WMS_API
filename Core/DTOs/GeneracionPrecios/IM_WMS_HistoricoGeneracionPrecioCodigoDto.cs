@@ -29,6 +29,7 @@ namespace Core.DTOs.GeneracionPrecios
             public decimal Precio { get; set; }
             public string Departamento { get; set; }
             public string SubCategoria { get; set; }
+            public string Coleccion { get; set; }
 
             // Control de Estado y Auditoría de Confirmación
             public bool Confirmado { get; set; }

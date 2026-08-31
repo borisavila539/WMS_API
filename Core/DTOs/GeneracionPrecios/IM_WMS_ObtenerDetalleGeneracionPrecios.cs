@@ -29,6 +29,7 @@ namespace Core.DTOs.GeneracionPrecios
         public string DeliveryName { get; set; }
         public string IMDATOSTECNICOS1 { get; set; }
         public string IMDATOSTECNICOS3 { get; set; }
+        public string IMDATOSTECNICOS4 { get; set; }
         public string Coleccion { get; set; }
     }
 }

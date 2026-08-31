@@ -280,13 +280,13 @@ namespace WMS_API.Features.Repositories
                     new List<SqlParameter>
                     {
                     new("@Cuenta", linea.CuentaCliente),
-                    new("@Categoria", linea.IMDATOSTECNICOS1),
+                    new("@Categoria", linea.Categoria),
                     new("@Base", linea.Base),
                     new("@Color", linea.IDColor),
                     new("@Genero", linea.Departamento),
                     new("@Talla", linea.Talla),
                     new("@Coleccion", linea.Coleccion),
-                    new("@SubCategoria", linea.IMDATOSTECNICOS3)
+                    new("@SubCategoria", linea.SubCategoria)
                     });
             }
             catch (Exception)
@@ -371,6 +371,9 @@ namespace WMS_API.Features.Repositories
 
                 new ("@DeliveryName",
                     (object?)linea.DeliveryName ?? DBNull.Value),
+
+                new ("@Coleccion",
+                    (object?)linea.Coleccion ?? DBNull.Value),
 
             };
         }
@@ -948,6 +951,118 @@ namespace WMS_API.Features.Repositories
                 ;
             }
             return "OK";
+        }
+
+        public async Task<List<TallaConfiguracionPrecioDto>> GetTallasConfiguracionPrecio()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedureList<TallaConfiguracionPrecioDto>(
+                        "[dbo].[IM_WMS_TallasConfiguracionPrecio_Listar]",
+                        new List<SqlParameter>());
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> InsertarTallaConfiguracionPrecio(TallaConfiguracionPrecioDto item)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Genero", item.Genero ?? ""),
+                new SqlParameter("@Talla", item.Talla ?? ""),
+                new SqlParameter("@Tipo", item.Tipo ?? "")
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TallasConfiguracionPrecio_Insertar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> ActualizarTallaConfiguracionPrecio(TallaConfiguracionPrecioDto item)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", item.Id),
+                new SqlParameter("@Genero", item.Genero ?? ""),
+                new SqlParameter("@Talla", item.Talla ?? ""),
+                new SqlParameter("@Tipo", item.Tipo ?? "")
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TallasConfiguracionPrecio_Actualizar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> EliminarTallaConfiguracionPrecio(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", id)
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TallasConfiguracionPrecio_Eliminar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<CategoriaPorClienteBaseDto>> ObtenerCategoriaPorClienteBase(string cuentaCliente, string baseArticulo, string empresa)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@CuentaCliente", cuentaCliente ?? ""),
+                new SqlParameter("@Base", baseArticulo ?? ""),
+                new SqlParameter("@Empresa", string.IsNullOrWhiteSpace(empresa) ? "IMHN" : empresa)
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedureList<CategoriaPorClienteBaseDto>(
+                        "[dbo].[IM_WMS_ObtenerCategoriaPorClienteBase]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

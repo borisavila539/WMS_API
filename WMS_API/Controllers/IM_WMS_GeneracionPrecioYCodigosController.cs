@@ -101,7 +101,8 @@ namespace WMS_API.Controllers
                 });
             }
         }
-        [HttpPut("UpdateConfiguracionPrecio")]
+
+        [HttpPost("UpdateConfiguracionPrecio")]
         public async Task<IActionResult> UpdateConfiguracionPrecio([FromBody] List<ConfiguracionPrecioDto> items,[FromQuery] int userId)
         {
             try
@@ -130,7 +131,8 @@ namespace WMS_API.Controllers
             }
 
         }
-        [HttpPut("UpdateSingleConfiguracionPrecio")]
+
+        [HttpPost("UpdateSingleConfiguracionPrecio")]
         public async Task<IActionResult> UpdateSingleConfiguracionPrecio([FromBody] ConfiguracionPrecioDto item, [FromQuery] int userId)
         {
             try
@@ -157,7 +159,8 @@ namespace WMS_API.Controllers
             }
 
         }
-        [HttpDelete("DeleteConfiguracionPrecio/{id}")]
+
+        [HttpPost("DeleteConfiguracionPrecio/{id}")]
         public async Task<IActionResult> DeleteConfiguracionPrecio(int id)
         {
             try
@@ -282,6 +285,105 @@ namespace WMS_API.Controllers
             }
 
             return "OK";
+        }
+
+        [HttpGet("GetTallasConfiguracionPrecio")]
+        public async Task<IActionResult> GetTallasConfiguracionPrecio()
+        {
+            try
+            {
+                var data = await _repository.GetTallasConfiguracionPrecio();
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("InsertTallaConfiguracionPrecio")]
+        public async Task<IActionResult> InsertTallaConfiguracionPrecio([FromBody] TallaConfiguracionPrecioDto item)
+        {
+            try
+            {
+                if (item == null)
+                    return BadRequest(new { Success = false, Message = "No se recibieron datos del registro." });
+
+                var response = await _repository.InsertarTallaConfiguracionPrecio(item);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UpdateTallaConfiguracionPrecio")]
+        public async Task<IActionResult> UpdateTallaConfiguracionPrecio([FromBody] TallaConfiguracionPrecioDto item)
+        {
+            try
+            {
+                if (item == null || item.Id <= 0)
+                    return BadRequest(new { Success = false, Message = "El Id del registro es obligatorio." });
+
+                var response = await _repository.ActualizarTallaConfiguracionPrecio(item);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("DeleteTallaConfiguracionPrecio/{id}")]
+        public async Task<IActionResult> DeleteTallaConfiguracionPrecio(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { Success = false, Message = "No se recibieron registros." });
+
+                var response = await _repository.EliminarTallaConfiguracionPrecio(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("ObtenerCategoriaPorClienteBase/{cuentaCliente}/{baseArticulo}")]
+        public async Task<IActionResult> ObtenerCategoriaPorClienteBase(string cuentaCliente, string baseArticulo, [FromQuery] string empresa = "IMHN")
+        {
+            try
+            {
+                var data = await _repository.ObtenerCategoriaPorClienteBase(cuentaCliente, baseArticulo, empresa);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
         }
     }
 }

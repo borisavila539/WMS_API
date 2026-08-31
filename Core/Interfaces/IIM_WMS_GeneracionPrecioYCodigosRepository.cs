@@ -24,7 +24,12 @@ namespace Core.Interfaces
         public string imprimirEtiquetaprecios2(List<IM_WMS_DetalleImpresionEtiquetasPrecio> data, string fecha, string impresora);
         public string imprimirEtiquetaCajaDividir(string caja, string impresora);
 
+        public Task<List<TallaConfiguracionPrecioDto>> GetTallasConfiguracionPrecio();
+        public Task<RespuestaSP> InsertarTallaConfiguracionPrecio(TallaConfiguracionPrecioDto item);
+        public Task<RespuestaSP> ActualizarTallaConfiguracionPrecio(TallaConfiguracionPrecioDto item);
+        public Task<RespuestaSP> EliminarTallaConfiguracionPrecio(int id);
 
+        public Task<List<CategoriaPorClienteBaseDto>> ObtenerCategoriaPorClienteBase(string cuentaCliente, string baseArticulo, string empresa);
 
     }
 }
