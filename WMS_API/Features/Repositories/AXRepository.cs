@@ -132,45 +132,195 @@ namespace WMS_API.Features.Repositories
                     return $"W Proceso terminado con observaciones en Diario {diarioIdCreado} ({registrosExitosos} exitosos). No se procedió con el registro por errores en líneas:\n{historialErrores.ToString()}";
                 }
 
-                try
-                {
-                    var datosPost = new DIARIO_MOVIMIENTO_POST
-                    {
-                        COMPANY = new PostJournalData
-                        {
-                            CODE = context.Company,          
-                            USER = "servicio_ax",            
-                            JOURNALID = diarioIdCreado       
-                        }
-                    };
 
-                    string xmlPost = SerializationService.Serialize(datosPost);
-                    var respPost = await serviceClient.getPostTransferJournalAsync(context, xmlPost);
-                    string resultadoPost = respPost.response.ToString().Trim();
-
-                    XDocument xmlDocPost = XDocument.Parse(resultadoPost);
-                    var respuestaNodePost = xmlDocPost.Descendants("Respuesta").FirstOrDefault();
-                    string stringContenidoPost = respuestaNodePost?.Value?.Trim() ?? string.Empty;
-
-                    if (stringContenidoPost.Trim().ToUpper() == "OK")
-                    {
-                        return $"S Movimiento finalizado y POSTEADO con éxito. Diario AX: {diarioIdCreado}. Se registraron {registrosExitosos} rollos.";
-                    }
-                    else
-                    {
-                        return $"E El diario {diarioIdCreado} fue creado con {registrosExitosos} líneas, pero falló al registrarse (postear) en AX. Detalle: {stringContenidoPost}";
-                    }
-                }
-                catch (Exception exPost)
-                {
-                    return $"E El diario {diarioIdCreado} fue creado con {registrosExitosos} líneas, pero ocurrió un error crítico al intentar postearlo: {exPost.Message}";
-                }
+                return $"S Diario {diarioIdCreado} creado con éxito con {registrosExitosos} rollos registrados. Posteo pendiente (deshabilitado temporalmente).";
             }
             catch (Exception ex)
             {
                 return "E Excepción crítica en el servicio de movimientos: " + ex.Message;
             }
         }
+
+        public async Task<string> AgregarLineasADiarioRollos(string journalId, List<MovimientoRolloDto> rollosAMover)
+        {
+            if (string.IsNullOrWhiteSpace(journalId))
+            {
+                return "E Error: No se proporcionó un JournalId válido.";
+            }
+
+            if (rollosAMover == null || rollosAMover.Count == 0)
+            {
+                return "E Error: No se proporcionaron rollos para registrar el movimiento.";
+            }
+
+            var context = new IMGetTransferJournalAsgGPService.CallContext { Company = "IMHN" };
+            var serviceClient = new MGetTransferJournalAsgClient(
+                GetBindingGeneric("NetTcpBinding_IMGetTransferJournalAsg"),
+                GetEndpointGeneric("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            int registrosExitosos = 0;
+            System.Text.StringBuilder historialErrores = new System.Text.StringBuilder();
+
+            try
+            {
+                foreach (var rollo in rollosAMover)
+                {
+                    var datosMovimiento = new DIARIO_MOVIMIENTO_ROLLO_LINE
+                    {
+                        COMPANY = new MovimientoRolloLineData
+                        {
+                            JOURNALID = journalId,
+                            BARCODE = rollo.CodigoBarraRollo,
+                            QTY = rollo.Cantidad,
+
+                            FROMINVENTSITEID = rollo.SitioOrigen,
+                            FROMINVENTLOCATIONID = rollo.AlmacenOrigen,
+                            FROMWMSLOCATIONID = rollo.UbicacionOrigen,
+
+                            TOINVENTSITEID = rollo.SitioDestino,
+                            TOINVENTLOCATIONID = rollo.AlmacenDestino,
+                            TOWMSLOCATIONID = rollo.UbicacionDestino
+                        }
+                    };
+
+                    string xmlLinea = SerializationService.Serialize(datosMovimiento);
+                    var respLinea = await serviceClient.getTransferJournalLine2Async(context, xmlLinea);
+                    string resultadoLinea = respLinea.response.ToString().Trim();
+                    XDocument xmlDocline = XDocument.Parse(resultadoLinea);
+                    var respuestaNodeline = xmlDocline.Descendants("Respuesta").FirstOrDefault();
+                    string stringContenidoline = respuestaNodeline?.Value?.Trim() ?? string.Empty;
+
+                    if (stringContenidoline.Trim().ToUpper() == "OK")
+                    {
+                        registrosExitosos++;
+                    }
+                    else
+                    {
+                        historialErrores.AppendLine($"Rollo {rollo.CodigoBarraRollo}: {stringContenidoline}");
+                    }
+                }
+
+                if (historialErrores.Length > 0)
+                {
+                    return $"W Se agregaron {registrosExitosos} de {rollosAMover.Count} línea(s) al diario {journalId}. Errores:\n{historialErrores}";
+                }
+
+                return $"S Se agregaron {registrosExitosos} línea(s) al diario {journalId} correctamente.";
+            }
+            catch (Exception ex)
+            {
+                return "E Excepción crítica al agregar líneas al diario: " + ex.Message;
+            }
+        }
+
+        public async Task<string> EliminarLineaDiarioRollos(string journalId, int lineNum, string empresa = "IMHN")
+        {
+            if (string.IsNullOrWhiteSpace(journalId))
+            {
+                return "E Error: No se proporcionó un JournalId válido.";
+            }
+
+            if (lineNum <= 0)
+            {
+                return "E Error: El número de línea debe ser mayor a cero.";
+            }
+
+            var context = new IMGetTransferJournalAsgGPService.CallContext { Company = empresa };
+            var serviceClient = new MGetTransferJournalAsgClient(
+                GetBindingGeneric("NetTcpBinding_IMGetTransferJournalAsg"),
+                GetEndpointGeneric("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var datosDelete = new DIARIO_MOVIMIENTO_DELETE_LINE
+                {
+                    COMPANY = new DeleteLineJournalData
+                    {
+                        CODE = empresa,
+                        JOURNALID = journalId,
+                        LINENUM = lineNum.ToString()
+                    }
+                };
+
+                string xmlDelete = SerializationService.Serialize(datosDelete);
+                var respDelete = await serviceClient.getDeleteLineAsync(context, xmlDelete);
+                string resultadoDelete = respDelete.response.ToString().Trim();
+
+                XDocument xmlDoc = XDocument.Parse(resultadoDelete);
+                var respuestaNode = xmlDoc.Descendants("Respuesta").FirstOrDefault();
+                string stringContenido = respuestaNode?.Value?.Trim() ?? string.Empty;
+
+                if (stringContenido.Trim().ToUpper() == "OK")
+                {
+                    return $"S Línea {lineNum} del diario {journalId} eliminada correctamente.";
+                }
+
+                return $"E No se pudo eliminar la línea {lineNum} del diario {journalId}. Detalle: {stringContenido}";
+            }
+            catch (Exception ex)
+            {
+                return "E Excepción crítica al eliminar la línea del diario: " + ex.Message;
+            }
+        }
+
+        public async Task<string> PostearDiarioRollos(string journalId, string empresa = "IMHN")
+        {
+            if (string.IsNullOrWhiteSpace(journalId))
+            {
+                return "E Error: No se proporcionó un JournalId válido.";
+            }
+
+            var context = new IMGetTransferJournalAsgGPService.CallContext { Company = empresa };
+            var serviceClient = new MGetTransferJournalAsgClient(
+                GetBindingGeneric("NetTcpBinding_IMGetTransferJournalAsg"),
+                GetEndpointGeneric("net.tcp://gim-pro3-aos:8201/DynamicsAx/Services/IMGetTransferJournalAsgGP")
+            );
+
+            serviceClient.ClientCredentials.Windows.ClientCredential.UserName = "servicio_ax";
+            serviceClient.ClientCredentials.Windows.ClientCredential.Password = "Int3r-M0d@.aX$3Rv";
+
+            try
+            {
+                var datosPost = new DIARIO_MOVIMIENTO_POST
+                {
+                    COMPANY = new PostJournalData
+                    {
+                        CODE = context.Company,
+                        USER = "servicio_ax",
+                        JOURNALID = journalId
+                    }
+                };
+
+                string xmlPost = SerializationService.Serialize(datosPost);
+                var respPost = await serviceClient.getPostTransferJournalAsync(context, xmlPost);
+                
+                string resultadoPost = respPost.response.ToString().Trim();
+
+                XDocument xmlDocPost = XDocument.Parse(resultadoPost);
+                var respuestaNodePost = xmlDocPost.Descendants("Respuesta").FirstOrDefault();
+                string stringContenidoPost = respuestaNodePost?.Value?.Trim() ?? string.Empty;
+
+                if (stringContenidoPost.Trim().ToUpper() == "OK")
+                {
+                    return $"S Diario {journalId} posteado (contabilizado) con éxito en AX.";
+                }
+
+                return $"E El diario {journalId} no se pudo postear en AX. Detalle: {stringContenidoPost}";
+            }
+            catch (Exception ex)
+            {
+                return $"E Excepción crítica al postear el diario {journalId}: " + ex.Message;
+            }
+        }
+
         public async Task<Respuesta<string>> AgregarNuevaUbicacion(string empresa, string ubicacion, string almacen, string pasillo)
         {
             Respuesta<string> respuesta = new Respuesta<string>();

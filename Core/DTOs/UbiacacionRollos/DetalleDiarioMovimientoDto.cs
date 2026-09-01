@@ -8,6 +8,7 @@ namespace Core.DTOs.UbiacacionRollos
 {
     public class DetalleDiarioMovimientoDto
     {
+        public int LINENUM { get; set; }
         public string JournalId { get; set; } = string.Empty;
         public string Comprobante { get; set; } = string.Empty;
         public string ItemId { get; set; } = string.Empty;

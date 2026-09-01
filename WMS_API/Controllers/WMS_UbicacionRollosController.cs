@@ -43,6 +43,27 @@ namespace WMS_API.Controllers
             var resp = await _AX.RegistrarMovimientoRollosEnDiario(rollosAMover);
             return Ok(resp);
         }
+
+        [HttpPost("AgregarLineasADiarioRollos/{journalId}")]
+        public async Task<ActionResult<string>> AgregarLineasADiarioRollos(string journalId, [FromBody] List<MovimientoRolloDto> rollosAMover)
+        {
+            var resp = await _AX.AgregarLineasADiarioRollos(journalId, rollosAMover);
+            return Ok(resp);
+        }
+
+        [HttpPost("EliminarLineaDiarioRollos/{journalId}/{lineNum}")]
+        public async Task<ActionResult<string>> EliminarLineaDiarioRollos(string journalId, int lineNum, [FromQuery] string empresa = "IMHN")
+        {
+            var resp = await _AX.EliminarLineaDiarioRollos(journalId, lineNum, empresa);
+            return Ok(resp);
+        }
+
+        [HttpPost("PostearDiarioRollos/{journalId}")]
+        public async Task<ActionResult<string>> PostearDiarioRollos(string journalId, [FromQuery] string empresa = "IMHN")
+        {
+            var resp = await _AX.PostearDiarioRollos(journalId, empresa);
+            return Ok(resp);
+        }
         [HttpGet("ConsultarRolloCambioUbicacion/{rolloId}")]
         public async Task<ActionResult<RespuestaConsultarRollo>> ConsultarRolloCambioUbiacion(string rolloId)
         {
@@ -115,8 +136,19 @@ namespace WMS_API.Controllers
         [HttpGet("GetDetalleDiarioMovimiento/{journalId}")]
         public async Task<ActionResult<List<DetalleDiarioMovimientoDto>>> GetDetalleDiarioMovimiento(string journalId)
         {
-            var resp = await _ubiacionRollosRepository.ObtenerDetalleDiarioMovimiento(journalId);
-            return Ok(resp);
+            try
+            {
+                var resp = await _ubiacionRollosRepository.ObtenerDetalleDiarioMovimiento(journalId);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = ex.InnerException?.Message ?? ex.Message
+                });
+            }
         }
     }
 }

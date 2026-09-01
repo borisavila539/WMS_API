@@ -13,6 +13,9 @@ namespace Core.Interfaces
     public interface IAX
     {
         public Task<string> RegistrarMovimientoRollosEnDiario(List<MovimientoRolloDto> rollosAMover);
+        public Task<string> AgregarLineasADiarioRollos(string journalId, List<MovimientoRolloDto> rollosAMover);
+        public Task<string> EliminarLineaDiarioRollos(string journalId, int lineNum, string empresa = "IMHN");
+        public Task<string> PostearDiarioRollos(string journalId, string empresa = "IMHN");
         public Task<Respuesta<string>> AgregarNuevaUbicacion(string empresa, string ubicacion, string almacen, string pasillo);
 
         public string InsertDeleteMovimientoLine(string JOURNALID, string ITEMBARCODE, string PROCESO, string IMBOXCODE);
