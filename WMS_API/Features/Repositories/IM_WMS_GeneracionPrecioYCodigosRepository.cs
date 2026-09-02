@@ -26,6 +26,17 @@ namespace WMS_API.Features.Repositories
             _connectionString = configuration.GetConnectionString("IMFinanzasDev");
         }
 
+        public async Task<List<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter> { };
+
+
+            List<IM_WMS_ClientesGeneracionprecios> response = await executeProcedure.ExecuteStoredProcedureList<IM_WMS_ClientesGeneracionprecios>("[IM_WMS_ObtenerClientesGeneracionPrecio]", parametros);
+
+            return response;
+        }
+
         public ConfiguracionPrecioImportResultDto ParsearExcel(IFormFile file)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

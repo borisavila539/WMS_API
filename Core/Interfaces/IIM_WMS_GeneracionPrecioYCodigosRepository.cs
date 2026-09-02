@@ -11,6 +11,7 @@ namespace Core.Interfaces
 {
     public interface IIM_WMS_GeneracionPrecioYCodigosRepository
     {
+        public Task<List<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios();
         public ConfiguracionPrecioImportResultDto ParsearExcel(IFormFile file);
         public Task<List<ConfiguracionPrecioDto>> GetConfiguracionPrecio();
         public Task<int> InsertConfiguracionPrecio(ConfiguracionPrecioDto item, int userCreated);

@@ -14,6 +14,13 @@ namespace WMS_API.Controllers
     public class IM_WMS_GeneracionPrecioYCodigosController : ControllerBase
     {
         private readonly IIM_WMS_GeneracionPrecioYCodigosRepository _repository;
+
+        [HttpGet("ObtenerClientesGeneracionPrecio")]
+        public async Task<IEnumerable<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
+        {
+            var resp = await _repository.GetClientesGeneracionprecios();
+            return resp;
+        }
         public IM_WMS_GeneracionPrecioYCodigosController(IIM_WMS_GeneracionPrecioYCodigosRepository repository)
         {
             _repository = repository;
