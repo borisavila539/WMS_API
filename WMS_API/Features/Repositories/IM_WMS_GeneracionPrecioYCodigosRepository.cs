@@ -695,9 +695,9 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "110" : "140");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || !string.IsNullOrEmpty(element.Moneda) ? "140" : "140");
 
-                if (element.Moneda != "" || element.Decimal)
+                if (!string.IsNullOrEmpty(element.Moneda) || element.Decimal)
 
                 {
 
@@ -713,7 +713,7 @@ namespace WMS_API.Features.Repositories
 
                 }
 
-                etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
+                etiqueta += @"^FD" + (!string.IsNullOrEmpty(element.Moneda) ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
                 fila -= 67;
 
@@ -897,9 +897,9 @@ namespace WMS_API.Features.Repositories
 
                 etiqueta += @"^FD" + (fecha.Length != 1 ? fecha : fechatxt) + "^FS";
 
-                etiqueta += @"^FO" + fila + "," + (element.Decimal || element.Moneda != "" ? "190" : "210");
+                etiqueta += @"^FO" + fila + "," + (element.Decimal || !string.IsNullOrEmpty(element.Moneda) ? "210" : "210");
                 etiqueta += @"^A0R,55,55";
-                etiqueta += @"^FD" + (element.Moneda != "" ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
+                etiqueta += @"^FD" + (!string.IsNullOrEmpty(element.Moneda) ? element.Moneda : "") + (element.Decimal ? element.Precio.ToString("F2") : element.Precio.ToString("F0")) + "^FS";
 
                 fila -= 105;
 
