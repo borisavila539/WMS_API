@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace WMS_API.Controllers
@@ -235,8 +236,12 @@ namespace WMS_API.Controllers
                 return "Existen articulos sin precio o pendientes de confirmación";
             }
 
+            // El código de caja tiene formato "<secuencia>-<código>" (ej. "1-M9329191", "10-M2323232").
+            // Ordenar por IMIB_BOXCODE como string ordena alfabéticamente ("1","10","11",..,"2","3",...),
+            // por eso el orden se veía bien con pocas cajas y se rompía apenas aparecía la caja "10".
             var data = request.Lineas
-                .OrderBy(x => x.IMIB_BOXCODE)
+                .OrderBy(x => ExtraerNumeroSecuenciaCaja(x.IMIB_BOXCODE))
+                .ThenBy(x => x.IMIB_BOXCODE)
                 .ThenBy(x => x.Articulo)
                 .ThenBy(x => x.IDColor)
                 .ThenBy(x => x.Talla)
@@ -391,6 +396,20 @@ namespace WMS_API.Controllers
                     Message = ex.Message
                 });
             }
+        }
+
+        // El código de caja viene como "<secuencia>-<código>" (ej. "1-M9329191").
+        // Extrae la parte numérica inicial para poder ordenar cajas por secuencia real
+        // en vez de orden alfabético de string (donde "10" queda antes que "2").
+        private static readonly Regex NumeroInicialCajaRegex = new Regex(@"^\d+", RegexOptions.Compiled);
+
+        private static int ExtraerNumeroSecuenciaCaja(string boxCode)
+        {
+            if (string.IsNullOrEmpty(boxCode))
+                return int.MaxValue;
+
+            var match = NumeroInicialCajaRegex.Match(boxCode);
+            return match.Success && int.TryParse(match.Value, out var numero) ? numero : int.MaxValue;
         }
     }
 }
