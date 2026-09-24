@@ -10,6 +10,7 @@ namespace Core.Interfaces
         Task<List<MovimientoInventarioDto>> GetMovimientosInventario(DateTime fechaIni, DateTime fechaFin, string almacen, string articulo);
         Task<List<KardexInventarioDto>> GetKardexInventario(DateTime fechaIni, DateTime fechaFin, string almacen, string articulo, bool soloConMovimiento);
         Task<List<CorreoReporteInventarioDto>> GetCorreosReporteInventario();
+        Task<List<AlmacenReporteInventarioDto>> GetAlmacenesReporteInventario();
         Task<byte[]> GenerarReporteInventarioExcel(DateTime fechaIni, DateTime fechaFin, string articulo);
     }
 }

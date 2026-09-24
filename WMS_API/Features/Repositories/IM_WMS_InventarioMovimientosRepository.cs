@@ -21,9 +21,6 @@ namespace WMS_API.Features.Repositories
     {
         private readonly string _connectionString;
 
-        // Almacenes de bodega que siempre entran en el reporte (hardcodeados).
-        private static readonly string[] AlmacenesReporte = { "21", "22", "SB2", "22_Saldo", "47", "48" };
-
         public IM_WMS_InventarioMovimientosRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("IMFinanzas");
@@ -89,10 +86,32 @@ namespace WMS_API.Features.Repositories
             }
         }
 
+        public async Task<List<AlmacenReporteInventarioDto>> GetAlmacenesReporteInventario()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            try
+            {
+                return await executeProcedure.ExecuteStoredProcedureList<AlmacenReporteInventarioDto>("[dbo].[IM_WMS_ObtenerAlmacenesReporteInventario]", new List<SqlParameter>());
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<byte[]> GenerarReporteInventarioExcel(DateTime fechaIni, DateTime fechaFin, string articulo)
         {
             try
             {
+                List<string> almacenesReporte = (await GetAlmacenesReporteInventario() ?? new List<AlmacenReporteInventarioDto>())
+                    .Where(a => !string.IsNullOrWhiteSpace(a.Almacen))
+                    .Select(a => a.Almacen.Trim())
+                    .ToList();
+
+                if (!almacenesReporte.Any())
+                    return new byte[0];
+
                 Color colorNavy = ColorTranslator.FromHtml("#0D1B2A");
                 bool huboDatos = false;
                 var resumenPorAlmacen = new List<(string Almacen, int Articulos, int Movimientos)>();
@@ -100,8 +119,8 @@ namespace WMS_API.Features.Repositories
 
                 using (ExcelPackage package = new ExcelPackage())
                 {
-                    // El reporte siempre va por almacén (hardcodeado) + rango de fechas.
-                    foreach (string almacen in AlmacenesReporte)
+                    // El reporte siempre va por almacén (obtenidos desde IM_WMS_ObtenerAlmacenesReporteInventario) + rango de fechas.
+                    foreach (string almacen in almacenesReporte)
                     {
                         List<KardexInventarioDto> kardex = await GetKardexInventario(fechaIni, fechaFin, almacen, articulo, soloConMovimiento: true) ?? new List<KardexInventarioDto>();
                         List<MovimientoInventarioDto> movimientos = await GetMovimientosInventario(fechaIni, fechaFin, almacen, articulo) ?? new List<MovimientoInventarioDto>();
