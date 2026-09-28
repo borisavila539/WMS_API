@@ -23,7 +23,7 @@ namespace WMS_API.Features.Repositories
         private readonly string _connectionString;
         public IM_WMS_GeneracionPrecioYCodigosRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("IMFinanzasDev");
+            _connectionString = configuration.GetConnectionString("IMFinanzas");
         }
 
         public async Task<List<IM_WMS_ClientesGeneracionprecios>> GetClientesGeneracionprecios()
