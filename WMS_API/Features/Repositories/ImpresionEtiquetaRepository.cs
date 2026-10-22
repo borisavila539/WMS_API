@@ -3,10 +3,12 @@ using Core.DTOs.RecepcionYUbicacionAX;
 using Core.Interfaces;
 using DevExpress.Xpo.Exceptions;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -150,7 +152,8 @@ namespace WMS_API.Features.Repositories
         string receiveEmpresa,
         string listaEmpaque,
         string pedido,
-        string ipPrinter)
+        string ipPrinter,
+        string usuario)
         {
             try
             {
@@ -174,6 +177,19 @@ namespace WMS_API.Features.Repositories
                 int marcaImpresa = 0;
 
                 var items2 = await GetItemsAsyncById2Async(receiveEmpresa, pedido, listaEmpaque);
+
+                // Igual que MB: se incrementa el contador de cada caja antes de imprimir
+                // y el número sale en la etiqueta junto a "DESTINO:"
+                var reimpresiones = await RegistrarReimpresionCajas(receiveEmpresa, items2, ipPrinter, usuario);
+
+                string LineaReimpresion(int y, string numeroCaja)
+                {
+                    if (numeroCaja == null || !reimpresiones.TryGetValue(numeroCaja.Trim(), out int numero))
+                    {
+                        return "";
+                    }
+                    return "^FO450," + (y + 10) + "^A0N,30,30^FDREIMPRESION # " + numero + "^FS";
+                }
 
                 foreach (var item in items2)
                 {
@@ -221,7 +237,7 @@ namespace WMS_API.Features.Repositories
                                     }
                                     contenidoEnviar += "^FS";
 
-                                    contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS";
+                                    contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS" + LineaReimpresion(sigLineaY, item.NumeroCaja);
                                     sigLineaY += tamaTexto + 7 + separador;
                                     contenidoEnviar += "^FO30," + sigLineaY + "^A0N," + tamaTexto + "," + tamaTexto + "^FH^FD" + codigoASCII(item.ClienteNombre) + " ^FS";
                                     sigLineaY += tamaTexto + separador;
@@ -303,7 +319,7 @@ namespace WMS_API.Features.Repositories
                                 }
                                 contenidoEnviar += "^FS";
 
-                                contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS";
+                                contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS" + LineaReimpresion(sigLineaY, item.NumeroCaja);
                                 sigLineaY += tamaTexto + 7 + separador;
 
                                 contenidoEnviar += "^FO30," + sigLineaY + "^A0N," + (tamaTexto + 10) + "," + (tamaTexto + 10) + "^FH^FD" + codigoASCII(item.ClienteNombre) + " ^FS";
@@ -394,7 +410,7 @@ namespace WMS_API.Features.Repositories
                             }
                             contenidoEnviar += "^FS";
 
-                            contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS";
+                            contenidoEnviar += "^FO30," + sigLineaY + "^A0N,50,50^FD DESTINO:  ^FS" + LineaReimpresion(sigLineaY, item.NumeroCaja);
                             sigLineaY += tamaTexto + 7 + separador;
 
                             // Nombre del cliente
@@ -518,6 +534,54 @@ namespace WMS_API.Features.Repositories
        
 
 
+
+        private async Task<Dictionary<string, int>> RegistrarReimpresionCajas(
+            string empresa,
+            List<DatosEtiqueta> items,
+            string impresora,
+            string usuario)
+        {
+            var resultado = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            var cajas = items
+                .Where(x => !string.IsNullOrWhiteSpace(x.NumeroCaja))
+                .GroupBy(x => x.NumeroCaja.Trim())
+                .Select(g => new
+                {
+                    NumeroCaja = g.Key,
+                    g.First().NumeroCajaLocal,
+                    g.First().Pedido,
+                    g.First().ListaEmpaque
+                })
+                .ToList();
+
+            if (cajas.Count == 0)
+            {
+                return resultado;
+            }
+
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Empresa", empresa),
+                new SqlParameter("@Cajas", JsonConvert.SerializeObject(cajas)),
+                new SqlParameter("@Usuario", (object)usuario ?? DBNull.Value),
+                new SqlParameter("@Impresora", (object)impresora ?? DBNull.Value)
+            };
+
+            var respuesta = await executeProcedure.ExecuteStoredProcedureList<RespuestaReimpresionCajaPepeDTO>(
+                "IM_WMS_PEPE_RegistrarReimpresionCajas",
+                parameters
+            );
+
+            foreach (var caja in respuesta)
+            {
+                resultado[caja.NumeroCaja.Trim()] = caja.ReimpresionNum;
+            }
+
+            return resultado;
+        }
 
         private async Task EnviarAImpresor(string etiqueta, string ipPrinter)
         {

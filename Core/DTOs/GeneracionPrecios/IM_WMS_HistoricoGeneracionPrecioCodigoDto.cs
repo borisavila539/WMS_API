@@ -27,6 +27,7 @@ namespace Core.DTOs.GeneracionPrecios
             public decimal CostoAX { get; set; }
             public decimal CostoConfiguracionPrecio { get; set; }
             public decimal Precio { get; set; }
+            public decimal PrecioDolar { get; set; }
             public string Departamento { get; set; }
             public string SubCategoria { get; set; }
             public string Coleccion { get; set; }

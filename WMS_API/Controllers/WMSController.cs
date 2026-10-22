@@ -95,9 +95,9 @@ namespace WMS_API.Controllers
             return Ok(resp);
         }
         [HttpGet("ImprimirEtiquetasPendientes/{empresa}/{Pedido}/{ListaEmpaque}/{impresora}")]
-        public async Task<ActionResult<IEnumerable<DatosEtiqueta>>> ImprimirEtiquetasPendientes(string empresa, string Pedido, string ListaEmpaque, string impresora)
+        public async Task<ActionResult<IEnumerable<DatosEtiqueta>>> ImprimirEtiquetasPendientes(string empresa, string Pedido, string ListaEmpaque, string impresora, [FromQuery] string usuario = null)
         {
-            var resp = await _repoImpresion.ExecuteLoadEtiquetasItemsCommand2Refactored(empresa, ListaEmpaque, Pedido, impresora);
+            var resp = await _repoImpresion.ExecuteLoadEtiquetasItemsCommand2Refactored(empresa, ListaEmpaque, Pedido, impresora, usuario);
             if (resp == null || resp.Count == 0)
             {
                 return BadRequest("No se encontraron registros");

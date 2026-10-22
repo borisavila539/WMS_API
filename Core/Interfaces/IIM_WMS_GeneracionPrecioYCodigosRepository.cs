@@ -30,6 +30,11 @@ namespace Core.Interfaces
         public Task<RespuestaSP> ActualizarTallaConfiguracionPrecio(TallaConfiguracionPrecioDto item);
         public Task<RespuestaSP> EliminarTallaConfiguracionPrecio(int id);
 
+        public Task<List<TiendaGeneracionPrecioDto>> GetTiendasGeneracionPrecio();
+        public Task<RespuestaSP> InsertarTiendaGeneracionPrecio(TiendaGeneracionPrecioDto item);
+        public Task<RespuestaSP> ActualizarTiendaGeneracionPrecio(TiendaGeneracionPrecioDto item);
+        public Task<RespuestaSP> EliminarTiendaGeneracionPrecio(int id);
+
         public Task<List<CategoriaPorClienteBaseDto>> ObtenerCategoriaPorClienteBase(string cuentaCliente, string baseArticulo, string empresa);
 
     }

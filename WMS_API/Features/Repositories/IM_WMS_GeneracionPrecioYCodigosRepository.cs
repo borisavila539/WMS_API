@@ -65,6 +65,9 @@ namespace WMS_API.Features.Repositories
 
                         DataTable table = dataSet.Tables[0];
                         string Categoria = "";
+                        // Plantilla nueva (11 columnas): ... Costo, Precio, PrecioDolar, Margen.
+                        // Plantilla anterior (10 columnas): ... Costo, Precio, Margen (PrecioDolar = 0).
+                        bool tienePrecioDolar = table.Columns.Count >= 11;
                         // Saltar encabezado
                         for (int row = 2; row < table.Rows.Count; row++)
                         {
@@ -78,8 +81,18 @@ namespace WMS_API.Features.Repositories
 
                             decimal.TryParse(dr[7]?.ToString(), out decimal costo);
                             decimal.TryParse(dr[8]?.ToString(), out decimal precio);
-                            decimal.TryParse(dr[9]?.ToString(), out decimal margen);
-          
+                            decimal precioDolar = 0;
+                            decimal margen;
+                            if (tienePrecioDolar)
+                            {
+                                decimal.TryParse(dr[9]?.ToString(), out precioDolar);
+                                decimal.TryParse(dr[10]?.ToString(), out margen);
+                            }
+                            else
+                            {
+                                decimal.TryParse(dr[9]?.ToString(), out margen);
+                            }
+
                             Categoria = string.IsNullOrEmpty(dr[0]?.ToString()?.Trim()) ? Categoria : dr[0]?.ToString()?.Trim();
 
                             result.Data.Add(new ConfiguracionPrecioDto
@@ -93,6 +106,7 @@ namespace WMS_API.Features.Repositories
                                 Talla = dr[6]?.ToString()?.Trim() ?? "",
                                 Costo = costo,
                                 Precio = precio,
+                                PrecioDolar = precioDolar,
                                 Margen = margen
                             });
                         }
@@ -142,7 +156,8 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@Costo", item.Costo),
                 new SqlParameter("@Precio", item.Precio),
                 new SqlParameter("@Margen", item.Margen),
-                new SqlParameter("@UserCreated", userCreated)
+                new SqlParameter("@UserCreated", userCreated),
+                new SqlParameter("@PrecioDolar", item.PrecioDolar)
             };
 
             try
@@ -176,7 +191,8 @@ namespace WMS_API.Features.Repositories
                 new SqlParameter("@Costo", item.Costo),
                 new SqlParameter("@Precio", item.Precio),
                 new SqlParameter("@Margen", item.Margen),
-                new SqlParameter("@UserModified", userModified)
+                new SqlParameter("@UserModified", userModified),
+                new SqlParameter("@PrecioDolar", item.PrecioDolar)
             };
 
             try
@@ -373,6 +389,9 @@ namespace WMS_API.Features.Repositories
 
                 new("@Precio",
                     configuracion.Precio),
+
+                new("@PrecioDolar",
+                    configuracion.PrecioDolar),
 
                 new("@Departamento",
                     (object?)linea.Departamento ?? DBNull.Value),
@@ -1044,6 +1063,98 @@ namespace WMS_API.Features.Repositories
                 return await executeProcedure
                     .ExecuteStoredProcedure<RespuestaSP>(
                         "[dbo].[IM_WMS_TallasConfiguracionPrecio_Eliminar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<TiendaGeneracionPrecioDto>> GetTiendasGeneracionPrecio()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedureList<TiendaGeneracionPrecioDto>(
+                        "[dbo].[IM_WMS_TiendasGeneracionPrecio_Listar]",
+                        new List<SqlParameter>());
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> InsertarTiendaGeneracionPrecio(TiendaGeneracionPrecioDto item)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@CodigoCliente", item.CodigoCliente ?? ""),
+                new SqlParameter("@Tienda", item.Tienda ?? ""),
+                new SqlParameter("@IdDireccion", item.IdDireccion),
+                new SqlParameter("@Descripcion", item.Descripcion ?? ""),
+                new SqlParameter("@Moneda", item.Moneda ?? "")
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TiendasGeneracionPrecio_Insertar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> ActualizarTiendaGeneracionPrecio(TiendaGeneracionPrecioDto item)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", item.Id),
+                new SqlParameter("@CodigoCliente", item.CodigoCliente ?? ""),
+                new SqlParameter("@Tienda", item.Tienda ?? ""),
+                new SqlParameter("@IdDireccion", item.IdDireccion),
+                new SqlParameter("@Descripcion", item.Descripcion ?? ""),
+                new SqlParameter("@Moneda", item.Moneda ?? "")
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TiendasGeneracionPrecio_Actualizar]",
+                        parametros);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<RespuestaSP> EliminarTiendaGeneracionPrecio(int id)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", id)
+            };
+
+            try
+            {
+                return await executeProcedure
+                    .ExecuteStoredProcedure<RespuestaSP>(
+                        "[dbo].[IM_WMS_TiendasGeneracionPrecio_Eliminar]",
                         parametros);
             }
             catch (Exception)

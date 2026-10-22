@@ -380,6 +380,87 @@ namespace WMS_API.Controllers
             }
         }
 
+        [HttpGet("GetTiendasGeneracionPrecio")]
+        public async Task<IActionResult> GetTiendasGeneracionPrecio()
+        {
+            try
+            {
+                var data = await _repository.GetTiendasGeneracionPrecio();
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("InsertTiendaGeneracionPrecio")]
+        public async Task<IActionResult> InsertTiendaGeneracionPrecio([FromBody] TiendaGeneracionPrecioDto item)
+        {
+            try
+            {
+                if (item == null)
+                    return BadRequest(new { Success = false, Message = "No se recibieron datos del registro." });
+
+                var response = await _repository.InsertarTiendaGeneracionPrecio(item);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UpdateTiendaGeneracionPrecio")]
+        public async Task<IActionResult> UpdateTiendaGeneracionPrecio([FromBody] TiendaGeneracionPrecioDto item)
+        {
+            try
+            {
+                if (item == null || item.Id <= 0)
+                    return BadRequest(new { Success = false, Message = "El Id del registro es obligatorio." });
+
+                var response = await _repository.ActualizarTiendaGeneracionPrecio(item);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("DeleteTiendaGeneracionPrecio/{id}")]
+        public async Task<IActionResult> DeleteTiendaGeneracionPrecio(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { Success = false, Message = "No se recibieron registros." });
+
+                var response = await _repository.EliminarTiendaGeneracionPrecio(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [HttpGet("ObtenerCategoriaPorClienteBase/{cuentaCliente}/{baseArticulo}")]
         public async Task<IActionResult> ObtenerCategoriaPorClienteBase(string cuentaCliente, string baseArticulo, [FromQuery] string empresa = "IMHN")
         {

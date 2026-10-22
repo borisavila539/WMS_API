@@ -21,5 +21,7 @@ namespace Core.DTOs.GeneracionPrecios
         public Boolean Decimal { get; set; }
         public string IMIB_BOXCODE { get; set; }
         public bool RequiereConfirmacion { get; set; }
+        public string Tienda { get; set; }
+        public string MonedaTienda { get; set; }
     }
 }

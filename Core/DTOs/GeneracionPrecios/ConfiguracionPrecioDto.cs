@@ -18,6 +18,7 @@ namespace Core.DTOs.GeneracionPrecios
         public string Talla { get; set; }
         public decimal Costo { get; set; }
         public decimal Precio { get; set; }
+        public decimal PrecioDolar { get; set; }
         public decimal Margen { get; set; }
     }
 }

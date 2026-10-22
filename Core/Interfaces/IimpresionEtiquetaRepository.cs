@@ -16,6 +16,7 @@ namespace Core.Interfaces
         string receiveEmpresa,
         string listaEmpaque,
         string pedido,
-        string ipPrinter);
+        string ipPrinter,
+        string usuario);
     }
 }
