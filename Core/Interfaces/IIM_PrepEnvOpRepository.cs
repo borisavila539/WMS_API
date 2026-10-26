@@ -22,7 +22,7 @@ namespace Core.Interfaces
         Task<List<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>> HistoricoOpPreparada(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? area);
         Task<IM_PrepEnvOp_FirmaBase64> FirmaByIdDetalle(int idDetalleOpEnviada);
         Task<List<IM_PrepEnvOp_ListadoDeOpConDetalleDTO>> HistoricoByOp(string ordenDeProduccion);
-        Task<List<IM_PrepEnvOp_ListadoDeOpDTO>> SyncListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana);
+        Task<List<IM_PrepEnvOp_ListadoDeOpDTO>> SyncListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? areaFilter = null);
 
 
         }
