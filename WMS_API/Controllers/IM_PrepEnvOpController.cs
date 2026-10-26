@@ -29,8 +29,15 @@ namespace WMS_API.Controllers
             [FromQuery] DateTime fechaFinSemana,
             [FromQuery] string? area)
         {
-            var resp = await _IIM_PrepEnvOpRepository.GetListadoDeOp(fechaInicioSemana, fechaFinSemana, area);
-            return Ok(resp);
+            try
+            {
+                var resp = await _IIM_PrepEnvOpRepository.GetListadoDeOp(fechaInicioSemana, fechaFinSemana, area);
+                return Ok(resp ?? new ListadoDeOpResponseDTO());
+            }
+            catch (Exception)
+            {
+                return Ok(new ListadoDeOpResponseDTO());
+            }
         }
 
         [HttpGet("HistoricoOpPreparada")]
@@ -40,7 +47,12 @@ namespace WMS_API.Controllers
             [FromQuery] DateTime fechaFinSemana,
             [FromQuery] string? area)
         {
+            try
+            {
             var resp = await _IIM_PrepEnvOpRepository.HistoricoOpPreparada(fechaInicioSemana, fechaFinSemana, area);
+
+            if (resp == null || resp.Count == 0)
+                return Ok(new List<HistoricoOpAgrupadoDTO>());
 
             var agrupado = resp
                .GroupBy(x => new { x.OrdenTrabajo, x.NoTraslado })
@@ -76,6 +88,11 @@ namespace WMS_API.Controllers
                })
                .ToList();
             return Ok(agrupado);
+            }
+            catch (Exception)
+            {
+                return Ok(new List<HistoricoOpAgrupadoDTO>());
+            }
         }
 
         [HttpGet("HistoricoByOp")]
@@ -126,11 +143,12 @@ namespace WMS_API.Controllers
         [HttpGet("SyncListadoDeOp")]
         public async Task<ActionResult<ListadoDeOpResponseDTO>> SyncListadoDeOp(
             [FromQuery] DateTime fechaInicioSemana,
-            [FromQuery] DateTime fechaFinSemana)
+            [FromQuery] DateTime fechaFinSemana,
+            [FromQuery] string areaFilter = null)
         {
             try
             {
-                var resp = await _IIM_PrepEnvOpRepository.SyncListadoDeOp(fechaInicioSemana, fechaFinSemana);
+                var resp = await _IIM_PrepEnvOpRepository.SyncListadoDeOp(fechaInicioSemana, fechaFinSemana, areaFilter);
                 return Ok(resp);
             }
             catch (Exception ex)

@@ -38,6 +38,10 @@ namespace WMS_API.Features.Repositories
             };
 
             var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListadoDeOpDTO>("[IM_PrepEnvOp_ListadoDeOp]", parametros);
+
+            if (result == null || result.Count == 0)
+                return new ListadoDeOpResponseDTO();
+
             var estilosUnicos = result
             .Select(r => r.Estilo)
             .Where(e => !string.IsNullOrEmpty(e))
@@ -142,7 +146,7 @@ namespace WMS_API.Features.Repositories
             return result;
         }
 
-        public async Task<List<IM_PrepEnvOp_ListadoDeOpDTO>> SyncListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana)
+        public async Task<List<IM_PrepEnvOp_ListadoDeOpDTO>> SyncListadoDeOp(DateTime fechaInicioSemana, DateTime fechaFinSemana, string? areaFilter = null)
         {
             ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
 
@@ -150,7 +154,7 @@ namespace WMS_API.Features.Repositories
             {
                 new SqlParameter("@FechaInicioSemana",fechaInicioSemana),
                 new SqlParameter("@FechaFinSemana",fechaFinSemana),
-                new SqlParameter("@areaFilter",null)
+                new SqlParameter("@areaFilter",string.IsNullOrWhiteSpace(areaFilter) ? DBNull.Value : (object)areaFilter)
             };
 
             var result = await executeProcedure.ExecuteStoredProcedureList<IM_PrepEnvOp_ListadoDeOpDTO>("[IM_PrepEnvOp_SyncListadoDeOp]", parametros);
