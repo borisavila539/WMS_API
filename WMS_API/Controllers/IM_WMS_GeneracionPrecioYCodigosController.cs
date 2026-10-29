@@ -230,16 +230,43 @@ namespace WMS_API.Controllers
                 return "No se recibieron líneas para imprimir";
             }
 
-            bool hayInvalidas = request.Lineas.Any(x => x.RequiereConfirmacion || x.Precio == 0);
-            if (hayInvalidas)
+            if (string.IsNullOrWhiteSpace(request.Pedido) && string.IsNullOrWhiteSpace(request.Ruta) && string.IsNullOrWhiteSpace(request.Caja))
             {
-                return "Existen articulos sin precio o pendientes de confirmación";
+                return "Falta el criterio de búsqueda (pedido, ruta o caja). Actualiza la página y vuelve a buscar.";
+            }
+
+            // No se confía en RequiereConfirmacion/Precio que manda el cliente (pudo quedar desactualizado
+            // o venir de otro lado): se vuelve a consultar y se imprime con los datos vigentes de la BD.
+            var vigentes = await _repository.GetDetalleImpresionEtiquetasPrecio(new ImpresionEtiqueta
+            {
+                Pedido = request.Pedido?.Trim(),
+                Ruta = request.Ruta?.Trim(),
+                Caja = request.Caja?.Trim(),
+                Fecha = request.Fecha
+            });
+
+            var llavesSolicitadas = new HashSet<string>(request.Lineas.Select(LlaveLineaImpresion));
+            var lineasVigentes = vigentes.Where(x => llavesSolicitadas.Contains(LlaveLineaImpresion(x))).ToList();
+
+            var llavesEncontradas = new HashSet<string>(lineasVigentes.Select(LlaveLineaImpresion));
+            int noEncontradas = llavesSolicitadas.Count(x => !llavesEncontradas.Contains(x));
+            if (noEncontradas > 0)
+            {
+                return $"{noEncontradas} línea(s) seleccionada(s) ya no aparecen en la consulta. Vuelve a buscar e intenta de nuevo.";
+            }
+
+            // Sin precio incluye tiendas en DOLAR sin PrecioDolar (el SP devuelve Precio = 0)
+            int pendientes = lineasVigentes.Count(x => x.RequiereConfirmacion);
+            int sinPrecio = lineasVigentes.Count(x => x.Precio <= 0);
+            if (pendientes > 0 || sinPrecio > 0)
+            {
+                return $"No se imprimió nada: {pendientes} línea(s) pendientes de confirmación y {sinPrecio} sin precio. Vuelve a buscar para ver el estado actual.";
             }
 
             // El código de caja tiene formato "<secuencia>-<código>" (ej. "1-M9329191", "10-M2323232").
             // Ordenar por IMIB_BOXCODE como string ordena alfabéticamente ("1","10","11",..,"2","3",...),
             // por eso el orden se veía bien con pocas cajas y se rompía apenas aparecía la caja "10".
-            var data = request.Lineas
+            var data = lineasVigentes
                 .OrderBy(x => ExtraerNumeroSecuenciaCaja(x.IMIB_BOXCODE))
                 .ThenBy(x => x.IMIB_BOXCODE)
                 .ThenBy(x => x.Articulo)
@@ -478,6 +505,10 @@ namespace WMS_API.Controllers
                 });
             }
         }
+
+        // Misma llave que usa la pantalla para identificar una línea (codigoBarra + caja).
+        private static string LlaveLineaImpresion(IM_WMS_DetalleImpresionEtiquetasPrecio x) =>
+            $"{x.CodigoBarra?.Trim()}__{x.IMIB_BOXCODE?.Trim()}";
 
         // El código de caja viene como "<secuencia>-<código>" (ej. "1-M9329191").
         // Extrae la parte numérica inicial para poder ordenar cajas por secuencia real

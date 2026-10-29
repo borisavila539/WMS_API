@@ -10,6 +10,13 @@ namespace Core.DTOs.GeneracionPrecios
     {
         public string Impresora {  get; set; }
         public string Fecha { get; set; }
+
+        // Criterio de búsqueda con el que se obtuvieron las líneas. El API vuelve a consultar
+        // con él antes de imprimir, para no confiar en RequiereConfirmacion/Precio del cliente.
+        public string Pedido { get; set; }
+        public string Ruta { get; set; }
+        public string Caja { get; set; }
+
         public List<IM_WMS_DetalleImpresionEtiquetasPrecio> Lineas { get; set; }
     }
 }
