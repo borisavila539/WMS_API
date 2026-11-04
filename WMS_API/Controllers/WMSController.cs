@@ -1337,7 +1337,7 @@ namespace WMS_API.Controllers
         [HttpPost("ImprimirEtiquetaTejidoPunto")]
         public async Task<string> ImprimirEtiquetaTejidoPunto([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas)
         {
-            var resp = await _WMS.ImpresionEtiquetaRolloTejidoPuntoMasivo(etiquetasSelecionadas, "10.1.1.129");
+            var resp = await _WMS.ImpresionEtiquetaRolloTejidoPuntoMasivo(etiquetasSelecionadas, "10.1.1.178");
             return resp;
         }
 
@@ -1356,7 +1356,7 @@ namespace WMS_API.Controllers
                 etiqueta.NOMBRECOLOR = ele.NombreColor;
                 etiqueta.INVENTBATCHID = ele.Lote;
                 etiqueta.CONFIGID = ele.Configuracion;
-                etiqueta.PRINT = "10.1.1.129";
+                etiqueta.PRINT = "10.1.1.178";
                 etiqueta.NombreProveedor = ele.NombreProveedor;
                 etiqueta.Auditor = ele.Auditor;
                 etiqueta.FechaCreacion = ele.FechaCreacion;
