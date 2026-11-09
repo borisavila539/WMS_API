@@ -3,21 +3,30 @@ using System;
 namespace Core.DTOs.AuditoriaInterna
 {
     // Columnas de IM_WMS_AuditoriaInterna_DashboardResumen.
+    // Cobertura y pendientes son sobre lo RECIBIDO en el CD; enviadas es informativo.
     public class AuditoriaInternaDashboardResumenDto
     {
         public int CajasEnviadas { get; set; }
-        public int CajasEnviadasAuditadas { get; set; }
+        public int UnidadesEnviadas { get; set; }
+        public int CajasRecibidas { get; set; }
+        public int UnidadesRecibidas { get; set; }
+        public int CajasSinRecibir { get; set; }
+        public int CajasRecibidasAuditadas { get; set; }
         public decimal Cobertura { get; set; }
         public int CajasPendientes { get; set; }
         public int CajasEnProceso { get; set; }
         public int CajasAuditadas { get; set; }
         public int CajasConDiferencia { get; set; }
+        public int CajasDiferenciaEtiqueta { get; set; }
         public int UnidadesEsperadas { get; set; }
         public int UnidadesEscaneadas { get; set; }
         public int UnidadesFaltantes { get; set; }
         public int UnidadesSobrantes { get; set; }
+        public int UnidadesDiferenciaEtiqueta { get; set; }
         public decimal Exactitud { get; set; }
         public decimal MinutosPromedioCaja { get; set; }
+        // Hora del ultimo recalculo del cache de envios y recepciones (las auditorias son en linea)
+        public DateTime? UniversoActualizado { get; set; }
     }
 
     // Columnas de IM_WMS_AuditoriaInterna_DashboardPorContratista (una fila por linea:
@@ -27,14 +36,19 @@ namespace Core.DTOs.AuditoriaInterna
         public string Origen { get; set; }
         public string Linea { get; set; }
         public int CajasEnviadas { get; set; }
-        public int CajasEnviadasAuditadas { get; set; }
+        public int UnidadesEnviadas { get; set; }
+        public int CajasRecibidas { get; set; }
+        public int UnidadesRecibidas { get; set; }
+        public int CajasRecibidasAuditadas { get; set; }
         public decimal Cobertura { get; set; }
         public int CajasAuditadas { get; set; }
         public int CajasConDiferencia { get; set; }
+        public int CajasDiferenciaEtiqueta { get; set; }
         public int UnidadesEsperadas { get; set; }
         public int UnidadesEscaneadas { get; set; }
         public int UnidadesFaltantes { get; set; }
         public int UnidadesSobrantes { get; set; }
+        public int UnidadesDiferenciaEtiqueta { get; set; }
         public decimal Exactitud { get; set; }
     }
 
@@ -73,7 +87,10 @@ namespace Core.DTOs.AuditoriaInterna
         public int CantidadEsperada { get; set; }
         public int CantidadEscaneada { get; set; }
         public int Diferencia { get; set; }
+        public int DiferenciaEtiqueta { get; set; }
         public string Observaciones { get; set; }
+        public DateTime? FechaEnvio { get; set; }
+        public DateTime? FechaRecepcion { get; set; }
         public string UsuarioInicio { get; set; }
         public DateTime FechaInicio { get; set; }
         public string UsuarioCierre { get; set; }
@@ -91,6 +108,8 @@ namespace Core.DTOs.AuditoriaInterna
         public string Linea { get; set; }
         public string Contratista { get; set; }
         public DateTime? FechaEnvio { get; set; }
+        public DateTime? FechaRecepcion { get; set; }
+        public int Unidades { get; set; }
         public string Estado { get; set; }
     }
 }

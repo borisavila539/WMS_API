@@ -53,6 +53,7 @@ namespace Core.DTOs.AuditoriaInterna
         public int Diferencia { get; set; }
         public int Faltantes { get; set; }
         public int Sobrantes { get; set; }
+        public int DiferenciaEtiqueta { get; set; }
         public int Escaneos { get; set; }
         public int Rechazos { get; set; }
         public string Observaciones { get; set; }
@@ -74,6 +75,7 @@ namespace Core.DTOs.AuditoriaInterna
         public int Diferencia { get; set; }
         public int Faltantes { get; set; }
         public int Sobrantes { get; set; }
+        public int DiferenciaEtiqueta { get; set; }
         public int Escaneos { get; set; }
     }
 
@@ -152,6 +154,7 @@ namespace Core.DTOs.AuditoriaInterna
         public int CantidadEscaneada { get; set; }
         public int Faltantes { get; set; }
         public int Sobrantes { get; set; }
+        public int DiferenciaEtiqueta { get; set; }
         public string Comentario { get; set; }
         public string Usuario { get; set; }
         public DateTime Fecha { get; set; }

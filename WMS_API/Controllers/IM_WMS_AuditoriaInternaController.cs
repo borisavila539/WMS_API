@@ -198,6 +198,31 @@ namespace WMS_API.Controllers
             }
         }
 
+        // Borra la auditoria completa (queda en la bitacora de eliminadas); la caja vuelve a quedar pendiente.
+        // Mismo permiso que reabrir.
+        [HttpPost("EliminarCaja")]
+        public async Task<IActionResult> EliminarCaja([FromBody] ReabrirCajaAuditoriaRequest request)
+        {
+            try
+            {
+                if (request == null || request.AuditoriaId <= 0)
+                    return BadRequest(new { Success = false, Message = "La auditoria es obligatoria." });
+                if (string.IsNullOrWhiteSpace(request.Usuario))
+                    return BadRequest(new { Success = false, Message = "El usuario es obligatorio." });
+                if (string.IsNullOrWhiteSpace(request.Motivo))
+                    return BadRequest(new { Success = false, Message = "El motivo de la eliminacion es obligatorio." });
+                if (request.Motivo.Length > 500)
+                    return BadRequest(new { Success = false, Message = "El motivo admite maximo 500 caracteres." });
+
+                // El permiso se valida en el SP
+                return Ok(await _repository.EliminarCaja(request));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
         [HttpGet("Historial/{auditoriaId}")]
         public async Task<IActionResult> ObtenerHistorial(int auditoriaId)
         {
@@ -262,14 +287,15 @@ namespace WMS_API.Controllers
         }
 
         [HttpGet("DashboardCajas")]
-        public async Task<IActionResult> DashboardCajas([FromQuery] DateTime fechaIni, [FromQuery] DateTime fechaFin)
+        public async Task<IActionResult> DashboardCajas([FromQuery] DateTime fechaIni, [FromQuery] DateTime fechaFin, [FromQuery] string porFecha = "RECEPCION")
         {
             try
             {
                 if (fechaIni.Date > fechaFin.Date)
                     return BadRequest(new { Success = false, Message = "La fecha inicial no puede ser mayor que la fecha final." });
 
-                return Ok(await _repository.DashboardCajas(fechaIni, fechaFin));
+                // RECEPCION (defecto): cajas recibidas en el periodo; AUDITORIA: auditadas en el periodo
+                return Ok(await _repository.DashboardCajas(fechaIni, fechaFin, porFecha?.Trim().ToUpperInvariant()));
             }
             catch (Exception ex)
             {
