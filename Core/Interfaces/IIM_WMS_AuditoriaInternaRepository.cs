@@ -20,13 +20,14 @@ namespace Core.Interfaces
         Task<AuditoriaInternaPermisoDto> PermisoReabrir(string usuario);
         Task<AuditoriaInternaRespuestaDto> ReabrirCaja(ReabrirCajaAuditoriaRequest request);
         Task<AuditoriaInternaRespuestaDto> ReiniciarCaja(ReabrirCajaAuditoriaRequest request);
+        Task<AuditoriaInternaRespuestaDto> EliminarCaja(ReabrirCajaAuditoriaRequest request);
         Task<List<AuditoriaInternaHistorialDto>> ObtenerHistorial(int auditoriaId);
 
         // Dashboard
         Task<AuditoriaInternaDashboardResumenDto> DashboardResumen(DateTime fechaIni, DateTime fechaFin);
         Task<List<AuditoriaInternaDashboardContratistaDto>> DashboardPorContratista(DateTime fechaIni, DateTime fechaFin);
         Task<List<AuditoriaInternaDashboardDiaDto>> DashboardPorDia(DateTime fechaIni, DateTime fechaFin);
-        Task<List<AuditoriaInternaDashboardCajaDto>> DashboardCajas(DateTime fechaIni, DateTime fechaFin);
+        Task<List<AuditoriaInternaDashboardCajaDto>> DashboardCajas(DateTime fechaIni, DateTime fechaFin, string porFecha);
         Task<List<AuditoriaInternaDashboardPendienteDto>> DashboardPendientes(DateTime fechaIni, DateTime fechaFin);
     }
 }

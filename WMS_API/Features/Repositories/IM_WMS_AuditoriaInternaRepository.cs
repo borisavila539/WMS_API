@@ -135,6 +135,18 @@ namespace WMS_API.Features.Repositories
             return (await Ejecutar<AuditoriaInternaRespuestaDto>("[dbo].[IM_WMS_AuditoriaInterna_ReiniciarCaja]", parametros)).FirstOrDefault();
         }
 
+        public async Task<AuditoriaInternaRespuestaDto> EliminarCaja(ReabrirCajaAuditoriaRequest request)
+        {
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@AuditoriaId", request.AuditoriaId),
+                new SqlParameter("@Motivo", (object)request.Motivo ?? DBNull.Value),
+                new SqlParameter("@Usuario", request.Usuario.Trim())
+            };
+
+            return (await Ejecutar<AuditoriaInternaRespuestaDto>("[dbo].[IM_WMS_AuditoriaInterna_EliminarCaja]", parametros)).FirstOrDefault();
+        }
+
         public async Task<List<AuditoriaInternaHistorialDto>> ObtenerHistorial(int auditoriaId)
         {
             var parametros = new List<SqlParameter> { new SqlParameter("@AuditoriaId", auditoriaId) };
@@ -157,9 +169,11 @@ namespace WMS_API.Features.Repositories
             return await Ejecutar<AuditoriaInternaDashboardDiaDto>("[dbo].[IM_WMS_AuditoriaInterna_DashboardPorDia]", ParametrosFechas(fechaIni, fechaFin));
         }
 
-        public async Task<List<AuditoriaInternaDashboardCajaDto>> DashboardCajas(DateTime fechaIni, DateTime fechaFin)
+        public async Task<List<AuditoriaInternaDashboardCajaDto>> DashboardCajas(DateTime fechaIni, DateTime fechaFin, string porFecha)
         {
-            return await Ejecutar<AuditoriaInternaDashboardCajaDto>("[dbo].[IM_WMS_AuditoriaInterna_DashboardCajas]", ParametrosFechas(fechaIni, fechaFin));
+            var parametros = ParametrosFechas(fechaIni, fechaFin);
+            parametros.Add(new SqlParameter("@PorFecha", porFecha == "AUDITORIA" ? "AUDITORIA" : "RECEPCION"));
+            return await Ejecutar<AuditoriaInternaDashboardCajaDto>("[dbo].[IM_WMS_AuditoriaInterna_DashboardCajas]", parametros);
         }
 
         public async Task<List<AuditoriaInternaDashboardPendienteDto>> DashboardPendientes(DateTime fechaIni, DateTime fechaFin)
