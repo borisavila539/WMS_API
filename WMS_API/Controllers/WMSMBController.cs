@@ -542,9 +542,66 @@ namespace WMS_API.Controllers
         public async Task<ActionResult> ValidarAccesoPorPantalla(string codigoUsuario)
         {
             var resultado = await _WMSMB.ValidarAccesoAPantlla(codigoUsuario);
-            
+
             return Ok(resultado);
-            
+
+        }
+
+        // ---------------- Comparativo MB vs AX ----------------
+
+        [HttpGet("ComparativoAX")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_ComparativoAX>>> GetComparativoAX([FromQuery] string articulo = "")
+        {
+            try
+            {
+                return Ok(await _WMSMB.GetComparativoAX(articulo));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        // ---------------- Liberar cajas de despacho ----------------
+
+        [HttpGet("LiberarCajas/Permiso/{usuario}")]
+        public async Task<ActionResult<IM_WMS_MB_LiberarPermiso>> GetPermisoLiberarCajas(string usuario)
+        {
+            return Ok(await _WMSMB.GetPermisoLiberarCajas(usuario));
+        }
+
+        [HttpGet("LiberarCajas/Despachos")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_LiberarDespacho>>> GetDespachosLiberables()
+        {
+            return Ok(await _WMSMB.GetDespachosLiberables());
+        }
+
+        [HttpGet("LiberarCajas/Despacho/{despachoId}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_LiberarDespachoInfo>>> GetDespachoLiberar(int despachoId)
+        {
+            return Ok(await _WMSMB.GetDespachoLiberar(despachoId));
+        }
+
+        [HttpGet("LiberarCajas/Cajas/{despachoId}")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_LiberarCaja>>> GetCajasDespachoLiberar(int despachoId)
+        {
+            return Ok(await _WMSMB.GetCajasDespachoLiberar(despachoId));
+        }
+
+        [HttpPost("LiberarCajas")]
+        public async Task<ActionResult<IM_WMS_MB_LiberarCajasResultado>> PostLiberarCajas([FromBody] IM_WMS_MB_LiberarCajasRequest request)
+        {
+            if (request == null || request.Ids == null || request.Ids.Count == 0)
+                return BadRequest(new IM_WMS_MB_LiberarCajasResultado { Ok = false, Mensaje = "No se seleccionaron cajas." });
+
+            var resultado = await _WMSMB.LiberarCajas(request);
+            return Ok(resultado);
+        }
+
+        [HttpGet("LiberarCajas/Historial")]
+        public async Task<ActionResult<IEnumerable<IM_WMS_MB_LiberarHistorial>>> GetHistorialLiberarCajas([FromQuery] DateTime fechaIni, [FromQuery] DateTime fechaFin)
+        {
+            return Ok(await _WMSMB.GetHistorialLiberarCajas(fechaIni, fechaFin));
         }
         
     }

@@ -914,10 +914,85 @@ namespace WMS_API.Features.Repositories
             };
             var resultado = await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_RespuestaValidacionUsuario>("IM_WMS_MB_ValidarAcessoPantalla", parameters);
 
-            var esUsuarioValido = codigoUsuario == resultado.CodigoUsuario; 
+            var esUsuarioValido = codigoUsuario == resultado.CodigoUsuario;
 
             return esUsuarioValido;
 
+        }
+
+        // ---------------- Comparativo MB vs AX ----------------
+
+        public async Task<List<IM_WMS_MB_ComparativoAX>> GetComparativoAX(string articulo)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Articulo", articulo ?? "")
+            };
+            return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_ComparativoAX>("[IM_WMS_MB_ComparativoAX]", parametros, 120);
+        }
+
+        // ---------------- Liberar cajas de despacho ----------------
+
+        public async Task<IM_WMS_MB_LiberarPermiso> GetPermisoLiberarCajas(string usuario)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@Usuario", usuario ?? "")
+            };
+            return await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_LiberarPermiso>("[IM_WMS_MB_LiberarCajas_Permiso]", parametros, 30);
+        }
+
+        public async Task<List<IM_WMS_MB_LiberarDespacho>> GetDespachosLiberables()
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_LiberarDespacho>("[IM_WMS_MB_LiberarCajas_Despachos]", new List<SqlParameter>(), 60);
+        }
+
+        public async Task<List<IM_WMS_MB_LiberarDespachoInfo>> GetDespachoLiberar(int despachoId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoId)
+            };
+            return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_LiberarDespachoInfo>("[IM_WMS_MB_LiberarCajas_Despacho]", parametros, 60);
+        }
+
+        public async Task<List<IM_WMS_MB_LiberarCaja>> GetCajasDespachoLiberar(int despachoId)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", despachoId)
+            };
+            return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_LiberarCaja>("[IM_WMS_MB_LiberarCajas_CajasDespacho]", parametros, 60);
+        }
+
+        public async Task<IM_WMS_MB_LiberarCajasResultado> LiberarCajas(IM_WMS_MB_LiberarCajasRequest request)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var ids = string.Join(",", request.Ids ?? new List<int>());
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@DespachoID", request.DespachoID),
+                new SqlParameter("@Ids", ids),
+                new SqlParameter("@Usuario", request.Usuario ?? ""),
+                new SqlParameter("@Motivo", request.Motivo ?? "")
+            };
+            return await executeProcedure.ExecuteStoredProcedure<IM_WMS_MB_LiberarCajasResultado>("[IM_WMS_MB_LiberarCajas]", parametros, 60);
+        }
+
+        public async Task<List<IM_WMS_MB_LiberarHistorial>> GetHistorialLiberarCajas(DateTime fechaIni, DateTime fechaFin)
+        {
+            ExecuteProcedure executeProcedure = new ExecuteProcedure(_connectionString);
+            var parametros = new List<SqlParameter>
+            {
+                new SqlParameter("@FechaIni", fechaIni.Date),
+                new SqlParameter("@FechaFin", fechaFin.Date)
+            };
+            return await executeProcedure.ExecuteStoredProcedureList<IM_WMS_MB_LiberarHistorial>("[IM_WMS_MB_LiberarCajas_Historial]", parametros, 60);
         }
     }
 }
