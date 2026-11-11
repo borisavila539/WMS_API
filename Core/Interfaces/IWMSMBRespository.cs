@@ -33,5 +33,16 @@ namespace Core.Interfaces
         public Task<string> ImprimirEtiquetaDespachoNormal(IM_WMS_MB_ReimpresionEtiqueta data, string impresora);
         public Task<bool> ValidarAccesoAPantlla(string codigoUsuario);
 
+        // Comparativo MB vs AX
+        public Task<List<IM_WMS_MB_ComparativoAX>> GetComparativoAX(string articulo);
+
+        // Liberar cajas de despacho
+        public Task<IM_WMS_MB_LiberarPermiso> GetPermisoLiberarCajas(string usuario);
+        public Task<List<IM_WMS_MB_LiberarDespacho>> GetDespachosLiberables();
+        public Task<List<IM_WMS_MB_LiberarDespachoInfo>> GetDespachoLiberar(int despachoId);
+        public Task<List<IM_WMS_MB_LiberarCaja>> GetCajasDespachoLiberar(int despachoId);
+        public Task<IM_WMS_MB_LiberarCajasResultado> LiberarCajas(IM_WMS_MB_LiberarCajasRequest request);
+        public Task<List<IM_WMS_MB_LiberarHistorial>> GetHistorialLiberarCajas(DateTime fechaIni, DateTime fechaFin);
+
     }
 }
