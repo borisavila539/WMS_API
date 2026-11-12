@@ -1335,15 +1335,24 @@ namespace WMS_API.Controllers
             return resp;
         }
         [HttpPost("ImprimirEtiquetaTejidoPunto")]
-        public async Task<string> ImprimirEtiquetaTejidoPunto([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas)
+        public async Task<string> ImprimirEtiquetaTejidoPunto([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas, [FromQuery] string ipImpresora)
         {
-            var resp = await _WMS.ImpresionEtiquetaRolloTejidoPuntoMasivo(etiquetasSelecionadas, "10.1.1.178");
+            if (string.IsNullOrWhiteSpace(ipImpresora))
+                return "Debe seleccionar una impresora.";
+
+            var resp = await _WMS.ImpresionEtiquetaRolloTejidoPuntoMasivo(etiquetasSelecionadas, ipImpresora.Trim());
             return resp;
         }
 
         [HttpPost("ImprimirEtiquetaDenim")]
-        public async Task<string> ImprimirEtiquetaDennin([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas)
+        public async Task<string> ImprimirEtiquetaDennin([FromBody] List<IM_WMS_GetDetalleEtiquetaRollosAImprimirDTO> etiquetasSelecionadas, [FromQuery] string ipImpresora)
         {
+            if (string.IsNullOrWhiteSpace(ipImpresora))
+                return "Debe seleccionar una impresora.";
+
+            if (etiquetasSelecionadas == null || etiquetasSelecionadas.Count == 0)
+                return "No se recibió información para imprimir.";
+
             var datosRolloDennin = new List<EtiquetaRolloDTO>();
             etiquetasSelecionadas.ForEach(ele =>
             {
@@ -1356,7 +1365,7 @@ namespace WMS_API.Controllers
                 etiqueta.NOMBRECOLOR = ele.NombreColor;
                 etiqueta.INVENTBATCHID = ele.Lote;
                 etiqueta.CONFIGID = ele.Configuracion;
-                etiqueta.PRINT = "10.1.1.178";
+                etiqueta.PRINT = ipImpresora.Trim();
                 etiqueta.NombreProveedor = ele.NombreProveedor;
                 etiqueta.Auditor = ele.Auditor;
                 etiqueta.FechaCreacion = ele.FechaCreacion;
